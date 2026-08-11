@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 29
-last_updated_utc: "2026-08-11T15:54:02Z"
+state_revision: 30
+last_updated_utc: "2026-08-11T16:20:48Z"
 state_owner: "AI coding agent"
-project_status: "P7B_ACTIVE"
+project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
-current_task: "P7B_INTEGRATED_INVENTORY_IMPLEMENTATION"
+current_task: "P7B_MANUAL_ACCEPTANCE"
 
 project:
   working_name: "Scout26"
@@ -861,8 +861,14 @@ repository_state:
   p7a_activation_commit: "7aa733a9e719e7fe6d9362e89820e5f2a5974966"
   p7a_architecture_commit: "9b073c41b9fadbe6f95dc43e07bc8e520f97993d"
   p7a_completion_commit: "9b073c41b9fadbe6f95dc43e07bc8e520f97993d"
-  last_known_good_commit: "9b073c41b9fadbe6f95dc43e07bc8e520f97993d"
-  last_tested_commit: "9b073c41b9fadbe6f95dc43e07bc8e520f97993d"
+  p7b_activation_commit: "fb7fd5753890d6fbdfb43d85ae74c624f4da45cb"
+  p7b_invariant_tests_commit: "c28b2fdf33d56e8f9c11dc0e151ff21837208a6b"
+  p7b_fixed_slots_commit: "3485172f2b3bf2ac5cfb908430d35d0dc12b3994"
+  p7b_session_commit: "0587721854a122a5a84b3e3e6a2a25cdff20e269"
+  p7b_implementation_commit: "09a11e8ec72d6f755f322100083808ed8934d863"
+  p7b_manual_matrix_commit: "90e4dc8a2b0c2deb8738854cae5ffa00a18693df"
+  last_known_good_commit: "90e4dc8a2b0c2deb8738854cae5ffa00a18693df"
+  last_tested_commit: "09a11e8ec72d6f755f322100083808ed8934d863"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1114,6 +1120,21 @@ bug_regressions:
         - "Human recheck confirmed the corrected plane was vertical but upside down."
         - "Client compilation and all 30 automated tests passed after the correction."
         - "Human final recheck approved the upright, flat-against-body orientation and accepted the current item-model attachments as placeholder rendering."
+    - id: "BUG-P7B-001"
+      phase: "P7-B"
+      severity: "P2"
+      status: "FIXED"
+      summary: "An already-open wide recipe book could compute InventoryScreen position before the integrated-inventory acknowledgement activated left-pouch metadata."
+      impact: "The initial enabled inventory opening could overlap a left pouch until another recipe-book layout update; storage authority and contents were unaffected."
+      root_cause: >
+        RecipeBookComponent.updateScreenPosition runs during InventoryScreen initialization, while exact client bag bindings intentionally activate only after the
+        server acknowledgement and before the subsequent full vanilla container state.
+      fix: >
+        The acknowledgement handler performs one guarded vanilla Screen widget-layout refresh after exact client bindings activate. A weak per-screen lifecycle
+        guard prevents the refresh from registering duplicate ScreenEvents callbacks or sending a second open intent.
+      fixed_in_commit: "09a11e8ec72d6f755f322100083808ed8934d863"
+      regression_tests:
+        - "IntegratedInventoryTest.classicLayoutUsesCapacityPrefixesAndExternalPanels"
 
 session_handoff_protocol:
   startup_steps:
@@ -1295,7 +1316,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7b-active-016"
+  session_id: "p7b-implementation-016"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1316,7 +1337,14 @@ latest_session:
     - "The first P7-A completion state commit used unverified expanded SHAs from abbreviated Git output; state revision 28 corrects them to the exact hashes returned by git log."
     - "P7-A is complete. P7-B remained blocked and unstarted pending separate explicit human authorization."
     - "The human explicitly authorized P7-B on 2026-08-11 to implement ADR-012 within its four-target Mixin boundary; P8 remains blocked and must not begin."
-    - "P7-B implementation is active, default-disabled, and subject to every ADR-012 hard stop."
+    - "P7-B implementation was activated in fb7fd5753890d6fbdfb43d85ae74c624f4da45cb and remains default-disabled and subject to every ADR-012 hard stop."
+    - "c28b2fdf33d56e8f9c11dc0e151ff21837208a6b added fixed-range, layout, dormant-slot, capacity-prefix, exact-handle, stale-replacement, nested-bag, shared-slot, and shared-quick-move policies and regressions without changing Pack Menu behavior."
+    - "3485172f2b3bf2ac5cfb908430d35d0dc12b3994 appended exactly 30 constructor-time InventoryMenu slots and conditionally routed player quick-move into active satchel, left-pouch, and right-pouch ranges."
+    - "0587721854a122a5a84b3e3e6a2a25cdff20e269 added empty open/close intents, server-derived capacity acknowledgement, exact-identity server/client binding, and ordered full vanilla container resynchronization; payloads carry no bag contents."
+    - "09a11e8ec72d6f755f322100083808ed8934d863 added the default-false persisted client flag, Fabric ScreenEvents lifecycle/panel rendering, outside-click correction, wide recipe-book offset, right-side effects offset, and the acknowledgement-time layout refresh for BUG-P7B-001."
+    - "The only Scout26 Mixin targets are the four authorized by ADR-012: InventoryMenu, AbstractContainerScreen, RecipeBookComponent, and EffectsInInventory. No @Overwrite or forbidden target was added."
+    - "Creative Integrated Inventory remains dormant because client lifecycle never opens a session for infinite-material players and every binding also validates survival inventory state; the B-key Pack Menu remains independent."
+    - "No ADR-012 hard stop, P0, or P1 issue was encountered. P7-B is implemented but not complete because its required interactive manual and two-client acceptance matrix has not yet been executed. P8 remains blocked."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1330,6 +1358,10 @@ latest_session:
     - "Clone Scout-Recrafted into the ignored build reference directory, inspect commit 92d39facb151666c1b1b157d279fe01c78037c0e and its integrated-inventory mixin topology, then remove the reference automatically through Gradle clean."
     - "Write docs/adr/ADR-012-p7a-integrated-inventory-architecture.md and update README.md without adding implementation code."
     - "Read all 1369 lines of state revision 28 and all of ADR-012; verify clean main at 1fef79d4b90ab0eed414a41c51ec74492345644a, required ancestry, git fsck, no Java runtime, and free TCP port 25565 before P7-B activation."
+    - "Inspect exact resolved Minecraft 26.1.2 InventoryMenu, AbstractContainerMenu, ServerPlayer, server click handling, AbstractContainerScreen, InventoryScreen, CreativeModeInventoryScreen, RecipeBookComponent, AbstractRecipeBookScreen, EffectsInInventory, and Screen resize sources before their implementation boundaries."
+    - "Inspect Fabric ScreenEvents and client/server networking handler signatures plus MixinExtras 0.5.4 availability before using their exact APIs."
+    - "Implement and commit four buildable P7-B checkpoints, then run git diff --check and exact four-target/no-Overwrite/source-isolation audits."
+    - ".\\gradlew.bat clean build --no-daemon --console=plain; audit build/libs/scout26-0.0.0-dev.jar; run dedicated server and development client smokes; inspect run/logs/latest.log for Mixin or Scout26 errors; stop all launched Java processes and verify TCP 25565 free."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1347,6 +1379,14 @@ latest_session:
     - "Final jar audit confirmed no P7 implementation or mixin entries; git diff --check and git fsck passed."
     - "Final runtime condition: no Scout26 Java/javaw/cmd test processes remained and TCP 25565 was free."
     - "P7-B baseline: .\\gradlew.bat test passed with 30 tests, zero failures, errors, or skips and Loom 1.17.19."
+    - "P7-B invariant/shared-policy checkpoint passed 36/36 tests."
+    - "P7-B session and final automated checkpoints passed 37/37 tests with zero failures, errors, or skips."
+    - "Final clean build passed with Loom 1.17.19 and all 10 actionable tasks executed; only the known Gradle/JOML warnings remain."
+    - "Jar audit found all required common/client Integrated Inventory classes and exactly four Mixin classes/config entries; no @Overwrite exists and common source contains zero client references."
+    - "Dedicated server loaded Scout26 with the common Mixin, loaded 1519 recipes, reached Done, and stopped cleanly; only the known non-fatal Trinkets client-Mixin warning appeared."
+    - "Development client loaded Scout26, MixinExtras, assets, and the client Mixin configuration through title-screen startup with no Scout26 or Mixin application error; expected unauthenticated development-session Realms/user-property errors were unrelated."
+    - "Default config generation produced integrated_inventory_enabled=false. Final runtime condition: no Java/javaw process remained and TCP 25565 was free."
+    - "Required interactive disabled/enabled, interaction, lifecycle, creative, recipe-book/effects, and two-client dedicated-server checks remain pending and are enumerated in docs/P7B_MANUAL_ACCEPTANCE.md."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1358,9 +1398,33 @@ latest_session:
     - "src/main/resources/assets/scout26/lang/en_us.json"
     - "src/main/resources/data/scout26/recipe/*.json"
     - "src/test/java/com/example/scout26/BagStorageTest.java"
+    - "src/main/java/com/example/scout26/BagQuickMove.java"
+    - "src/main/java/com/example/scout26/BagStorageSlot.java"
+    - "src/main/java/com/example/scout26/IntegratedBagContainer.java"
+    - "src/main/java/com/example/scout26/IntegratedInventoryData.java"
+    - "src/main/java/com/example/scout26/IntegratedInventoryLayout.java"
+    - "src/main/java/com/example/scout26/IntegratedInventoryMenu.java"
+    - "src/main/java/com/example/scout26/IntegratedInventoryNetworking.java"
+    - "src/main/java/com/example/scout26/IntegratedInventoryRole.java"
+    - "src/main/java/com/example/scout26/OpenIntegratedInventoryPayload.java"
+    - "src/main/java/com/example/scout26/CloseIntegratedInventoryPayload.java"
+    - "src/main/java/com/example/scout26/IntegratedInventoryAckPayload.java"
+    - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java"
+    - "src/client/java/com/example/scout26/client/IntegratedInventoryConfig.java"
+    - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java"
+    - "src/client/java/com/example/scout26/client/IntegratedInventoryPanels.java"
+    - "src/client/java/com/example/scout26/client/IntegratedInventoryScreenEvents.java"
+    - "src/client/java/com/example/scout26/client/IntegratedScreenLayoutAccess.java"
+    - "src/client/java/com/example/scout26/mixin/client/AbstractContainerScreenMixin.java"
+    - "src/client/java/com/example/scout26/mixin/client/RecipeBookComponentMixin.java"
+    - "src/client/java/com/example/scout26/mixin/client/EffectsInInventoryMixin.java"
+    - "src/main/resources/scout26.mixins.json"
+    - "src/test/java/com/example/scout26/IntegratedInventoryTest.java"
+    - "docs/P7B_MANUAL_ACCEPTANCE.md"
     - "SCOUT26_AGENT_STATE.yaml"
-  blockers: []
-  next_action: "Implement ADR-012 P7-B checkpoint 1: add tests for fixed ranges, layout, dormant behavior, exact-identity bindings, capacity prefixes, stale handles, and nesting rejection."
+  blockers:
+    - "P7-B completion requires the interactive manual and two-client acceptance matrix; it was not executed during this implementation session."
+  next_action: "Run the P7-B manual acceptance checklist beginning with disabled fallback, then enabled survival equipment/capacity combinations on commit 90e4dc8a2b0c2deb8738854cae5ffa00a18693df."
 
 agent_first_prompt:
   text: >
