@@ -9,7 +9,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
@@ -22,11 +22,6 @@ import org.spongepowered.asm.mixin.injection.At;
  */
 @Mixin(AbstractContainerScreen.class)
 abstract class AbstractContainerScreenMixin implements IntegratedScreenLayoutAccess {
-	@Shadow protected int leftPos;
-	@Shadow protected int topPos;
-	@Shadow protected final int imageWidth = 0;
-	@Shadow protected final int imageHeight = 0;
-
 	@ModifyExpressionValue(
 		method = "mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z",
 		at = @At(
@@ -58,26 +53,26 @@ abstract class AbstractContainerScreenMixin implements IntegratedScreenLayoutAcc
 			return original;
 		}
 		IntegratedInventoryData data = menu.scout26$integratedInventoryData();
-		return !IntegratedInventoryLayout.isInsideActivePanel(mouseX - this.leftPos, mouseY - this.topPos, data);
+		return !IntegratedInventoryLayout.isInsideActivePanel(
+			mouseX - this.scout26$leftPos(),
+			mouseY - this.scout26$topPos(),
+			data
+		);
 	}
 
+	@Accessor("leftPos")
 	@Override
-	public int scout26$leftPos() {
-		return this.leftPos;
-	}
+	public abstract int scout26$leftPos();
 
+	@Accessor("topPos")
 	@Override
-	public int scout26$topPos() {
-		return this.topPos;
-	}
+	public abstract int scout26$topPos();
 
+	@Accessor("imageWidth")
 	@Override
-	public int scout26$imageWidth() {
-		return this.imageWidth;
-	}
+	public abstract int scout26$imageWidth();
 
+	@Accessor("imageHeight")
 	@Override
-	public int scout26$imageHeight() {
-		return this.imageHeight;
-	}
+	public abstract int scout26$imageHeight();
 }

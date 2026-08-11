@@ -22,9 +22,8 @@ final class IntegratedInventoryClientNetworking {
 				IntegratedInventoryData data = payload.data();
 				menu.scout26$activateClient(TrinketsIntegration.findEquippedBags(context.player()), data);
 				InventoryScreen screen = (InventoryScreen)context.client().screen;
-				// A full resize rebuilds both vanilla and Trinkets widgets. It is needed only when an already-open,
-				// wide recipe book must make room for an acknowledged left pouch; rebuilding an ordinary inventory
-				// here corrupts Trinkets' active screen state and can leave the vanilla inventory mostly invisible.
+				// Rebuild only for the late-acknowledgement case that changes horizontal placement: an
+				// already-open wide recipe book plus an active left pouch. Other layouts are already positioned.
 				if (data.leftPouchCapacity() > 0
 					&& screen instanceof TrinketScreen trinketScreen
 					&& trinketScreen.trinkets$isRecipeBookOpen()
