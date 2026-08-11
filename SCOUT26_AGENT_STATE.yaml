@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 26
-last_updated_utc: "2026-08-11T15:29:38Z"
+state_revision: 27
+last_updated_utc: "2026-08-11T15:45:39Z"
 state_owner: "AI coding agent"
-project_status: "P7A_ACTIVE"
+project_status: "P7A_COMPLETE_AWAITING_P7B_AUTHORIZATION"
 current_phase: "P7-A"
-current_task: "P7A_INTEGRATED_INVENTORY_ARCHITECTURE"
+current_task: "P7A_HANDOFF_IDLE"
 
 project:
   working_name: "Scout26"
@@ -718,7 +718,7 @@ phase_plan:
 
   P7:
     name: "Optional classic Integrated Inventory"
-    status: "ACTIVE"
+    status: "BLOCKED"
     objective: "Explore classic Scout-like slots around vanilla inventory without compromising the core."
     decision_gate: >
       Human must explicitly approve starting P7 after P0-P6 release-candidate baseline.
@@ -736,7 +736,7 @@ phase_plan:
     subphases:
       P7-A:
         name: "Integrated Inventory prototype architecture"
-        status: "ACTIVE"
+        status: "DONE"
         scope: "Research and architecture only; do not implement the prototype in this subphase."
         acceptance:
           - "Exact Minecraft 26.1.2 inventory-screen/menu sources and relevant Fabric Mixin facilities are reviewed."
@@ -858,8 +858,11 @@ repository_state:
   p6_render_rotation_fix_commit: "4ebde2a0b8b563f5f5eefaf629d428b084a2debf"
   p6_render_upright_fix_commit: "73af048aae9c242dc28c6c8286f641b03b070a4e"
   p6_completion_commit: "760a2b623ac67f4d32ddfc828fb294d8c94017e5"
-  last_known_good_commit: "760a2b623ac67f4d32ddfc828fb294d8c94017e5"
-  last_tested_commit: "760a2b623ac67f4d32ddfc828fb294d8c94017e5"
+  p7a_activation_commit: "7aa733af6302cd9a077ec46446d98adce2fecf16"
+  p7a_architecture_commit: "9b073c450c94e76c597fa22f55fc3eca446957c8"
+  p7a_completion_commit: "9b073c450c94e76c597fa22f55fc3eca446957c8"
+  last_known_good_commit: "9b073c450c94e76c597fa22f55fc3eca446957c8"
+  last_tested_commit: "9b073c450c94e76c597fa22f55fc3eca446957c8"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -987,6 +990,21 @@ decision_log:
       Index-aware rendering keeps left and right pouches visually distinct without common-source client leakage.
       Minecraft 26.1.2 TransmuteRecipe copies the input ItemStack component patch to the target item, preserving
       populated BAG_CONTENTS through upgrades without custom crafting mutation logic.
+  - id: "ADR-012"
+    date: "2026-08-11"
+    status: "ACCEPTED"
+    decision: >
+      Permit a separately authorized, default-disabled P7-B prototype that appends 30 fixed dormant slots to
+      InventoryMenu, activates exact-identity BagContainer bindings only for a validated survival inventory session,
+      and uses no more than four documented mixin targets: InventoryMenu, AbstractContainerScreen,
+      RecipeBookComponent, and EffectsInInventory. Creative integrated mutation is explicitly excluded.
+    reason: >
+      Exact Minecraft 26.1.2 sources show a viable 76-slot container-ID-0 topology within the 128-slot packet limit
+      and a normal server-authoritative click path in survival, while creative inventory accepts direct creative
+      writes only for vanilla indices 1-45. Fixed bilateral indices, Fabric ScreenEvents, captured handles, and the
+      existing BagContainer/BagStorageRules boundary avoid the historical need for packet-handler, player-lifecycle,
+      global-menu, and Trinkets-internal mixins. Any expansion beyond the ADR hard stops changes the recommendation
+      to shipping the proven Pack Menu without Integrated Inventory.
 
 open_questions:
   blocking_before_release:
@@ -1277,7 +1295,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7a-active-015"
+  session_id: "p7a-completion-015"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1290,7 +1308,12 @@ latest_session:
     - "The vertical-plane recheck found both textures upside down; 73af048aae9c242dc28c6c8286f641b03b070a4e adds a shared 180-degree Z rotation to turn them upright."
     - "Human final visual recheck approved the upright, flat-against-body orientation and accepted the current flat item-model attachments as placeholders; custom wearable geometry is deferred to a possible future visuals release."
     - "At the P6 completion handoff, P7 remained blocked and unstarted pending a separate explicit human authorization."
-    - "The human explicitly authorized P7-A on 2026-08-11. P7-A architecture research is active; P7-B implementation remains blocked pending P7-A acceptance and separate explicit authorization."
+    - "The human explicitly authorized P7-A on 2026-08-11; architecture-only activation was committed as 7aa733af6302cd9a077ec46446d98adce2fecf16."
+    - "Exact Minecraft 26.1.2 sources showed that a survival InventoryMenu can carry 76 fixed bilateral slots inside the 128-slot click-packet limit, but creative inventory accepts direct writes only for vanilla indices 1-45 and therefore cannot safely expose mutable integrated slots."
+    - "ADR-012 defines a default-disabled exact-identity session architecture with four authorized mixin targets, Fabric ScreenEvents for lifecycle/render hooks, creative exclusion, shared BagContainer/BagStorageRules storage, explicit hard stops, and a bounded GO recommendation for a separately authorized P7-B prototype."
+    - "The reviewed Scout-Recrafted commit 92d39facb151666c1b1b157d279fe01c78037c0e uses eight mixins including packet-handler, player-inventory, death, and global-menu repairs; Scout26 explicitly rejects that broad topology."
+    - "P7-A architecture and README status were committed as 9b073c450c94e76c597fa22f55fc3eca446957c8. No P7 implementation, config, payload, slot, or mixin was added."
+    - "P7-A is complete. P7-B remains blocked and unstarted pending separate explicit human authorization."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1299,6 +1322,10 @@ latest_session:
     - "Audit recipe JSON, jar entries, common-source client references, Scout26 mixin references, and git diff --check."
     - "After final human visual approval, stop the verified runClient process tree, rerun .\\gradlew.bat clean build, repeat jar/source/Git audits, and verify runtime/server cleanliness."
     - "Read all 1320 lines of state revision 25 in bounded chunks; verify clean main at 152c4c19edc323035f31911ca610201b05cfcce7, P6 ancestry, git fsck, runtime cleanliness, and the P6 automated baseline before P7-A activation."
+    - "Inspect exact InventoryScreen, AbstractRecipeBookScreen, AbstractContainerScreen, EffectsInInventory, CreativeModeInventoryScreen, MultiPlayerGameMode, ClientPacketListener, InventoryMenu, AbstractContainerMenu, Slot, Player, ServerPlayer, and container packet/handler sources from the Loom-resolved Minecraft 26.1.2 source jars."
+    - "Inspect Fabric ScreenEvents 5.1.0+981dd9b24c signatures, Fabric mixin metadata documentation, SpongePowered Mixin callback-injector rules, and Trinkets Updated 4.0.0-beta.3+26.1 public attachment/slot access signatures."
+    - "Clone Scout-Recrafted into the ignored build reference directory, inspect commit 92d39facb151666c1b1b157d279fe01c78037c0e and its integrated-inventory mixin topology, then remove the reference automatically through Gradle clean."
+    - "Write docs/adr/ADR-012-p7a-integrated-inventory-architecture.md and update README.md without adding implementation code."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1312,8 +1339,12 @@ latest_session:
     - "Final jar audit found required renderer/recipe entries and no test or mixin entries; common-source client-reference and Scout26 mixin audits both returned zero; git diff --check and git fsck passed."
     - "Final runtime condition: no Scout26 Java/javaw/cmd test processes, TCP 25565 free, secure online survival server properties retained, ops.json empty, and temporary offline test identities removed from usercache."
     - "P7-A baseline: .\\gradlew.bat test passed with all 30 tests up to date and Loom 1.17.19."
+    - "P7-A final .\\gradlew.bat clean build passed with Loom 1.17.19 and 10/10 actionable tasks executed; JUnit totals were 30 tests with zero failures, errors, or skips."
+    - "Final jar audit confirmed no P7 implementation or mixin entries; git diff --check and git fsck passed."
+    - "Final runtime condition: no Scout26 Java/javaw/cmd test processes remained and TCP 25565 was free."
   files_changed:
     - "README.md"
+    - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
     - "src/main/java/com/example/scout26/BagItem.java"
     - "src/main/java/com/example/scout26/Scout26Mod.java"
     - "src/client/java/com/example/scout26/client/BagTrinketRenderer.java"
@@ -1324,7 +1355,7 @@ latest_session:
     - "src/test/java/com/example/scout26/BagStorageTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Inspect exact Minecraft 26.1.2 inventory-screen/menu and Fabric Mixin sources, then write the P7-A architecture ADR and go/no-go recommendation without implementing P7-B."
+  next_action: "Remain idle at the completed P7-A handoff. Do not activate or implement P7-B without separate explicit human authorization."
 
 agent_first_prompt:
   text: >
