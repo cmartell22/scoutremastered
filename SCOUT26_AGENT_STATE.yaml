@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 27
-last_updated_utc: "2026-08-11T15:45:39Z"
+state_revision: 28
+last_updated_utc: "2026-08-11T15:47:51Z"
 state_owner: "AI coding agent"
 project_status: "P7A_COMPLETE_AWAITING_P7B_AUTHORIZATION"
 current_phase: "P7-A"
@@ -858,11 +858,11 @@ repository_state:
   p6_render_rotation_fix_commit: "4ebde2a0b8b563f5f5eefaf629d428b084a2debf"
   p6_render_upright_fix_commit: "73af048aae9c242dc28c6c8286f641b03b070a4e"
   p6_completion_commit: "760a2b623ac67f4d32ddfc828fb294d8c94017e5"
-  p7a_activation_commit: "7aa733af6302cd9a077ec46446d98adce2fecf16"
-  p7a_architecture_commit: "9b073c450c94e76c597fa22f55fc3eca446957c8"
-  p7a_completion_commit: "9b073c450c94e76c597fa22f55fc3eca446957c8"
-  last_known_good_commit: "9b073c450c94e76c597fa22f55fc3eca446957c8"
-  last_tested_commit: "9b073c450c94e76c597fa22f55fc3eca446957c8"
+  p7a_activation_commit: "7aa733a9e719e7fe6d9362e89820e5f2a5974966"
+  p7a_architecture_commit: "9b073c41b9fadbe6f95dc43e07bc8e520f97993d"
+  p7a_completion_commit: "9b073c41b9fadbe6f95dc43e07bc8e520f97993d"
+  last_known_good_commit: "9b073c41b9fadbe6f95dc43e07bc8e520f97993d"
+  last_tested_commit: "9b073c41b9fadbe6f95dc43e07bc8e520f97993d"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1308,11 +1308,12 @@ latest_session:
     - "The vertical-plane recheck found both textures upside down; 73af048aae9c242dc28c6c8286f641b03b070a4e adds a shared 180-degree Z rotation to turn them upright."
     - "Human final visual recheck approved the upright, flat-against-body orientation and accepted the current flat item-model attachments as placeholders; custom wearable geometry is deferred to a possible future visuals release."
     - "At the P6 completion handoff, P7 remained blocked and unstarted pending a separate explicit human authorization."
-    - "The human explicitly authorized P7-A on 2026-08-11; architecture-only activation was committed as 7aa733af6302cd9a077ec46446d98adce2fecf16."
+    - "The human explicitly authorized P7-A on 2026-08-11; architecture-only activation was committed as 7aa733a9e719e7fe6d9362e89820e5f2a5974966."
     - "Exact Minecraft 26.1.2 sources showed that a survival InventoryMenu can carry 76 fixed bilateral slots inside the 128-slot click-packet limit, but creative inventory accepts direct writes only for vanilla indices 1-45 and therefore cannot safely expose mutable integrated slots."
     - "ADR-012 defines a default-disabled exact-identity session architecture with four authorized mixin targets, Fabric ScreenEvents for lifecycle/render hooks, creative exclusion, shared BagContainer/BagStorageRules storage, explicit hard stops, and a bounded GO recommendation for a separately authorized P7-B prototype."
     - "The reviewed Scout-Recrafted commit 92d39facb151666c1b1b157d279fe01c78037c0e uses eight mixins including packet-handler, player-inventory, death, and global-menu repairs; Scout26 explicitly rejects that broad topology."
-    - "P7-A architecture and README status were committed as 9b073c450c94e76c597fa22f55fc3eca446957c8. No P7 implementation, config, payload, slot, or mixin was added."
+    - "P7-A architecture and README status were committed as 9b073c41b9fadbe6f95dc43e07bc8e520f97993d. No P7 implementation, config, payload, slot, or mixin was added."
+    - "The first P7-A completion state commit used unverified expanded SHAs from abbreviated Git output; state revision 28 corrects them to the exact hashes returned by git log."
     - "P7-A is complete. P7-B remains blocked and unstarted pending separate explicit human authorization."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
