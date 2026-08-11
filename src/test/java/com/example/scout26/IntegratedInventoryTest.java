@@ -3,6 +3,10 @@ package com.example.scout26;
 import eu.pb4.trinkets.api.DefaultTrinketSlots;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import io.netty.buffer.Unpooled;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.BeforeAll;
@@ -116,6 +120,26 @@ final class IntegratedInventoryTest {
 		slot.set(new ItemStack(ModItems.POUCH));
 		assertTrue(slot.getItem().isEmpty());
 		assertTrue(BagQuickMove.moveToBags(new ItemStack(ModItems.UPGRADED_SATCHEL), 0, 1, (stack, start, end, backwards) -> true) == false);
+	}
+
+	@Test
+	void sessionPayloadsCarryOnlyIntentAndServerDerivedCapacities() {
+		RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(
+			Unpooled.buffer(),
+			RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)
+		);
+		try {
+			OpenIntegratedInventoryPayload.STREAM_CODEC.encode(buffer, OpenIntegratedInventoryPayload.INSTANCE);
+			CloseIntegratedInventoryPayload.STREAM_CODEC.encode(buffer, CloseIntegratedInventoryPayload.INSTANCE);
+			assertEquals(0, buffer.readableBytes());
+
+			IntegratedInventoryAckPayload payload = new IntegratedInventoryAckPayload(new IntegratedInventoryData(18, 3, 6));
+			IntegratedInventoryAckPayload.STREAM_CODEC.encode(buffer, payload);
+			assertEquals(payload, IntegratedInventoryAckPayload.STREAM_CODEC.decode(buffer));
+			assertEquals(0, buffer.readableBytes());
+		} finally {
+			buffer.release();
+		}
 	}
 
 	private static EquippedBagHandle capture(AtomicReference<ItemStack> live, IntegratedInventoryRole role) {
