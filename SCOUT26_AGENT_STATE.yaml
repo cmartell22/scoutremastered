@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 6
-last_updated_utc: "2026-08-11T02:54:48Z"
+state_revision: 7
+last_updated_utc: "2026-08-11T03:14:25Z"
 state_owner: "AI coding agent"
 project_status: "BOOTSTRAPPING"
 current_phase: "P0"
@@ -817,27 +817,31 @@ repository_state:
   initial_state_commit: "a26d732c95c51328926bcd9e4a86fed188c0589c"
   bootstrap_checkpoint_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
   baseline_commit: null
-  last_known_good_commit: "0a06971a27c7f8641318156b75ac46a521327e1d"
-  last_tested_commit: "0a06971a27c7f8641318156b75ac46a521327e1d"
+  last_known_good_commit: "c6fa87e712efc97abce205dd700906c222c93234"
+  last_tested_commit: "c6fa87e712efc97abce205dd700906c222c93234"
   working_tree_expected_clean: true
 
 relocation_handoff:
-  status: "READY_TO_MOVE_AFTER_ONEDRIVE_SYNC"
-  verified_at_utc: "2026-08-11T02:54:48Z"
-  current_workspace: "C:\\Users\\cousteau.martell\\OneDrive - Ross Video\\Documents\\SW Dev\\JavaBackport"
-  recommended_destination_example: "C:\\dev\\Scout26"
+  status: "COMPLETED"
+  verified_at_utc: "2026-08-11T03:14:25Z"
+  previous_workspace: "C:\\Users\\cousteau.martell\\OneDrive - Ross Video\\Documents\\SW Dev\\JavaBackport"
+  current_workspace: "C:\\CodexLocalProjects\\JavaBackport"
+  relocation_commit: "c6fa87e712efc97abce205dd700906c222c93234"
   verified:
-    - "git status --short --branch reported a clean main worktree at commit 19f8fd8."
-    - "git fsck --no-dangling passed."
-    - "No Gradle, Minecraft, Java, or command process had the project path in its command line."
+    - "The complete project, including .git, was moved intact from the previous OneDrive workspace to C:\\CodexLocalProjects\\JavaBackport."
+    - "git status --short --branch reported a clean main worktree at c6fa87e712efc97abce205dd700906c222c93234 before this state-only update."
+    - "git fsck --no-dangling passed after relocation."
+    - "All pre-move commits were present through c6fa87e712efc97abce205dd700906c222c93234; key ancestors a26d732c95c51328926bcd9e4a86fed188c0589c, 4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b, and 0a06971a27c7f8641318156b75ac46a521327e1d remain in history."
+    - "Using Microsoft OpenJDK 25.0.4+7 from C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot, .\\gradlew.bat clean build --no-daemon --console=plain passed from the new workspace at c6fa87e712efc97abce205dd700906c222c93234."
     - "No process was listening on TCP port 25565."
-  remaining_pre_move_actions:
-    - "Wait for OneDrive to show the folder is fully synced before moving it."
-    - "Move the entire JavaBackport directory, including the hidden .git directory, as one unit to a non-synced local location."
-  post_move_verification:
-    - "Open the project from its new location."
-    - "Run git status --short --branch and git fsck --no-dangling."
-    - "Set JAVA_HOME to the installed Microsoft OpenJDK 25 path and run ./gradlew.bat clean build."
+    - "The fresh-chat apply_patch probe successfully created, updated, and deleted .scout26_patch_probe.tmp; the probe was removed before the state edit."
+  build_cleanup_incident:
+    status: "RESOLVED_WITHOUT_SOURCE_LOSS"
+    detail: >
+      The first post-move clean attempt failed only because the Git-ignored generated build/ directory
+      retained a Windows read-only attribute. The directory was verified to be inside this workspace and
+      Git-ignored, its read-only attribute was cleared, and it was removed. The next clean build passed;
+      no tracked or source file was lost.
 
 task_rules:
   statuses:
@@ -1017,27 +1021,53 @@ session_history:
       - "SCOUT26_AGENT_STATE.yaml"
     blockers: []
     next_action: "Execute P0-T04: create/tag the reproducible empty baseline."
+  - session_id: "relocation-precheck-004"
+    date: "2026-08-11"
+    agent: "GPT-5.6 Terra High"
+    summary:
+      - "Preflighted relocation from OneDrive to a local non-synced directory without advancing P0-T04."
+      - "Confirmed clean Git state and fsck, no project-scoped Gradle/Minecraft processes, and no listener on port 25565."
+      - "Confirmed VS Code no longer had a process command line referencing the workspace; the project was ready to move once OneDrive confirmed sync."
+    commands_run:
+      - "git status --short --branch; git diff --check; git fsck --no-dangling; git log --oneline -5"
+      - "Read and parse SCOUT26_AGENT_STATE.yaml."
+      - "Read-only process query for command lines containing the project path; read-only TCP port 25565 query; OneDrive process query."
+    tests_run:
+      - "Git integrity: git fsck --no-dangling passed."
+      - "Runtime cleanliness: no project-scoped Gradle/Minecraft process and no TCP 25565 listener found."
+    files_changed:
+      - "SCOUT26_AGENT_STATE.yaml"
+    blockers:
+      - "Wait for OneDrive to report the folder fully synced before moving the workspace."
+    next_action: "After the human moves the complete project directory to a local non-synced location, reopen it there and run the post_move_verification steps before continuing P0-T04."
 
 latest_session:
-  session_id: "relocation-precheck-004"
+  session_id: "relocation-complete-005"
   date: "2026-08-11"
-  agent: "GPT-5.6 Terra High"
+  agent: "GPT-5.6"
   summary:
-    - "Preflighted relocation from OneDrive to a local non-synced directory without advancing P0-T04."
-    - "Confirmed clean Git state and fsck, no project-scoped Gradle/Minecraft processes, and no listener on port 25565."
-    - "Confirmed VS Code no longer has a process command line referencing the workspace; the project is ready to move once OneDrive confirms sync."
+    - "Recorded completion of the intact move from the OneDrive workspace to C:\\CodexLocalProjects\\JavaBackport without advancing P0-T04."
+    - "Confirmed the relocated repository is clean and intact at c6fa87e712efc97abce205dd700906c222c93234, and recorded the successful post-move clean build."
+    - "Confirmed apply_patch can create, update, and delete an existing probe file at the new root; the probe was removed immediately."
   commands_run:
-    - "git status --short --branch; git diff --check; git fsck --no-dangling; git log --oneline -5"
-    - "Read and parse SCOUT26_AGENT_STATE.yaml."
-    - "Read-only process query for command lines containing the project path; read-only TCP port 25565 query; OneDrive process query."
+    - "Read all 1050 lines of SCOUT26_AGENT_STATE.yaml in bounded ranges before editing."
+    - "apply_patch: add .scout26_patch_probe.tmp; update probe-v1 to probe-v2; delete .scout26_patch_probe.tmp"
+    - "git status --short --branch"
+    - "git fsck --no-dangling"
+    - "git merge-base --is-ancestor 0a06971a27c7f8641318156b75ac46a521327e1d HEAD"
+    - "Get-NetTCPConnection -LocalPort 25565 -State Listen -ErrorAction SilentlyContinue"
+    - "Microsoft OpenJDK 25 source launcher with Gradle's local snakeyaml-2.0.jar parsed SCOUT26_AGENT_STATE.yaml; temporary Scout26YamlCheck.java was removed immediately."
+    - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat clean build --no-daemon --console=plain (completed post-move before this state update)"
   tests_run:
-    - "Git integrity: git fsck --no-dangling passed."
-    - "Runtime cleanliness: no project-scoped Gradle/Minecraft process and no TCP 25565 listener found."
+    - "Patch-tool writability: create/update/delete probe passed and no probe remained."
+    - "State validation: SCOUT26_AGENT_STATE.yaml parsed successfully as YAML with state_revision 7 and current_task P0-T04."
+    - "Git integrity: git fsck --no-dangling passed; key history remained present through c6fa87e712efc97abce205dd700906c222c93234."
+    - "Post-move clean build: .\\gradlew.bat clean build --no-daemon --console=plain passed with Microsoft OpenJDK 25.0.4+7."
+    - "Runtime cleanliness: no TCP 25565 listener found."
   files_changed:
     - "SCOUT26_AGENT_STATE.yaml"
-  blockers:
-    - "Wait for OneDrive to report the folder fully synced before moving the workspace."
-  next_action: "After the human moves the complete project directory to a local non-synced location, reopen it there and run the post_move_verification steps before continuing P0-T04."
+  blockers: []
+  next_action: "After explicit human confirmation, execute P0-T04: commit/tag the reproducible empty baseline and record its SHA."
 
 agent_first_prompt:
   text: >
