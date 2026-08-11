@@ -1,6 +1,6 @@
 # Scout26 (temporary working name)
 
-This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P5 hardens the immutable per-ItemStack storage, Trinkets Updated equipment discovery, and dedicated synchronized Pack Inventory menu delivered through P4. Recipes and wearable rendering remain later phases. No vanilla inventory GUI mixins are present.
+This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P6 adds presentation to the immutable per-ItemStack storage, Trinkets Updated equipment discovery, and dedicated synchronized Pack Inventory menu hardened through P5. No vanilla inventory GUI mixins are present.
 
 The temporary identifiers are `scout26` and `com.example.scout26`. They are not release identifiers; the final public name, mod ID, Java package, and license remain open project decisions.
 
@@ -50,3 +50,10 @@ $env:Path = "$env:JAVA_HOME\\bin;$env:Path"
 - Server-backed Pack Inventories become invalid for dead, removed, disconnected, or spectator players as well as stale equipped-bag handles.
 - Every accepted bag-slot mutation replaces the physical equipped ItemStack's component immediately; closing the menu is not a write-back boundary.
 - Vanilla death, respawn, logout, and restart behavior follows the physical equipped ItemStack managed by Trinkets Updated. A Trinkets inventory rebuild creates new physical stacks and invalidates every previously captured menu handle.
+
+## P6 presentation
+
+- Bag tooltips summarize occupied slots and show up to five stored stacks without mutating bag contents.
+- Equipped satchels render on the back and belt-indexed pouches render separately at the left and right waist in third person.
+- Wearable rendering is client-only and reuses the normal item models and textures. Body-worn bags are intentionally not rendered over first-person arms.
+- Base pouches use leather and string; base satchels add a chest. Gold-ingot transmute recipes upgrade either bag while preserving the original ItemStack components, including all stored contents.

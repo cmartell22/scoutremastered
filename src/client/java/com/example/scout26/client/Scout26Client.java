@@ -1,8 +1,10 @@
 package com.example.scout26.client;
 
 import com.example.scout26.ModMenus;
+import com.example.scout26.ModItems;
 import com.example.scout26.OpenPackPayload;
 import com.mojang.blaze3d.platform.InputConstants;
+import eu.pb4.trinkets.api.client.TrinketRendererRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -25,6 +27,10 @@ public final class Scout26Client implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		MenuScreens.register(ModMenus.PACK, PackScreen::new);
+		TrinketRendererRegistry.registerRenderer(ModItems.SATCHEL, BagTrinketRenderer.INSTANCE);
+		TrinketRendererRegistry.registerRenderer(ModItems.UPGRADED_SATCHEL, BagTrinketRenderer.INSTANCE);
+		TrinketRendererRegistry.registerRenderer(ModItems.POUCH, BagTrinketRenderer.INSTANCE);
+		TrinketRendererRegistry.registerRenderer(ModItems.UPGRADED_POUCH, BagTrinketRenderer.INSTANCE);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			while (OPEN_PACK.consumeClick()) {
 				if (client.player != null

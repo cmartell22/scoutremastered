@@ -10,6 +10,9 @@
   "tooltip.scout26.slots_used": "%1$s / %2$s slots used",
   "tooltip.scout26.entry": "  %1$s x%2$s",
   "tooltip.scout26.more": "  ...and %s more",
+  "narration.scout26.pack": "%1$s. Satchel: %2$s. Left pouch: %3$s. Right pouch: %4$s.",
+  "narration.scout26.slot_count": "%s slots",
+  "narration.scout26.not_equipped": "not equipped",
   "key.scout26.open_pack": "Open Pack Inventory",
   "message.scout26.no_equipped_bags": "Equip a satchel or pouch to open the Pack Inventory."
 }

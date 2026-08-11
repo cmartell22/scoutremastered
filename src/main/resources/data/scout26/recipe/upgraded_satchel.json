@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_transmute",
+  "category": "equipment",
+  "input": "scout26:satchel",
+  "material": "minecraft:gold_ingot",
+  "material_count": {
+    "min": 4,
+    "max": 4
+  },
+  "result": {
+    "id": "scout26:upgraded_satchel"
+  }
+}

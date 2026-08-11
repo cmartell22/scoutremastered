@@ -18,6 +18,6 @@ public final class Scout26Mod implements ModInitializer {
 		ModMenus.initialize();
 		TrinketsIntegration.initialize();
 		PackNetworking.initialize();
-		LOGGER.info("Scout26 P4 unified pack menu initialized");
+		LOGGER.info("Scout26 initialized");
 	}
 }

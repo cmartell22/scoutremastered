@@ -60,4 +60,22 @@ public final class PackScreen extends AbstractContainerScreen<PackMenu> {
 		}
 		graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, layout.inventoryLabelY(), LABEL_COLOR, false);
 	}
+
+	@Override
+	public Component getNarrationMessage() {
+		PackMenuData data = this.menu.data();
+		return Component.translatable(
+			"narration.scout26.pack",
+			this.title,
+			capacityNarration(data.satchelCapacity()),
+			capacityNarration(data.leftPouchCapacity()),
+			capacityNarration(data.rightPouchCapacity())
+		);
+	}
+
+	private static Component capacityNarration(int capacity) {
+		return capacity > 0
+			? Component.translatable("narration.scout26.slot_count", capacity)
+			: Component.translatable("narration.scout26.not_equipped");
+	}
 }

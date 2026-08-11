@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.crafting.TransmuteRecipe;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -250,5 +251,47 @@ final class BagStorageTest {
 		assertEquals(12, diamond.getArgs()[1]);
 		assertSame(before, bag.get(ModDataComponents.BAG_CONTENTS));
 		assertEquals(12, before.getStack(0).getCount());
+	}
+
+	@Test
+	void vanillaTransmuteUpgradePreservesBagContents() {
+		ItemStack baseBag = new ItemStack(ModItems.SATCHEL);
+		new BagContainer(baseBag).setItem(4, new ItemStack(Items.DIAMOND, 21));
+		ItemStack upgradedTemplate = new ItemStack(ModItems.UPGRADED_SATCHEL);
+
+		ItemStack upgraded = TransmuteRecipe.createWithOriginalComponents(
+			ItemStackTemplate.fromNonEmptyStack(upgradedTemplate),
+			baseBag
+		);
+
+		assertSame(ModItems.UPGRADED_SATCHEL, upgraded.getItem());
+		assertEquals(21, upgraded.get(ModDataComponents.BAG_CONTENTS).getStack(4).getCount());
+		assertEquals(21, baseBag.get(ModDataComponents.BAG_CONTENTS).getStack(4).getCount());
+	}
+
+	@Test
+	void tooltipLimitsDetailedEntriesAndReportsTheRemainder() {
+		ItemStack bag = new ItemStack(ModItems.UPGRADED_SATCHEL);
+		BagContainer container = new BagContainer(bag);
+		for (int slot = 0; slot < 6; slot++) {
+			container.setItem(slot, new ItemStack(Items.APPLE, slot + 1));
+		}
+
+		List<Component> tooltip = new ArrayList<>();
+		ModItems.UPGRADED_SATCHEL.appendHoverText(
+			bag,
+			Item.TooltipContext.EMPTY,
+			TooltipDisplay.DEFAULT,
+			tooltip::add,
+			TooltipFlag.NORMAL
+		);
+
+		assertEquals(7, tooltip.size());
+		TranslatableContents remainder = assertInstanceOf(
+			TranslatableContents.class,
+			tooltip.getLast().getContents()
+		);
+		assertEquals("tooltip.scout26.more", remainder.getKey());
+		assertEquals(1, remainder.getArgs()[0]);
 	}
 }
