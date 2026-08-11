@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 10
-last_updated_utc: "2026-08-11T03:53:40Z"
+state_revision: 11
+last_updated_utc: "2026-08-11T04:31:28Z"
 state_owner: "AI coding agent"
-project_status: "P1_COMPLETE_AWAITING_CONFIRMATION"
-current_phase: "P1"
-current_task: "P1"
+project_status: "P2_COMPLETE_AWAITING_CONFIRMATION"
+current_phase: "P2"
+current_task: "P2"
 
 project:
   working_name: "Scout26"
@@ -622,7 +622,7 @@ phase_plan:
 
   P2:
     name: "Bag contents data model"
-    status: "BLOCKED"
+    status: "DONE"
     objective: "Make a bag ItemStack persist contents correctly without Trinkets or custom UI."
     tasks:
       - "Implement BagContents immutable value and registered custom data component."
@@ -754,6 +754,7 @@ dependency_lock:
   java: 25
   gradle: "9.5.1"
   fabric_loader: "0.19.3"
+  fabric_loader_junit: "0.19.3"
   fabric_loom: "1.17-SNAPSHOT"
   fabric_loom_resolved_snapshot: "1.17-20260807.132355-18"
   fabric_api: "0.155.2+26.1.2"
@@ -781,6 +782,11 @@ dependency_lock:
       artifact_url: "https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.3/fabric-loader-0.19.3.pom"
       observed: "0.19.3 is listed for Minecraft 26.1.2 and the exact POM returned HTTP 200."
       verified_at_utc: "2026-08-11T00:25:27Z"
+    - component: "Fabric Loader JUnit"
+      source: "Official Fabric 26.1.2 automated testing documentation"
+      url: "https://docs.fabricmc.net/26.1.2/develop/automatic-testing"
+      observed: "Fabric Loader JUnit is configured as a testImplementation dependency at the locked Loader version and tests use JUnit Platform."
+      verified_at_utc: "2026-08-11T04:31:28Z"
     - component: "Fabric Loom"
       source: "Fabric Maven snapshot metadata"
       url: "https://maven.fabricmc.net/net/fabricmc/fabric-loom/1.17-SNAPSHOT/maven-metadata.xml"
@@ -820,8 +826,9 @@ repository_state:
   baseline_tag: "p0-baseline-26.1.2"
   p0_completion_commit: "fc774bb6ec9f586ccbf66b93fca1b2ec1c581ebe"
   p1_completion_commit: "2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
-  last_known_good_commit: "2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
-  last_tested_commit: "2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
+  p2_completion_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
+  last_known_good_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
+  last_tested_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -896,6 +903,15 @@ decision_log:
     status: "ACCEPTED"
     decision: "Default to behavioral reference rather than copied Scout-Recrafted implementation code."
     reason: "Produces a cleaner 26.1-native design and simplifies provenance/licensing."
+  - id: "ADR-007"
+    date: "2026-08-11"
+    status: "ACCEPTED"
+    decision: >
+      Represent bag contents as an immutable sparse list of ItemStackTemplate snapshots in a persistent,
+      explicitly network-synchronized data component; derive capacity only from the concrete BagItem.
+    reason: >
+      Minecraft 26.1.2 ItemStack copies may share component values, so immutable snapshots plus component
+      replacement prevent cross-bag aliasing while preserving normal save/load and creative copy behavior.
 
 open_questions:
   blocking_before_release:
@@ -938,9 +954,9 @@ known_risks:
     severity: "HIGH"
     risk: "Creative-mode stack cloning duplicates a non-empty bag."
     mitigation: >
-      Define and test intentional semantics. A copied ItemStack naturally copying its component may duplicate contents;
-      decide whether that is acceptable creative behavior or whether bag identity rules are needed. Never invent identity
-      UUIDs until this behavior has been reasoned through and tested.
+      P2 intentionally follows vanilla ItemStack copy semantics: copying a non-empty bag copies its contents.
+      The initially shared value is immutable and subsequent mutations replace it, so copies diverge safely.
+      This behavior is documented and covered by BagStorageTest; do not add identity UUIDs without a new ADR.
   - id: "R-004"
     severity: "HIGH"
     risk: "Trinkets 26.1.x API churn/alpha compatibility."
@@ -1080,54 +1096,64 @@ session_history:
       - "SCOUT26_AGENT_STATE.yaml"
     blockers: []
     next_action: "Await explicit human confirmation before beginning P1."
+  - session_id: "p1-completion-007"
+    date: "2026-08-11"
+    agent: "GPT-5.6"
+    summary:
+      - "Completed P1 and committed it as 2b6acfddfc9740eb21d9b8959318467c4ed47ce2."
+      - "Added four plain stack-size-one bag items, creative-tab entries, translations, modern client-item definitions, generated models, and original 16x16 RGBA textures."
+      - "Verified build, packaged assets, dedicated-server startup, and client resource/item-atlas loading; intentionally added no recipes or bag behavior."
+    files_changed:
+      - "P1 item registration/assets and SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Await explicit human confirmation before beginning P2."
 
 latest_session:
-  session_id: "p1-completion-007"
+  session_id: "p2-completion-008"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
-    - "Completed P1 and committed it as 2b6acfddfc9740eb21d9b8959318467c4ed47ce2 (feat: add P1 bag items and assets)."
-    - "Added satchel, upgraded_satchel, pouch, and upgraded_pouch as plain stack-size-one items and exposed them in the Tools & Utilities creative tab."
-    - "Added English translations, modern client-item definitions, generated item models, and four original 16x16 RGBA item textures."
-    - "Resolved the Fabric API 0.155.2+26.1.2 creative-tab API as CreativeModeTabEvents.modifyOutputEvent(...); the legacy ItemGroupEvents API and modifyEntriesEvent are not valid for this baseline."
-    - "Intentionally added no recipes; crafting design remains deferred. Added no storage, data components, Trinkets slots, menus, networking, mixins, or bag behavior."
-    - "Reconciled the stale repository_state and latest_session bookkeeping after the P1 implementation commit; P2 remains blocked pending explicit human confirmation."
+    - "Completed P2 and committed the tested implementation as a6c72fb3ec287fe7f12973ae246845f0219a67ce (feat: add P2 bag contents data model)."
+    - "Registered scout26:bag_contents with an explicit persistent Codec, network StreamCodec, and encoding cache using the actual Minecraft 26.1.2 DataComponentType API."
+    - "Implemented immutable sparse BagContents values backed by ItemStackTemplate snapshots, item-derived capacities of 9/18/3/6, and safe normalization for unknown versions, invalid slots, nested bags, and entries beyond concrete capacity."
+    - "Implemented BagContainer over one live physical bag ItemStack; every mutation replaces the immutable component immediately and all inserted ItemStacks are defensively copied."
+    - "Defined and documented creative/copy semantics: vanilla ItemStack copies intentionally copy non-empty bag contents, share only an immutable initial value, and diverge safely after mutation."
+    - "Added no Trinkets equipment integration, menus, custom networking intents, recipes, rendering, or vanilla inventory GUI mixins."
   commands_run:
-    - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat build --no-daemon --console=plain"
-    - "git status --short --branch"
-    - "git show --no-ext-diff --format=fuller --stat --summary 2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
-    - "git merge-base --is-ancestor 7438556b743a3061af31e5a819e05d3462c47437 HEAD"
-    - "git merge-base --is-ancestor 2b6acfddfc9740eb21d9b8959318467c4ed47ce2 HEAD"
+    - "Read the complete SCOUT26_AGENT_STATE.yaml, inspect git status/history, and verify the P1 commit is an ancestor of clean main."
+    - ".\\gradlew.bat build --no-daemon --console=plain"
+    - ".\\gradlew.bat genCommonSources --no-daemon --console=plain"
+    - ".\\gradlew.bat test --tests com.example.scout26.BagStorageTest --no-daemon --console=plain"
+    - ".\\gradlew.bat clean build --no-daemon --console=plain"
+    - "Inspect build/libs/scout26-0.0.0-dev.jar and the JUnit XML report."
+    - ".\\gradlew.bat runServer --no-daemon --console=plain with stdout/stderr captured under build/."
+    - "Read-only project process-tree and TCP 25565 audits; stop only the exact lingering smoke-test PIDs 19396, 33352, 29844, and 20324."
     - "Parse the complete SCOUT26_AGENT_STATE.yaml with SnakeYAML 2.0 and run git diff --check."
   tests_run:
-    - "Toolchain: Microsoft OpenJDK 25.0.4+7."
-    - "API correction: the initial P1 compile attempt failed because Fabric API 0.155.2+26.1.2 does not provide the attempted legacy ItemGroupEvents/modifyEntriesEvent path; switching to CreativeModeTabEvents.modifyOutputEvent(...) corrected the compile failure."
-    - "Build: .\\gradlew.bat build --no-daemon --console=plain passed; Fabric Loom resolved as 1.17.19."
-    - "Jar inspection: all four translations, client-item definitions, generated item models, and textures were packaged."
-    - "Dedicated-server smoke test: logged 'Scout26 P1 items initialized' and reached 'Done'; no client-class loading failure occurred."
-    - "Client smoke test: logged 'Scout26 P1 items initialized' and loaded the resource manager and item atlas successfully."
-    - "Runtime cleanup: temporary client/server test processes were stopped and TCP port 25565 was free afterward."
-    - "Git reconciliation: main was clean at 2b6acfddfc9740eb21d9b8959318467c4ed47ce2 before this bookkeeping edit; the P0 baseline and P1 completion commits were both confirmed as HEAD ancestors."
+    - "Toolchain: Microsoft OpenJDK 25.0.4+7; Fabric Loom resolved as 1.17.19."
+    - "Primary-source review: official Fabric 26.1.2 data-component/testing documentation plus Loom-generated Minecraft 26.1.2 sources for DataComponentType, DataComponents.CONTAINER, ItemContainerContents, ItemStackTemplate, ItemStack, PatchedDataComponentMap, DataComponentPatch, RegistryFriendlyByteBuf, RegistryAccess, and Container."
+    - "Mandatory persistence/network review passed: BAG_CONTENTS is non-transient, uses BagContents.CODEC for persistence, and uses an explicit BagContents.STREAM_CODEC through the registered DataComponentType."
+    - "Focused JUnit suite: 9 tests passed, 0 failures/errors/skips. Coverage includes capacities/defaults, defensive snapshots, mutation persistence, ItemStack copy divergence, nested-bag rejection, corrupt/out-of-capacity normalization, unknown-version fail-closed behavior, full ItemStack NBT codec round-trip, and registered component stream-codec round-trip."
+    - "JUnit bootstrap correction: the first focused run had 8 registry-component binding errors because Bootstrap.bootStrap() does not bind item component maps in 26.1.2; tests now bind only their exact fixture items before constructing ItemStacks."
+    - "Clean build: BUILD SUCCESSFUL in 15s; all 10 actionable tasks executed."
+    - "Jar inspection: the production jar contains BagContents, BagContainer, BagItem, BagStorageRules, ModDataComponents, and all four P1 client-item assets."
+    - "Dedicated-server smoke: logged 'Scout26 P2 bag storage initialized', loaded recipes/advancements, and reached 'Done (0.276s)'; the pre-existing third-party Trinkets client-mixin warnings remained non-fatal."
+    - "Runtime cleanup: the world saved, the exact lingering smoke launch chain was stopped, no stderr was emitted, and TCP port 25565 was free afterward."
     - "State validation: the complete YAML parsed successfully with SnakeYAML 2.0 and git diff --check passed."
   files_changed:
-    - "SCOUT26_AGENT_STATE.yaml"
+    - "README.md"
+    - "build.gradle"
+    - "src/main/java/com/example/scout26/BagContainer.java"
+    - "src/main/java/com/example/scout26/BagContents.java"
+    - "src/main/java/com/example/scout26/BagItem.java"
+    - "src/main/java/com/example/scout26/BagStorageRules.java"
+    - "src/main/java/com/example/scout26/ModDataComponents.java"
     - "src/main/java/com/example/scout26/ModItems.java"
     - "src/main/java/com/example/scout26/Scout26Mod.java"
-    - "src/main/resources/assets/scout26/items/pouch.json"
-    - "src/main/resources/assets/scout26/items/satchel.json"
-    - "src/main/resources/assets/scout26/items/upgraded_pouch.json"
-    - "src/main/resources/assets/scout26/items/upgraded_satchel.json"
-    - "src/main/resources/assets/scout26/lang/en_us.json"
-    - "src/main/resources/assets/scout26/models/item/pouch.json"
-    - "src/main/resources/assets/scout26/models/item/satchel.json"
-    - "src/main/resources/assets/scout26/models/item/upgraded_pouch.json"
-    - "src/main/resources/assets/scout26/models/item/upgraded_satchel.json"
-    - "src/main/resources/assets/scout26/textures/item/pouch.png"
-    - "src/main/resources/assets/scout26/textures/item/satchel.png"
-    - "src/main/resources/assets/scout26/textures/item/upgraded_pouch.png"
-    - "src/main/resources/assets/scout26/textures/item/upgraded_satchel.png"
+    - "src/test/java/com/example/scout26/BagStorageTest.java"
+    - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Await explicit human confirmation to begin P2; before implementation, inspect current primary Minecraft 26.1.2 and Fabric sources for every uncertain data-component, Codec, StreamCodec, synchronization, and ItemStack-copy API fact."
+  next_action: "Await explicit human confirmation before beginning P3; then inspect the locked Trinkets Updated 4.0.0-beta.3+26.1 primary testmod/source/API before designing equipment slots or live bag handles."
 
 agent_first_prompt:
   text: >
