@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 34
-last_updated_utc: "2026-08-11T17:12:44Z"
+state_revision: 35
+last_updated_utc: "2026-08-11T17:30:21Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -1184,6 +1184,33 @@ bug_regressions:
         - "compileClientJava plus all 37 tests passed, followed by a clean build with all 10 actionable tasks executed."
         - "The corrected quick-play client logged Player135 into P7B-test with no Mixin application error; visual inventory confirmation remains pending."
         - "Human retest on 2026-08-11 confirmed the corrected no-bag inventory is centered and complete, with the vanilla background, 27 main slots, and 9 hotbar slots all visible."
+    - id: "BUG-P7B-004"
+      phase: "P7-B"
+      severity: "P2"
+      status: "OPEN"
+      summary: "Equipped base and upgraded satchels do not display their 9/18-slot Integrated Inventory expansion, although the independent B-key Pack Menu exposes the bags correctly."
+      impact: "Integrated Inventory storage remains inaccessible from the vanilla survival inventory for equipped satchels; the proven B-key Pack Menu is an unaffected workaround."
+      root_cause: >
+        Not yet isolated. Targeted runtime diagnostics proved that the server discovers the equipped base satchel
+        and activates capacity 9, the acknowledgement carries capacity 9, and the client independently discovers
+        the same satchel and reports an active capacity-9 binding. The failure is therefore after client activation,
+        within the per-screen panel-render entry/preconditions or its Fabric render-event registration/layer.
+      rejected_hypothesis: >
+        Minecraft does not reuse one InventoryScreen instance across E-key openings in 26.1.2; exact bytecode shows
+        a new InventoryScreen(player) allocation on every normal inventory keypress. The diagnostic opening also
+        logged one first initialization and no later reinitialization, so the weak identity guard did not suppress
+        the observed satchel session.
+      evidence:
+        - "Human screenshot showed a satchel equipped in Trinkets chest/back with a complete vanilla inventory but no row below it; the human reproduced this for base and upgraded satchels and confirmed the B-key Pack Menu works."
+        - "Diagnostic server log: discovered=[true,false,false], active=IntegratedInventoryData[satchelCapacity=9, leftPouchCapacity=0, rightPouchCapacity=0]."
+        - "Diagnostic client log: server capacity 9, discovered=[true,false,false], and active client capacity 9."
+        - "The active-render diagnostic placed after IntegratedInventoryPanels' layout/menu/data preconditions did not log, narrowing the next probe to those entry conditions or event invocation rather than networking or bag discovery."
+        - "Exact Fabric Screen API bytecode confirms per-screen events are recreated on init/resize and afterBackground is injected immediately after Screen.extractBackground; no second init occurred in the captured reproduction."
+      next_probe: >
+        Instrument IntegratedInventoryPanels.render at method entry and log each individual layout-interface,
+        screen-menu-interface, menu-identity, and active-data precondition for a bounded number of frames. If the
+        callback does not enter, compare afterBackground with afterExtract registration on the same screen; if it
+        enters but a precondition fails, correct only that proven boundary. Remove instrumentation before committing.
 
 session_handoff_protocol:
   startup_steps:
@@ -1405,6 +1432,10 @@ latest_session:
     - "b09f01f1277ed2b5ebd96ba2be11dc4b422aae20 replaces the unsafe target-field shadows with generated @Accessor methods, preserving Minecraft's dimensions without expanding ADR-012's authorized Mixin targets."
     - "Post-fix transformed bytecode contains only the vanilla constructor-argument assignments for imageWidth/imageHeight, all 37 tests and the clean build pass, and the enabled quick-play client logged Player135 into P7B-test for manual retest."
     - "The human supplied a post-fix screenshot and accepted the no-bag baseline: the complete vanilla inventory is centered with all 27 main and 9 hotbar slots visible. BUG-P7B-003 is fixed and the no-bag equipment/capacity checklist row is complete."
+    - "The next base/upgraded satchel acceptance check exposed BUG-P7B-004: neither capacity displays an Integrated Inventory expansion, while the independent B-key Pack Menu remains functional."
+    - "Two targeted diagnostic launches proved the base-satchel server session, acknowledgement, client discovery, and client binding all carry capacity 9; the failure occurs after activation in the panel render-event entry or preconditions."
+    - "Exact Minecraft bytecode disproved the initial screen-reuse hypothesis by showing a new InventoryScreen allocation per E keypress. Fabric Screen API bytecode showed per-screen events are recreated on init/resize, but the captured failing opening had one first init and no reinit."
+    - "All temporary diagnostic code was removed, the diagnostic client process tree was stopped, and the source tree returned to its pre-probe state before this safe pause."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1432,6 +1463,9 @@ latest_session:
     - "After the failed visual retest, export and decompile Mixin-transformed AbstractContainerScreen and InventoryScreen classes to compare injected constructor and render behavior with the source."
     - "Replace initialized target-field shadows with @Accessor methods; run compileClientJava/test and clean build; export the corrected class and verify no post-construction zero writes remain."
     - "Relaunch the corrected enabled client with --quickPlaySingleplayer P7B-test and verify Player135 logs in and joins without a Mixin application error."
+    - "For BUG-P7B-004, add temporary bounded server/client logs around discovery, acknowledgement, activation, screen initialization, and the active panel-render branch; compile and perform two controlled quick-play reproductions."
+    - "Inspect exact Minecraft 26.1.2 inventory-key bytecode and Fabric Screen API 5.1.0 Mixin bytecode for InventoryScreen construction, per-init event recreation, and afterBackground injection ordering."
+    - "Remove all temporary diagnostic code, stop the verified runClient process tree, and confirm the source worktree returns clean before recording the pause."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1461,6 +1495,7 @@ latest_session:
     - "BUG-P7B-003 automated verification: compileClientJava and 37/37 tests passed; the subsequent clean build executed all 10 tasks successfully."
     - "BUG-P7B-003 transformed-class verification: imageWidth/imageHeight retain only their constructor-parameter assignments, and generated accessors contain read-only getfield instructions."
     - "BUG-P7B-003 runtime startup verification: the corrected client started the integrated server and logged Player135 into P7B-test; the human then confirmed the complete centered no-bag inventory from a screenshot."
+    - "BUG-P7B-004 diagnostic runtime: base satchel discovery and active capacity were 9 on both server and client, with no crash or Mixin error; panel presentation still failed."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1499,8 +1534,9 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
+    - "BUG-P7B-004 blocks the satchel Integrated Inventory acceptance rows; networking and exact client binding are proven good, but the panel render entry/precondition failure remains open."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "With the corrected client still open, equip only the base satchel into Trinkets chest/back while the inventory is open, verify no panel activates until close/reopen, then confirm exactly one 9-slot satchel row appears below the vanilla panel."
+  next_action: "Resume BUG-P7B-004 by adding a bounded method-entry probe to IntegratedInventoryPanels.render that reports each layout/menu/data precondition, then reproduce one base-satchel inventory opening before selecting a fix."
 
 agent_first_prompt:
   text: >
