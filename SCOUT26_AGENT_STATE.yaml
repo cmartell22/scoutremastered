@@ -5,10 +5,10 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 16
-last_updated_utc: "2026-08-11T07:39:21Z"
+state_revision: 17
+last_updated_utc: "2026-08-11T08:07:00Z"
 state_owner: "AI coding agent"
-project_status: "P4_IMPLEMENTED_AWAITING_MANUAL_VALIDATION"
+project_status: "P4_COMPLETE_AWAITING_CONFIRMATION"
 current_phase: "P4"
 current_task: "P4"
 
@@ -663,7 +663,7 @@ phase_plan:
 
   P4:
     name: "Unified Pack Menu MVP"
-    status: "ACTIVE"
+    status: "DONE"
     objective: "Ship the core usable gameplay loop with a dedicated synchronized bag menu."
     tasks:
       - "Register current Fabric menu type/provider."
@@ -831,7 +831,7 @@ repository_state:
   p2_completion_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
   p3_completion_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
   p4_activation_commit: "36b2482438d4ef9b285f5a975df1c3372f2c5caa"
-  p4_implementation_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
+  p4_completion_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
   last_known_good_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
   last_tested_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
   working_tree_expected_clean: true
@@ -973,7 +973,8 @@ known_risks:
     risk: "Live ItemStack identity/locator becomes stale while PackMenu is open."
     mitigation: >
       P3 EquippedBagHandle re-resolves the current Trinkets slot and requires the exact captured ItemStack object.
-      P4 must validate the handle before every mutation and close/resynchronize when it becomes stale.
+      P4 validates all captured handles before every menu mutation, closes a stale server menu, and gives each
+      live-handle BagContainer a second fail-closed mutation guard.
   - id: "R-002"
     severity: "HIGH"
     risk: "Mutable ItemStack/list aliasing inside a data component causes cross-bag mutation or hash/equality issues."
@@ -1172,7 +1173,7 @@ session_history:
     next_action: "Implement the source-reviewed P4 extended menu, empty open intent, client keybind/screen, and live-backing guards."
 
 latest_session:
-  session_id: "p4-implementation-011"
+  session_id: "p4-completion-011"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1182,7 +1183,8 @@ latest_session:
     - "Menu order is satchel, left pouch, right pouch, player inventory, hotbar. Shift-click globally merges compatible bag stacks first, then fills empty eligible slots in that same stable order; bag-to-player uses main inventory before hotbar."
     - "Bag slots and BagContainer reject nested bags. Server click handling, PackMenu, and live-handle BagContainer mutations all fail closed when any exact captured ItemStack is removed, replaced, or rebuilt."
     - "Kept client classes in the client source set, introduced no Scout26 mixins or vanilla inventory injection, wrote through on every mutation, and did not begin P5."
-    - "Automated/build/server/client smoke evidence is complete. P4 remains ACTIVE only because the durable acceptance gate still requires a connected remote client and practical menu interaction."
+    - "Completed the human-assisted connected-client acceptance matrix on the localhost dedicated server; all requested P4 menu, routing, persistence, nesting, equipment-identity, and configurable-key checks passed."
+    - "P4 is DONE and awaiting explicit human confirmation before P5; no P5 work has started."
   commands_run:
     - "Read and parse the complete SCOUT26_AGENT_STATE.yaml; verify clean main at the P4 pause/resume bookkeeping commits and run the cheapest baseline build."
     - "Inspect generated Minecraft 26.1.2 common/client sources for AbstractContainerMenu, Slot, MenuType, MenuProvider, ServerPlayer.openMenu, server click validation, MenuScreens, AbstractContainerScreen, ContainerScreen, KeyMapping, CustomPacketPayload, StreamCodec, and ByteBufCodecs."
@@ -1195,6 +1197,8 @@ latest_session:
     - "Audit exact test process trees and TCP 25565, stop only P4 smoke-test descendants, and restore run/server.properties to online-mode=true."
     - "Query the Windows Application log after background cmd.exe fallback popups; no matching Application Error event was recorded, and background cmd.exe launching was abandoned."
     - "Run git diff --check and commit the P4 implementation."
+    - "With explicit human approval, temporarily set the ignored local server to offline authentication and forced Creative mode, then directly launch the generated server/client Java configurations without cmd.exe and quick-connect to localhost:25565."
+    - "After human validation, stop exact client/server PIDs, restore online-mode=true, gamemode=survival, and force-gamemode=false, then audit runtime cleanliness."
   tests_run:
     - "Toolchain: Microsoft OpenJDK 25.0.4+7; Fabric Loom resolved as 1.17.19."
     - "Exact-source API review confirmed ExtendedMenuType/ExtendedMenuProvider, serverbound typed payload registration/receivers, client key mapping/tick APIs, screen registration/extractor rendering, server pre-click stillValid checks, and merge-before-empty moveItemStackTo behavior."
@@ -1205,8 +1209,9 @@ latest_session:
     - "Dedicated-server smoke: logged 'Scout26 P4 unified pack menu initialized', loaded the Scout26 data pack/resources, loaded recipes/advancements, and reached 'Done (0.312s)'; only the known non-fatal third-party Trinkets client-mixin warnings remained."
     - "Standalone development-client smoke: Scout26 initialized on the render thread, Indigo/client resources and GUI atlas loaded, and no Scout26 keybind/menu/screen registration or classloading error occurred. Expected unauthenticated development-account and Realms warnings were non-fatal."
     - "Isolation review: no client-only imports exist in src/main/java and Scout26 contains no mixin files."
-    - "Practical limitation: a connected remote development client was not run because the local dev identity cannot authenticate to online-mode=true. A temporary offline-mode direct-Java test required explicit security approval and was blocked before launch; online-mode=true was restored. Physical B-key/menu interaction therefore remains human-assisted validation."
-    - "Runtime cleanup: all exact Gradle/Minecraft smoke-test process trees were stopped, TCP 25565 was free, and run/server.properties was restored to online-mode=true."
+    - "Connected-client smoke: the direct Java client connected to the dedicated localhost server as Player740; the server recorded successful login/join and no Scout26 networking, menu, or synchronization errors."
+    - "Human P4 acceptance: no-bag B intent/message passed; maximum 18-slot satchel plus two 6-slot pouch layout and section order passed; normal/split/drag interaction and close/reopen persistence passed; global merge-before-empty and satchel-left-right empty routing passed; bag-to-main-before-hotbar passed; normal and shift-click nested-bag rejection passed; physical bag replacement/re-equip ownership passed; configurable key rebinding passed."
+    - "Runtime cleanup: exact direct-Java client/server PIDs were stopped, no Java/cmd process remained, TCP 25565 was free, and run/server.properties was restored to online-mode=true, gamemode=survival, and force-gamemode=false."
   files_changed:
     - "README.md"
     - "src/client/java/com/example/scout26/client/PackScreen.java"
@@ -1223,12 +1228,8 @@ latest_session:
     - "src/main/resources/assets/scout26/lang/en_us.json"
     - "src/test/java/com/example/scout26/PackMenuTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
-  blockers:
-    - "P4's connected remote-client and physical menu-interaction acceptance remains pending; implementation and automated/server/standalone-client checks pass."
-  next_action: >
-    Run a human-assisted connected development-client validation of the B key, custom Pack Inventory screen, bag combinations,
-    normal clicks, shift-click policy, nested-bag rejection, and stale-backing close behavior. Then mark P4 DONE and request explicit
-    human confirmation before beginning P5; do not start P5 meanwhile.
+  blockers: []
+  next_action: "Await explicit human confirmation before beginning P5; do not start P5 without it."
 
 agent_first_prompt:
   text: >
