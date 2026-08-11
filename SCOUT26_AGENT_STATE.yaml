@@ -5,10 +5,10 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 18
-last_updated_utc: "2026-08-11T08:10:30Z"
+state_revision: 19
+last_updated_utc: "2026-08-11T09:35:35Z"
 state_owner: "AI coding agent"
-project_status: "P5_ACTIVE"
+project_status: "P5_COMPLETE_AWAITING_CONFIRMATION"
 current_phase: "P5"
 current_task: "P5"
 
@@ -684,7 +684,7 @@ phase_plan:
 
   P5:
     name: "Hardening, lifecycle, anti-dupe, multiplayer"
-    status: "ACTIVE"
+    status: "DONE"
     objective: "Attack the implementation with historical Scout failure modes."
     tasks:
       - "Run the full required_manual_matrix except rendering-specific checks."
@@ -832,8 +832,12 @@ repository_state:
   p3_completion_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
   p4_activation_commit: "36b2482438d4ef9b285f5a975df1c3372f2c5caa"
   p4_completion_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
-  last_known_good_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
-  last_tested_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
+  p4_state_commit: "c6c7604c09a5521c6762bff28057a4485765c462"
+  p5_activation_commit: "72fd619ec29819bf581634f1609abb668a3b27b2"
+  p5_implementation_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
+  p5_completion_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
+  last_known_good_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
+  last_tested_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -938,6 +942,18 @@ decision_log:
       Minecraft's synchronized menu protocol already owns slot changes. Server rediscovery plus exact live
       ItemStack identity prevents client-forged capacity/content state and fails closed after Trinkets inventory
       rebuild, replacement, or unequip, while vanilla moveItemStackTo provides merge-before-empty behavior.
+  - id: "ADR-010"
+    date: "2026-08-11"
+    status: "ACCEPTED"
+    decision: >
+      Keep P5 lifecycle behavior on the vanilla server thread and Trinkets Updated's physical ItemStack lifecycle.
+      Normalize corrupt serialized counts at BagContents construction, invalidate server menus for dead, removed,
+      disconnected, or spectator owners, and add no custom death/respawn/logout storage or synchronization layer.
+    reason: >
+      Exact Minecraft 26.1.2 and Trinkets Updated 4.0.0-beta.3+26.1 sources show that vanilla validates menus
+      before clicks, saves players on disconnect, and closes invalid menus, while Trinkets drops or copies physical
+      equipped stacks according to keepInventory and rebuilds attachments with new ItemStack identities. Reusing
+      those authoritative paths avoids duplicate write-back state and lets exact-identity handles fail closed.
 
 open_questions:
   blocking_before_release:
@@ -974,7 +990,9 @@ known_risks:
     mitigation: >
       P3 EquippedBagHandle re-resolves the current Trinkets slot and requires the exact captured ItemStack object.
       P4 validates all captured handles before every menu mutation, closes a stale server menu, and gives each
-      live-handle BagContainer a second fail-closed mutation guard.
+      live-handle BagContainer a second fail-closed mutation guard. P5 additionally rejects dead, removed,
+      disconnected, and spectator owners and manually verified automatic closure plus cursor conservation when
+      a live Trinkets resource reload rebuilt equipped stacks.
   - id: "R-002"
     severity: "HIGH"
     risk: "Mutable ItemStack/list aliasing inside a data component causes cross-bag mutation or hash/equality issues."
@@ -985,7 +1003,8 @@ known_risks:
     mitigation: >
       P2 intentionally follows vanilla ItemStack copy semantics: copying a non-empty bag copies its contents.
       The initially shared value is immutable and subsequent mutations replace it, so copies diverge safely.
-      This behavior is documented and covered by BagStorageTest; do not add identity UUIDs without a new ADR.
+      This behavior is documented, covered by BagStorageTest/P5HardeningTest, and manually verified through
+      creative middle-click cloning and divergent mutation; do not add identity UUIDs without a new ADR.
   - id: "R-004"
     severity: "HIGH"
     risk: "Trinkets 26.1.x API churn/alpha compatibility."
@@ -1004,7 +1023,27 @@ known_risks:
 bug_regressions:
   # Add one entry for every bug discovered, especially duplication/loss/desync.
   # Never remove a regression entry; mark fixed_in_commit and test evidence.
-  entries: []
+  entries:
+    - id: "BUG-P5-001"
+      phase: "P5"
+      severity: "P1"
+      status: "FIXED"
+      summary: "Malformed serialized bag entries could retain an item count above that item's real stack maximum or a non-positive streamed count."
+      impact: >
+        Command/corruption-crafted entries such as 99 diamonds could decode but fail strict ItemStack creation,
+        making the stored entry inaccessible and liable to be purged by a later mutation. This was not reachable
+        through normal server-authoritative menu play, but it violated fail-closed corruption handling.
+      root_cause: >
+        ItemStackTemplate's persistent codec permits counts through 99 and its stream codec carries a raw integer,
+        while BagContents previously checked slot bounds and nested-bag eligibility without normalizing against
+        the concrete item's getMaxStackSize or rejecting non-positive streamed counts.
+      fix: >
+        BagContents now creates a one-item strict template probe, rejects invalid/non-positive/ineligible entries,
+        and clamps retained counts to the concrete item's actual maximum before storing the immutable snapshot.
+      fixed_in_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
+      regression_tests:
+        - "BagStorageTest.oversizedEntriesClampToTheItemsActualMaximum"
+        - "BagStorageTest.streamDecodeClampsHugeCountsAndRejectsNonPositiveCounts"
 
 session_handoff_protocol:
   startup_steps:
@@ -1172,67 +1211,67 @@ session_history:
     blockers: []
     next_action: "Implement the source-reviewed P4 extended menu, empty open intent, client keybind/screen, and live-backing guards."
 
+  - session_id: "p4-completion-and-p5-activation-012"
+    date: "2026-08-11"
+    agent: "GPT-5.6"
+    summary:
+      - "Completed P4 implementation in 3ddfd52ff439a56958c49469ee27776a5a349dbf and recorded completion in c6c7604c09a5521c6762bff28057a4485765c462."
+      - "Delivered the empty-intent server-authoritative Pack Menu, configurable B key, stable satchel/left/right routing, immediate physical-stack writes, nested-bag rejection, and stale-handle closure without Scout26 mixins."
+      - "Passed 20 automated tests, clean build/jar/server/client checks, and the complete human P4 menu acceptance walkthrough."
+      - "The human explicitly approved beginning P5; activation was recorded in 72fd619ec29819bf581634f1609abb668a3b27b2."
+    files_changed:
+      - "P4 implementation/tests/documentation and SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
+
 latest_session:
-  session_id: "p5-activation-012"
+  session_id: "p5-completion-013"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
-    - "Implemented P4 and committed the reviewed source/tests as 3ddfd52ff439a56958c49469ee27776a5a349dbf (feat: add P4 unified pack menu)."
-    - "Added a dedicated Fabric extended PackMenu and custom extractor-era PackScreen, opened by a configurable client B key through an empty C2S intent."
-    - "The server rejects invalid open state, re-discovers Trinkets equipment, and sends only role capacities for matching client layout; it never accepts client contents, slot identities, or capacities."
-    - "Menu order is satchel, left pouch, right pouch, player inventory, hotbar. Shift-click globally merges compatible bag stacks first, then fills empty eligible slots in that same stable order; bag-to-player uses main inventory before hotbar."
-    - "Bag slots and BagContainer reject nested bags. Server click handling, PackMenu, and live-handle BagContainer mutations all fail closed when any exact captured ItemStack is removed, replaced, or rebuilt."
-    - "Kept client classes in the client source set, introduced no Scout26 mixins or vanilla inventory injection, wrote through on every mutation, and did not begin P5."
-    - "Completed the human-assisted connected-client acceptance matrix on the localhost dedicated server; all requested P4 menu, routing, persistence, nesting, equipment-identity, and configurable-key checks passed."
-    - "The human explicitly approved beginning P5; P5 is ACTIVE and P6 remains blocked."
+    - "Completed P5 hardening and committed implementation/tests/documentation as ef1a28543d2aa381fd1b05eb8ca27e781210ff11 (fix: harden P5 bag lifecycle invariants)."
+    - "Fixed BUG-P5-001 by rejecting non-positive/invalid serialized entries and clamping retained ItemStackTemplate counts to each concrete item's actual maximum stack size."
+    - "Hardened Pack open/menu validity against dead, removed, disconnected, and spectator players while retaining exact EquippedBagHandle identity checks before mutation."
+    - "Added five P5 lifecycle/multiplayer regressions plus two corrupt-count regressions; the full suite is 27 tests across four classes."
+    - "Audited exact Minecraft 26.1.2 and Trinkets Updated 4.0.0-beta.3+26.1 sources for click validation, server threading, cursor close behavior, disconnect save/remove ordering, death drops, keepInventory respawn copy, and attachment rebuild identity."
+    - "Completed the full non-rendering required manual matrix with two localhost clients, including every interaction, equipment combination, client/server restart, creative, death, disconnect, stale rebuild, rename, and multiplayer ownership case."
+    - "No open P0/P1 bugs remain, no duplication or loss occurred, and no custom death/respawn/logout state, networking, vanilla inventory injection, or Scout26 mixin was added."
+    - "P5 is complete and awaiting explicit human confirmation before P6; P6 remains blocked."
   commands_run:
-    - "Read and parse the complete SCOUT26_AGENT_STATE.yaml; verify clean main at the P4 pause/resume bookkeeping commits and run the cheapest baseline build."
-    - "Inspect generated Minecraft 26.1.2 common/client sources for AbstractContainerMenu, Slot, MenuType, MenuProvider, ServerPlayer.openMenu, server click validation, MenuScreens, AbstractContainerScreen, ContainerScreen, KeyMapping, CustomPacketPayload, StreamCodec, and ByteBufCodecs."
-    - "Inspect exact source jars for Fabric menu API 2.0.14+d871b99e4c, networking API 6.3.1+554860db4c, key-mapping API 2.0.4+e2bdee784c, screen API 5.1.0+981dd9b24c, lifecycle events 4.1.1+df84eb3d4c, and Trinkets Updated 4.0.0-beta.3+26.1."
-    - ".\\gradlew.bat compileJava compileClientJava processResources --no-daemon --console=plain"
-    - ".\\gradlew.bat test --tests com.example.scout26.PackMenuTest --tests com.example.scout26.BagStorageTest --tests com.example.scout26.TrinketsIntegrationTest --no-daemon --console=plain"
-    - ".\\gradlew.bat clean build --no-daemon --console=plain"
-    - "Inspect build/libs/scout26-0.0.0-dev.jar, JUnit XML counts, common-source imports, and Scout26 mixin files."
-    - ".\\gradlew.bat runServer --no-daemon --console=plain and .\\gradlew.bat runClient --no-daemon --console=plain as separate smoke runs."
-    - "Audit exact test process trees and TCP 25565, stop only P4 smoke-test descendants, and restore run/server.properties to online-mode=true."
-    - "Query the Windows Application log after background cmd.exe fallback popups; no matching Application Error event was recorded, and background cmd.exe launching was abandoned."
-    - "Run git diff --check and commit the P4 implementation."
-    - "With explicit human approval, temporarily set the ignored local server to offline authentication and forced Creative mode, then directly launch the generated server/client Java configurations without cmd.exe and quick-connect to localhost:25565."
-    - "After human validation, stop exact client/server PIDs, restore online-mode=true, gamemode=survival, and force-gamemode=false, then audit runtime cleanliness."
-    - "Re-read all 1242 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks; verify clean Git history/ancestry, repository integrity, runtime cleanliness, and the free game port."
-    - ".\\gradlew.bat test --no-daemon --console=plain"
+    - "Read all 1242 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks; verify clean Git history/ancestry, git fsck, runtime state, and TCP 25565 before activating P5."
+    - ".\\gradlew.bat test; focused BagStorageTest/P5HardeningTest runs; .\\gradlew.bat clean build."
+    - "Inspect exact Minecraft common sources for AbstractContainerMenu, Slot, ServerPlayer, ServerGamePacketListenerImpl, PlayerList, Player, Inventory, ItemStack, ItemStackTemplate, and ItemEntity."
+    - "Inspect exact published Trinkets source for LivingEntityMixin, ServerPlayerMixin, PlayerListMixin, InventoryMixin, ServerGamePacketListenerImplMixin, LivingEntityTrinketAttachment, TrinketInventoryImpl, TrinketsApi, and drop rules."
+    - "Inspect JUnit XML totals, production jar entries, common-source client references, Scout26 mixin entries, git diff --check, and git fsck --no-dangling."
+    - "Directly launch hidden dedicated servers and isolated javaw clients without cmd.exe wrappers; temporarily bind the ignored test server to 127.0.0.1 with offline test identities only."
+    - "Run human-assisted interaction, reload, creative, death/respawn, logout/rejoin, server restart, client restart, equipment-combination, double-click, and rename matrices."
+    - "Close exact client/server test PIDs, remove temporary ops/user-cache identities, restore secure server properties, stop the confirmed Gradle daemon, and audit the free port/process state."
   tests_run:
-    - "Toolchain: Microsoft OpenJDK 25.0.4+7; Fabric Loom resolved as 1.17.19."
-    - "Exact-source API review confirmed ExtendedMenuType/ExtendedMenuProvider, serverbound typed payload registration/receivers, client key mapping/tick APIs, screen registration/extractor rendering, server pre-click stillValid checks, and merge-before-empty moveItemStackTo behavior."
-    - "Trinkets review reconfirmed that inventory rebuild creates a replacement inventory, copies equipped stacks to new ItemStack objects, and invalidates old slot access, so exact identity handles fail closed."
-    - "Focused/full JUnit result: 20 tests passed, 0 failures/errors/skips (9 P2, 4 P3, 7 P4). P4 covers typed capacity data/codec bounds, stable slots/layout, global merge-before-empty routing, main-before-hotbar routing, every nested-bag ingress tested, empty payload bytes, and stale backing mutation refusal."
-    - "Clean build: BUILD SUCCESSFUL in 15s; all 10 actionable tasks executed."
-    - "Jar inspection: production jar contains BagContainer, OpenPackPayload, PackMenu and BagSlot, PackMenuData, PackMenuLayout, PackMenuProvider, PackNetworking, PackScreen, Scout26Client, and translations."
-    - "Dedicated-server smoke: logged 'Scout26 P4 unified pack menu initialized', loaded the Scout26 data pack/resources, loaded recipes/advancements, and reached 'Done (0.312s)'; only the known non-fatal third-party Trinkets client-mixin warnings remained."
-    - "Standalone development-client smoke: Scout26 initialized on the render thread, Indigo/client resources and GUI atlas loaded, and no Scout26 keybind/menu/screen registration or classloading error occurred. Expected unauthenticated development-account and Realms warnings were non-fatal."
-    - "Isolation review: no client-only imports exist in src/main/java and Scout26 contains no mixin files."
-    - "Connected-client smoke: the direct Java client connected to the dedicated localhost server as Player740; the server recorded successful login/join and no Scout26 networking, menu, or synchronization errors."
-    - "Human P4 acceptance: no-bag B intent/message passed; maximum 18-slot satchel plus two 6-slot pouch layout and section order passed; normal/split/drag interaction and close/reopen persistence passed; global merge-before-empty and satchel-left-right empty routing passed; bag-to-main-before-hotbar passed; normal and shift-click nested-bag rejection passed; physical bag replacement/re-equip ownership passed; configurable key rebinding passed."
-    - "Runtime cleanup: exact direct-Java client/server PIDs were stopped, no Java/cmd process remained, TCP 25565 was free, and run/server.properties was restored to online-mode=true, gamemode=survival, and force-gamemode=false."
-    - "P5 baseline: all 20 tests remained green; BUILD SUCCESSFUL in 6s with Loom 1.17.19. The initial sandboxed wrapper attempt could not access the Gradle distribution/network cache, and the approved cache-aware rerun passed."
+    - "Baseline: 20/20 pre-P5 tests passed before source changes; Loom resolved as 1.17.19."
+    - "Focused P5/storage result: 16 tests passed after fixing the test-fixture item registration issue; no project deprecation warning remained."
+    - "Final automated result: 27 tests passed, 0 failures/errors/skips across BagStorageTest (11), TrinketsIntegrationTest (4), PackMenuTest (7), and P5HardeningTest (5)."
+    - "Final clean build: BUILD SUCCESSFUL in 9s; all 10 actionable tasks executed with Loom 1.17.19. Only Gradle/plugin deprecation and JOML Unsafe warnings remained; neither originates in Scout26 source."
+    - "Jar audit: 65 entries; all 11 required common/client classes and Trinkets data resources present; zero missing entries, test classes, or mixin entries."
+    - "Isolation/Git audit: zero common-source client references, clean git diff --check, clean git fsck --no-dangling, and clean implementation worktree at ef1a28543d2aa381fd1b05eb8ca27e781210ff11."
+    - "Exact-source review: vanilla checks stillValid before packet clicks and closes invalid menus on the server thread; cursor stacks are safely returned/dropped by vanilla closure/removal; Trinkets rebuilds with new ItemStack identities and applies DROP/KEEP behavior around keepInventory before respawn copy."
+    - "Dedicated-server validation: Scout26/Fabric/Trinkets loaded repeatedly, recipes/advancements loaded, and the server reached Done before and after restart; only the known non-fatal third-party Trinkets dedicated-server client-mixin warnings remained."
+    - "Manual storage/equipment: per-bag contents survived close/reopen, world save/reload, server restart, client restart, physical drop/pickup, populated-bag anvil rename, empty/non-empty equip, satchel replacement, pouch replacement/swap, and no/one/two/all-bag configurations."
+    - "Manual interaction: normal/split/drag/double-click, deterministic merge-before-empty shift-click, bag-to-main-before-hotbar, number-key swap, Q/Ctrl+Q, and normal/shift/number/drag/creative nested-bag rejection all passed."
+    - "Manual stale-handle result: /reload rebuilt Trinkets while ScoutP5A held diamonds on the cursor; PackMenu closed automatically, returned the stack to hotbar position 1 exactly once, conserved the total, retained other contents, and reopened from new live handles."
+    - "Manual lifecycle: keepInventory=false dropped physical equipped bags whose contents survived pickup/re-equip; keepInventory=true retained equipped bags and contents through respawn copy; spectator open was rejected; a forced kick with an open cursor safely dropped/recovered the carried stack and conserved totals."
+    - "Manual creative: middle-click copied a populated bag intentionally, subsequent physical copies diverged without aliasing, nested insertion remained rejected, and creative deletion of the extra copy did not desynchronize the equipped bag."
+    - "Manual multiplayer/restart: ScoutP5A and ScoutP5B concurrently mutated distinct bags with no crossover, both rejoined after logout and a graceful /save-all flush plus /stop/restart, and all contents plus a post-restart mutation persisted."
+    - "Runtime cleanup: online-mode=true, enforce-secure-profile=true, server-ip is empty, gamemode=survival, force-gamemode=false, ops.json is empty, temporary offline user-cache entries were removed, TCP 25565 is free, and all P5 Java/javaw plus the confirmed Gradle daemon were stopped."
   files_changed:
     - "README.md"
-    - "src/client/java/com/example/scout26/client/PackScreen.java"
-    - "src/client/java/com/example/scout26/client/Scout26Client.java"
-    - "src/main/java/com/example/scout26/BagContainer.java"
-    - "src/main/java/com/example/scout26/ModMenus.java"
-    - "src/main/java/com/example/scout26/OpenPackPayload.java"
+    - "src/main/java/com/example/scout26/BagContents.java"
     - "src/main/java/com/example/scout26/PackMenu.java"
-    - "src/main/java/com/example/scout26/PackMenuData.java"
-    - "src/main/java/com/example/scout26/PackMenuLayout.java"
-    - "src/main/java/com/example/scout26/PackMenuProvider.java"
     - "src/main/java/com/example/scout26/PackNetworking.java"
-    - "src/main/java/com/example/scout26/Scout26Mod.java"
-    - "src/main/resources/assets/scout26/lang/en_us.json"
-    - "src/test/java/com/example/scout26/PackMenuTest.java"
+    - "src/test/java/com/example/scout26/BagStorageTest.java"
+    - "src/test/java/com/example/scout26/P5HardeningTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Audit P2-P4 code and exact Minecraft/Trinkets lifecycle paths against the P5 anti-dupe, death, disconnect, creative, and multiplayer matrix before changing behavior."
+  next_action: "Await explicit human confirmation before beginning P6; do not start P6 from the P5 completion handoff without that confirmation."
 
 agent_first_prompt:
   text: >
