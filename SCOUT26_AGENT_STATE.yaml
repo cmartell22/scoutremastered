@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 17
-last_updated_utc: "2026-08-11T08:07:00Z"
+state_revision: 18
+last_updated_utc: "2026-08-11T08:10:30Z"
 state_owner: "AI coding agent"
-project_status: "P4_COMPLETE_AWAITING_CONFIRMATION"
-current_phase: "P4"
-current_task: "P4"
+project_status: "P5_ACTIVE"
+current_phase: "P5"
+current_task: "P5"
 
 project:
   working_name: "Scout26"
@@ -684,7 +684,7 @@ phase_plan:
 
   P5:
     name: "Hardening, lifecycle, anti-dupe, multiplayer"
-    status: "BLOCKED"
+    status: "ACTIVE"
     objective: "Attack the implementation with historical Scout failure modes."
     tasks:
       - "Run the full required_manual_matrix except rendering-specific checks."
@@ -1173,7 +1173,7 @@ session_history:
     next_action: "Implement the source-reviewed P4 extended menu, empty open intent, client keybind/screen, and live-backing guards."
 
 latest_session:
-  session_id: "p4-completion-011"
+  session_id: "p5-activation-012"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1184,7 +1184,7 @@ latest_session:
     - "Bag slots and BagContainer reject nested bags. Server click handling, PackMenu, and live-handle BagContainer mutations all fail closed when any exact captured ItemStack is removed, replaced, or rebuilt."
     - "Kept client classes in the client source set, introduced no Scout26 mixins or vanilla inventory injection, wrote through on every mutation, and did not begin P5."
     - "Completed the human-assisted connected-client acceptance matrix on the localhost dedicated server; all requested P4 menu, routing, persistence, nesting, equipment-identity, and configurable-key checks passed."
-    - "P4 is DONE and awaiting explicit human confirmation before P5; no P5 work has started."
+    - "The human explicitly approved beginning P5; P5 is ACTIVE and P6 remains blocked."
   commands_run:
     - "Read and parse the complete SCOUT26_AGENT_STATE.yaml; verify clean main at the P4 pause/resume bookkeeping commits and run the cheapest baseline build."
     - "Inspect generated Minecraft 26.1.2 common/client sources for AbstractContainerMenu, Slot, MenuType, MenuProvider, ServerPlayer.openMenu, server click validation, MenuScreens, AbstractContainerScreen, ContainerScreen, KeyMapping, CustomPacketPayload, StreamCodec, and ByteBufCodecs."
@@ -1199,6 +1199,8 @@ latest_session:
     - "Run git diff --check and commit the P4 implementation."
     - "With explicit human approval, temporarily set the ignored local server to offline authentication and forced Creative mode, then directly launch the generated server/client Java configurations without cmd.exe and quick-connect to localhost:25565."
     - "After human validation, stop exact client/server PIDs, restore online-mode=true, gamemode=survival, and force-gamemode=false, then audit runtime cleanliness."
+    - "Re-read all 1242 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks; verify clean Git history/ancestry, repository integrity, runtime cleanliness, and the free game port."
+    - ".\\gradlew.bat test --no-daemon --console=plain"
   tests_run:
     - "Toolchain: Microsoft OpenJDK 25.0.4+7; Fabric Loom resolved as 1.17.19."
     - "Exact-source API review confirmed ExtendedMenuType/ExtendedMenuProvider, serverbound typed payload registration/receivers, client key mapping/tick APIs, screen registration/extractor rendering, server pre-click stillValid checks, and merge-before-empty moveItemStackTo behavior."
@@ -1212,6 +1214,7 @@ latest_session:
     - "Connected-client smoke: the direct Java client connected to the dedicated localhost server as Player740; the server recorded successful login/join and no Scout26 networking, menu, or synchronization errors."
     - "Human P4 acceptance: no-bag B intent/message passed; maximum 18-slot satchel plus two 6-slot pouch layout and section order passed; normal/split/drag interaction and close/reopen persistence passed; global merge-before-empty and satchel-left-right empty routing passed; bag-to-main-before-hotbar passed; normal and shift-click nested-bag rejection passed; physical bag replacement/re-equip ownership passed; configurable key rebinding passed."
     - "Runtime cleanup: exact direct-Java client/server PIDs were stopped, no Java/cmd process remained, TCP 25565 was free, and run/server.properties was restored to online-mode=true, gamemode=survival, and force-gamemode=false."
+    - "P5 baseline: all 20 tests remained green; BUILD SUCCESSFUL in 6s with Loom 1.17.19. The initial sandboxed wrapper attempt could not access the Gradle distribution/network cache, and the approved cache-aware rerun passed."
   files_changed:
     - "README.md"
     - "src/client/java/com/example/scout26/client/PackScreen.java"
@@ -1229,7 +1232,7 @@ latest_session:
     - "src/test/java/com/example/scout26/PackMenuTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Await explicit human confirmation before beginning P5; do not start P5 without it."
+  next_action: "Audit P2-P4 code and exact Minecraft/Trinkets lifecycle paths against the P5 anti-dupe, death, disconnect, creative, and multiplayer matrix before changing behavior."
 
 agent_first_prompt:
   text: >
