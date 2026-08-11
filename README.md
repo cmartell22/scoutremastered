@@ -55,5 +55,5 @@ $env:Path = "$env:JAVA_HOME\\bin;$env:Path"
 
 - Bag tooltips summarize occupied slots and show up to five stored stacks without mutating bag contents.
 - Equipped satchels render on the back and belt-indexed pouches render separately at the left and right waist in third person.
-- Wearable rendering is client-only and reuses the normal item models and textures. Body-worn bags are intentionally not rendered over first-person arms.
+- Wearable rendering is client-only and reuses the normal item models and textures as an intentional placeholder. Custom wearable geometry is deferred to a possible future visuals release; body-worn bags are intentionally not rendered over first-person arms.
 - Base pouches use leather and string; base satchels add a chest. Gold-ingot transmute recipes upgrade either bag while preserving the original ItemStack components, including all stored contents.
