@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 30
-last_updated_utc: "2026-08-11T16:20:48Z"
+state_revision: 31
+last_updated_utc: "2026-08-11T16:32:08Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -867,8 +867,9 @@ repository_state:
   p7b_session_commit: "0587721854a122a5a84b3e3e6a2a25cdff20e269"
   p7b_implementation_commit: "09a11e8ec72d6f755f322100083808ed8934d863"
   p7b_manual_matrix_commit: "90e4dc8a2b0c2deb8738854cae5ffa00a18693df"
-  last_known_good_commit: "90e4dc8a2b0c2deb8738854cae5ffa00a18693df"
-  last_tested_commit: "09a11e8ec72d6f755f322100083808ed8934d863"
+  p7b_spawn_order_fix_commit: "6464284e531c7357d83e7923c769db31c1c3dc76"
+  last_known_good_commit: "6464284e531c7357d83e7923c769db31c1c3dc76"
+  last_tested_commit: "6464284e531c7357d83e7923c769db31c1c3dc76"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1135,6 +1136,25 @@ bug_regressions:
       fixed_in_commit: "09a11e8ec72d6f755f322100083808ed8934d863"
       regression_tests:
         - "IntegratedInventoryTest.classicLayoutUsesCapacityPrefixesAndExternalPanels"
+    - id: "BUG-P7B-002"
+      phase: "P7-B"
+      severity: "P1"
+      status: "FIXED"
+      summary: "Creating or joining an integrated-server world failed with 'Invalid player data' when Trinkets and Scout26 both appended InventoryMenu slots."
+      impact: "No player could enter a single-player world while the P7-B build was installed, blocking all interactive acceptance testing."
+      root_cause: >
+        Scout26's default Mixin priority 1000 made its InventoryMenu constructor RETURN callback run after the
+        Trinkets Updated InventoryMenu Mixin at priority 500. Trinkets had therefore already appended its slots
+        when Scout26 asserted the vanilla 46-slot topology, and Scout26 could not reserve ADR-012 indices 46-75.
+      fix: >
+        Set the Scout26 InventoryMenu Mixin priority to 400 so its RETURN callback runs before Trinkets,
+        reserves the fixed dormant indices 46-75, and permits Trinkets to append its own slots afterward.
+        The change remains within ADR-012's four authorized Mixin targets.
+      fixed_in_commit: "6464284e531c7357d83e7923c769db31c1c3dc76"
+      evidence:
+        - "The initial enabled acceptance launch reproduced java.lang.IllegalStateException: ADR-012 InventoryMenu topology must contain exactly 76 slots during ServerPlayer construction."
+        - "Exact trinkets-4.0.0-beta.3+26.1 bytecode inspection confirmed its InventoryMenu Mixin priority is 500 and it injects at constructor RETURN."
+        - "After the priority fix, the clean build passed all 37 tests and quickPlaySingleplayer logged Player132 in and joined P7B-test without the invalid-player-data failure."
 
 session_handoff_protocol:
   startup_steps:
@@ -1316,7 +1336,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7b-implementation-016"
+  session_id: "p7b-acceptance-017"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1344,7 +1364,11 @@ latest_session:
     - "09a11e8ec72d6f755f322100083808ed8934d863 added the default-false persisted client flag, Fabric ScreenEvents lifecycle/panel rendering, outside-click correction, wide recipe-book offset, right-side effects offset, and the acknowledgement-time layout refresh for BUG-P7B-001."
     - "The only Scout26 Mixin targets are the four authorized by ADR-012: InventoryMenu, AbstractContainerScreen, RecipeBookComponent, and EffectsInInventory. No @Overwrite or forbidden target was added."
     - "Creative Integrated Inventory remains dormant because client lifecycle never opens a session for infinite-material players and every binding also validates survival inventory state; the B-key Pack Menu remains independent."
-    - "No ADR-012 hard stop, P0, or P1 issue was encountered. P7-B is implemented but not complete because its required interactive manual and two-client acceptance matrix has not yet been executed. P8 remains blocked."
+    - "At the implementation checkpoint, no ADR-012 hard stop, P0, or P1 issue had been encountered. P7-B remained incomplete pending its interactive manual and two-client acceptance matrix, and P8 remained blocked."
+    - "Manual acceptance began with Integrated Inventory enabled in run/config/scout26-client.properties and exposed BUG-P7B-002: single-player world entry was rejected as invalid player data."
+    - "Exact Trinkets bytecode inspection showed its InventoryMenu constructor RETURN injection uses priority 500; Scout26's default priority 1000 therefore ran after Trinkets and incorrectly asserted that the menu still had only its 76-slot Scout prefix."
+    - "6464284e531c7357d83e7923c769db31c1c3dc76 sets Scout26's existing authorized InventoryMenu Mixin to priority 400, making it reserve indices 46-75 before Trinkets appends later integration slots."
+    - "A clean build passed all 37 tests, and a quick-play launch successfully logged the local player into P7B-test. The corrected client remains intentionally open for the human to resume the enabled-survival acceptance matrix."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1362,6 +1386,10 @@ latest_session:
     - "Inspect Fabric ScreenEvents and client/server networking handler signatures plus MixinExtras 0.5.4 availability before using their exact APIs."
     - "Implement and commit four buildable P7-B checkpoints, then run git diff --check and exact four-target/no-Overwrite/source-isolation audits."
     - ".\\gradlew.bat clean build --no-daemon --console=plain; audit build/libs/scout26-0.0.0-dev.jar; run dedicated server and development client smokes; inspect run/logs/latest.log for Mixin or Scout26 errors; stop all launched Java processes and verify TCP 25565 free."
+    - "Set run/config/scout26-client.properties integrated_inventory_enabled=true and launch the development client for interactive acceptance."
+    - "Inspect run/logs/latest.log after the invalid-player-data report and trace the ServerPlayer construction failure to InventoryMenuMixin.scout26$appendFixedDormantSlots."
+    - "Inspect the resolved Trinkets Updated JAR mixin configuration and InventoryMenu Mixin bytecode with javap -v, then set the Scout26 InventoryMenu Mixin priority to 400."
+    - ".\\gradlew.bat clean build --no-daemon --console=plain; relaunch with runClient --args=\"--quickPlaySingleplayer P7B-test\"; verify the player login/join sequence in latest.log."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1387,6 +1415,7 @@ latest_session:
     - "Development client loaded Scout26, MixinExtras, assets, and the client Mixin configuration through title-screen startup with no Scout26 or Mixin application error; expected unauthenticated development-session Realms/user-property errors were unrelated."
     - "Default config generation produced integrated_inventory_enabled=false. Final runtime condition: no Java/javaw process remained and TCP 25565 was free."
     - "Required interactive disabled/enabled, interaction, lifecycle, creative, recipe-book/effects, and two-client dedicated-server checks remain pending and are enumerated in docs/P7B_MANUAL_ACCEPTANCE.md."
+    - "BUG-P7B-002 verification: clean build passed all 37 tests; the corrected quick-play client started the integrated server and logged Player132 into P7B-test without another invalid-player-data error."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1422,9 +1451,10 @@ latest_session:
     - "src/test/java/com/example/scout26/IntegratedInventoryTest.java"
     - "docs/P7B_MANUAL_ACCEPTANCE.md"
     - "SCOUT26_AGENT_STATE.yaml"
+    - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
   blockers:
-    - "P7-B completion requires the interactive manual and two-client acceptance matrix; it was not executed during this implementation session."
-  next_action: "Run the P7-B manual acceptance checklist beginning with disabled fallback, then enabled survival equipment/capacity combinations on commit 90e4dc8a2b0c2deb8738854cae5ffa00a18693df."
+    - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix; the initial player-spawn blocker is fixed."
+  next_action: "In the currently open P7B-test world, execute the enabled-survival equipment, capacity, transfer, lifecycle, recipe-book, and effects checks on commit 6464284e531c7357d83e7923c769db31c1c3dc76."
 
 agent_first_prompt:
   text: >
