@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 8
-last_updated_utc: "2026-08-11T03:21:30Z"
+state_revision: 9
+last_updated_utc: "2026-08-11T03:49:30Z"
 state_owner: "AI coding agent"
-project_status: "P0_COMPLETE_AWAITING_CONFIRMATION"
-current_phase: "P0"
-current_task: "P0-T04"
+project_status: "P1_COMPLETE_AWAITING_CONFIRMATION"
+current_phase: "P1"
+current_task: "P1"
 
 project:
   working_name: "Scout26"
@@ -607,7 +607,7 @@ phase_plan:
 
   P1:
     name: "Items and static game data"
-    status: "BLOCKED"
+    status: "DONE"
     objective: "Register bag/material items and static assets without storage behavior."
     tasks:
       - "Register satchel, upgraded satchel, pouch, upgraded pouch, and any chosen crafting materials."

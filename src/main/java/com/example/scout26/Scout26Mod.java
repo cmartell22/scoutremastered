@@ -13,7 +13,7 @@ public final class Scout26Mod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Scout26 bootstrap initialized");
+		ModItems.initialize();
+		LOGGER.info("Scout26 P1 items initialized");
 	}
 }
-
