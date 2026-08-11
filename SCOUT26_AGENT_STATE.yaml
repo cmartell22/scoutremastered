@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 31
-last_updated_utc: "2026-08-11T16:32:08Z"
+state_revision: 32
+last_updated_utc: "2026-08-11T16:45:59Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -868,8 +868,9 @@ repository_state:
   p7b_implementation_commit: "09a11e8ec72d6f755f322100083808ed8934d863"
   p7b_manual_matrix_commit: "90e4dc8a2b0c2deb8738854cae5ffa00a18693df"
   p7b_spawn_order_fix_commit: "6464284e531c7357d83e7923c769db31c1c3dc76"
-  last_known_good_commit: "6464284e531c7357d83e7923c769db31c1c3dc76"
-  last_tested_commit: "6464284e531c7357d83e7923c769db31c1c3dc76"
+  p7b_inventory_rebuild_fix_commit: "43050ca2143a5eb22d433e01b605334a4a978756"
+  last_known_good_commit: "43050ca2143a5eb22d433e01b605334a4a978756"
+  last_tested_commit: "43050ca2143a5eb22d433e01b605334a4a978756"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1155,6 +1156,27 @@ bug_regressions:
         - "The initial enabled acceptance launch reproduced java.lang.IllegalStateException: ADR-012 InventoryMenu topology must contain exactly 76 slots during ServerPlayer construction."
         - "Exact trinkets-4.0.0-beta.3+26.1 bytecode inspection confirmed its InventoryMenu Mixin priority is 500 and it injects at constructor RETURN."
         - "After the priority fix, the clean build passed all 37 tests and quickPlaySingleplayer logged Player132 in and joined P7B-test without the invalid-player-data failure."
+    - id: "BUG-P7B-003"
+      phase: "P7-B"
+      severity: "P1"
+      status: "FIXED_PENDING_MANUAL_RETEST"
+      summary: "Opening the enabled survival inventory with no bags equipped left most of the vanilla GUI invisible or displaced, including the usable player inventory and hotbar slots."
+      impact: "The player could not access newly obtained bags to equip them, blocking the enabled Integrated Inventory acceptance matrix."
+      root_cause: >
+        The acknowledgement handler unconditionally called InventoryScreen.resize after every successful session activation.
+        That full widget rebuild exists only to recompute an already-open wide recipe-book layout after a left pouch
+        becomes active; running it for an ordinary empty acknowledgement unnecessarily rebuilt vanilla and Trinkets
+        screen state and left the survival inventory presentation unusable.
+      fix: >
+        Gate the full resize on all of its actual prerequisites: a nonzero acknowledged left-pouch capacity,
+        an open recipe book, and Trinkets reporting a wide rather than narrow layout. Empty, satchel-only,
+        right-pouch-only, closed-book, and narrow-book acknowledgements no longer rebuild the screen.
+      fixed_in_commit: "43050ca2143a5eb22d433e01b605334a4a978756"
+      evidence:
+        - "The human-provided 1024x768 screenshot showed the player/equipment/crafting elements but no usable vanilla player inventory or hotbar after opening with no bags."
+        - "Exact Minecraft bytecode confirmed Screen.resize rebuilds widgets; exact pinned Trinkets bytecode exposed recipe-book-open and narrow-layout state through its InventoryScreen TrinketScreen implementation."
+        - "compileClientJava plus all 37 tests passed, followed by a clean build with all 10 actionable tasks executed."
+        - "The replacement quick-play client logged Player308 into P7B-test; visual inventory confirmation remains pending."
 
 session_handoff_protocol:
   startup_steps:
@@ -1336,7 +1358,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7b-acceptance-017"
+  session_id: "p7b-acceptance-018"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1369,6 +1391,10 @@ latest_session:
     - "Exact Trinkets bytecode inspection showed its InventoryMenu constructor RETURN injection uses priority 500; Scout26's default priority 1000 therefore ran after Trinkets and incorrectly asserted that the menu still had only its 76-slot Scout prefix."
     - "6464284e531c7357d83e7923c769db31c1c3dc76 sets Scout26's existing authorized InventoryMenu Mixin to priority 400, making it reserve indices 46-75 before Trinkets appends later integration slots."
     - "A clean build passed all 37 tests, and a quick-play launch successfully logged the local player into P7B-test. The corrected client remains intentionally open for the human to resume the enabled-survival acceptance matrix."
+    - "The human's first no-bag inventory screenshot exposed BUG-P7B-003: the enabled survival inventory retained isolated player/equipment/crafting elements but lost the usable vanilla inventory and hotbar presentation."
+    - "The acknowledgement handler's BUG-P7B-001 workaround was overbroad: it rebuilt the whole InventoryScreen for every acknowledgement even though only an already-open wide recipe book plus an active left pouch requires repositioning."
+    - "43050ca2143a5eb22d433e01b605334a4a978756 gates the rebuild using acknowledged left-pouch capacity and the exact pinned Trinkets InventoryScreen recipe-book-open/narrow state, without adding a Mixin target or changing storage authority."
+    - "Client compilation, all 37 tests, and a full clean build passed. A replacement enabled client logged Player308 into P7B-test and remains open pending the human's no-bag inventory visual retest."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1390,6 +1416,9 @@ latest_session:
     - "Inspect run/logs/latest.log after the invalid-player-data report and trace the ServerPlayer construction failure to InventoryMenuMixin.scout26$appendFixedDormantSlots."
     - "Inspect the resolved Trinkets Updated JAR mixin configuration and InventoryMenu Mixin bytecode with javap -v, then set the Scout26 InventoryMenu Mixin priority to 400."
     - ".\\gradlew.bat clean build --no-daemon --console=plain; relaunch with runClient --args=\"--quickPlaySingleplayer P7B-test\"; verify the player login/join sequence in latest.log."
+    - "Inspect the human BUG-P7B-003 screenshot, exact Minecraft Screen.resize/AbstractRecipeBookScreen bytecode, and pinned Trinkets InventoryScreen/TrinketScreen/TrinketScreenManager bytecode."
+    - "Stop only the verified prior Scout26 Gradle/client process tree, gate the acknowledgement-time resize, and run compileClientJava plus test followed by a full clean build."
+    - "Relaunch runClient --args=\"--quickPlaySingleplayer P7B-test\" with Integrated Inventory still enabled and verify Player308 logs in and joins."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1416,6 +1445,8 @@ latest_session:
     - "Default config generation produced integrated_inventory_enabled=false. Final runtime condition: no Java/javaw process remained and TCP 25565 was free."
     - "Required interactive disabled/enabled, interaction, lifecycle, creative, recipe-book/effects, and two-client dedicated-server checks remain pending and are enumerated in docs/P7B_MANUAL_ACCEPTANCE.md."
     - "BUG-P7B-002 verification: clean build passed all 37 tests; the corrected quick-play client started the integrated server and logged Player132 into P7B-test without another invalid-player-data error."
+    - "BUG-P7B-003 automated verification: compileClientJava and 37/37 tests passed; the subsequent clean build executed all 10 tasks successfully."
+    - "BUG-P7B-003 runtime startup verification: the replacement client started the integrated server and logged Player308 into P7B-test; the no-bag inventory visual retest is pending human confirmation."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1452,9 +1483,11 @@ latest_session:
     - "docs/P7B_MANUAL_ACCEPTANCE.md"
     - "SCOUT26_AGENT_STATE.yaml"
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
+    - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
-    - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix; the initial player-spawn blocker is fixed."
-  next_action: "In the currently open P7B-test world, execute the enabled-survival equipment, capacity, transfer, lifecycle, recipe-book, and effects checks on commit 6464284e531c7357d83e7923c769db31c1c3dc76."
+    - "BUG-P7B-003 requires a human visual no-bag inventory retest before its fix can be accepted."
+    - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
+  next_action: "In the currently open P7B-test world, press E with no bags equipped and confirm the complete centered vanilla inventory and hotbar are visible on commit 43050ca2143a5eb22d433e01b605334a4a978756."
 
 agent_first_prompt:
   text: >
