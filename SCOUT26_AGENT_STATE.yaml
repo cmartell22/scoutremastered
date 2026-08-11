@@ -5,10 +5,10 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 1
-last_updated_utc: "2026-08-11T00:25:27Z"
+state_revision: 2
+last_updated_utc: "2026-08-11T00:42:10Z"
 state_owner: "AI coding agent"
-project_status: "PLANNING"
+project_status: "BOOTSTRAPPING"
 current_phase: "P0"
 current_task: "P0-T02"
 
@@ -582,7 +582,7 @@ phase_plan:
         acceptance:
           - "No version is chosen solely from this planning file."
       P0-T02:
-        status: "NEXT"
+        status: "ACTIVE"
         action: >
           Initialize a fresh project from the Fabric 26.1.2 example/template shape.
           Use temporary identifiers only if the human has not supplied final name/mod_id/package.
@@ -977,36 +977,47 @@ session_history:
     next_action: "Execute P0-T01: re-verify and lock exact 26.1.x dependency versions from primary sources."
 
 latest_session:
-  session_id: "p0-t01-001"
+  session_id: "p0-t02-002"
   date: "2026-08-11"
-  agent: "GPT-5.6 Sol"
+  agent: "GPT-5.6 Terra High"
   summary:
-    - "Completed P0-T01 using current primary Mojang, Fabric, Gradle, GitHub, and Nucleoid sources."
-    - "Locked the official Fabric 26.1.2 example baseline and the newest published Trinkets Updated 26.1 build."
-    - "Initialized the workspace as a local Git repository on main at the human's request."
-    - "Confirmed that Java is not currently available on PATH; Java 25 is the first P0-T02 prerequisite."
+    - "Installed and verified Microsoft OpenJDK 25.0.4+7 after confirming no JDK was present."
+    - "Bootstrapped a minimal Fabric project from FabricMC/fabric-example-mod commit 27c9ae062374e59b9732d86ce229bfb42175408e."
+    - "Used temporary identifiers scout26 and com.example.scout26; included Fabric API only and no Trinkets or mixins."
+    - "Clean build and client startup passed; the dedicated server loaded Scout26 then stopped only because eula.txt is false."
   commands_run:
-    - "Get-Content -Raw -LiteralPath 'SCOUT26_AGENT_STATE.yaml' (terminal output truncated; followed by complete bounded reads)"
-    - "$lines = Get-Content -LiteralPath 'SCOUT26_AGENT_STATE.yaml'; $lines[0..249], $lines[250..499], $lines[500..749], and $lines[750..end]"
-    - "git status --short --branch (before repository initialization; returned not a git repository)"
-    - "git ls-remote https://github.com/FabricMC/fabric-example-mod.git refs/heads/26.1.2"
-    - "git ls-remote https://github.com/Patbox/trinkets.git 'refs/tags/4.0.0-beta.3+26.1*'"
-    - "Invoke-WebRequest/Invoke-RestMethod checks against Mojang version manifest, Fabric Meta/Maven, Gradle distributions, Nucleoid Maven, and immutable GitHub raw files"
-    - "java -version (command not found)"
-    - "git --version (2.53.0.windows.1)"
-    - "git init -b main"
-    - "git commit -m 'chore: lock 26.1 dependency baseline' (a26d732c95c51328926bcd9e4a86fed188c0589c)"
-    - "Bundled Python 3.12 with temporary PyYAML 6.0.2: yaml.safe_load(SCOUT26_AGENT_STATE.yaml)"
+    - "git status --short --branch; git log --oneline -2; git merge-base --is-ancestor a26d732c95c51328926bcd9e4a86fed188c0589c HEAD"
+    - "winget search --id Microsoft.OpenJDK.25 --exact"
+    - "winget install --id Microsoft.OpenJDK.25 --exact --source winget --accept-package-agreements --accept-source-agreements"
+    - "C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot\\bin\\java.exe -version"
+    - "git clone --no-checkout https://github.com/FabricMC/fabric-example-mod.git <TEMP>\\scout26-fabric-example-27c9ae0; git -C <TEMP>\\scout26-fabric-example-27c9ae0 checkout --detach 27c9ae062374e59b9732d86ce229bfb42175408e"
+    - "Copy-Item of the exact template Gradle wrapper files; apply_patch for the project scaffold"
+    - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat clean build --no-daemon --console=plain"
+    - "Start-Process .\\gradlew.bat runClient --no-daemon --console=plain; inspect run\\logs\\latest.log; stop launched process tree"
+    - "Start-Process .\\gradlew.bat runServer --no-daemon --console=plain --args=--nogui; inspect run\\logs\\latest.log and generated run\\eula.txt"
   tests_run:
-    - "Artifact availability: Loader 0.19.3 POM, Loom 1.17-SNAPSHOT metadata, Fabric API 0.155.2+26.1.2 POM, Trinkets 4.0.0-beta.3+26.1 POM, and Gradle 9.5.1 distribution all returned HTTP 200."
-    - "Immutable-source compatibility: Trinkets tag fabric.mod.json declares Minecraft 26.1.x and Fabric Loader >=0.18.0."
-    - "Version-line check: Mojang manifest lists 26.1.2 as the newest 26.1.x release."
-    - "State-file syntax: PyYAML safe_load passed and returned schema 1, revision 1, phase P0, task P0-T02, lock status LOCKED, and 8 evidence records."
+    - "Java runtime: Microsoft OpenJDK 25.0.4+7-LTS, 64-bit Server VM."
+    - "./gradlew.bat clean build --no-daemon --console=plain: BUILD SUCCESSFUL; compileJava, compileClientJava, jar, sourcesJar, check, and build completed."
+    - "Client smoke test: loaded Minecraft 26.1.2/Fabric Loader 0.19.3, loaded scout26 0.0.0-dev, initialized Scout26Mod on the render thread, and initialized rendering/audio/resource managers."
+    - "Server startup attempt: loaded Minecraft 26.1.2/Fabric Loader 0.19.3, loaded scout26 0.0.0-dev, and initialized Scout26Mod on the logical server. It then correctly required the unaccepted Minecraft EULA."
   files_changed:
+    - ".gitignore"
+    - "README.md"
+    - "build.gradle"
+    - "gradle.properties"
+    - "gradle/wrapper/gradle-wrapper.jar"
+    - "gradle/wrapper/gradle-wrapper.properties"
+    - "gradlew"
+    - "gradlew.bat"
+    - "settings.gradle"
+    - "src/main/java/com/example/scout26/Scout26Mod.java"
+    - "src/client/java/com/example/scout26/client/Scout26Client.java"
+    - "src/client/resources/.gitkeep"
+    - "src/main/resources/fabric.mod.json"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers:
-    - "Java is not available on PATH; P0-T02 requires a Java 25 JDK before Gradle can build or run the project."
-  next_action: "After human confirmation, begin P0-T02 by locating or installing a Java 25 JDK, then bootstrap from Fabric example commit 27c9ae062374e59b9732d86ce229bfb42175408e."
+    - "Minecraft generated run/eula.txt with eula=false. The dedicated-server acceptance criterion requires explicit human authorization to change it to true."
+  next_action: "Await the human's explicit instruction to accept the Minecraft EULA for this local development server; then set run/eula.txt to true, re-run the dedicated-server smoke test, and complete P0-T02."
 
 agent_first_prompt:
   text: >

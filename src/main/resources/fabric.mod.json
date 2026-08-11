@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "scout26",
+  "version": "${version}",
+  "name": "Scout26 (Temporary)",
+  "description": "Temporary Fabric 26.1.x bootstrap for a wearable bag mod.",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.example.scout26.Scout26Mod"
+    ],
+    "client": [
+      "com.example.scout26.client.Scout26Client"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.1.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
