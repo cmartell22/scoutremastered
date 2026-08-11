@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 21
-last_updated_utc: "2026-08-11T09:49:39Z"
+state_revision: 22
+last_updated_utc: "2026-08-11T10:04:07Z"
 state_owner: "AI coding agent"
 project_status: "P6_ACTIVE"
 current_phase: "P6"
-current_task: "P6_T01_API_REVIEW_AND_TOOLTIP"
+current_task: "P6_MANUAL_RENDERING_ACCEPTANCE"
 
 project:
   working_name: "Scout26"
@@ -838,9 +838,11 @@ repository_state:
   p5_completion_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
   p5_bookkeeping_commit: "4c459f632ef2ca1f427a75fdeeb0e939acac4fed"
   p5_confirmation_commit: "a24b51dbf5d2e22525e722b119e7b168b93e79c6"
-  p6_activation_commit: null
-  last_known_good_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
-  last_tested_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
+  p6_activation_commit: "d9f9dd5c3f0affe617b1ed4287ea853694b325c2"
+  p6_tooltip_commit: "73658d7c6ecd69e3e5067c265f52f1fb541864d1"
+  p6_implementation_commit: "0c3c1074527d1d1a3c771514c602ac1eb3175d4b"
+  last_known_good_commit: "0c3c1074527d1d1a3c771514c602ac1eb3175d4b"
+  last_tested_commit: "0c3c1074527d1d1a3c771514c602ac1eb3175d4b"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -957,6 +959,17 @@ decision_log:
       before clicks, saves players on disconnect, and closes invalid menus, while Trinkets drops or copies physical
       equipped stacks according to keepInventory and rebuilds attachments with new ItemStack identities. Reusing
       those authoritative paths avoids duplicate write-back state and lets exact-identity handles fail closed.
+  - id: "ADR-011"
+    date: "2026-08-11"
+    status: "ACCEPTED"
+    decision: >
+      Use a client-source code renderer for equipped bags, reusing normal item models and textures, because the
+      pinned Trinkets data renderer can select legs/belt but cannot distinguish belt index 0 from index 1. Use
+      vanilla crafting_transmute recipes for upgrades so the base bag's component patch is preserved.
+    reason: >
+      Index-aware rendering keeps left and right pouches visually distinct without common-source client leakage.
+      Minecraft 26.1.2 TransmuteRecipe copies the input ItemStack component patch to the target item, preserving
+      populated BAG_CONTENTS through upgrades without custom crafting mutation logic.
 
 open_questions:
   blocking_before_release:
@@ -1228,53 +1241,42 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p5-completion-013"
+  session_id: "p6-active-014"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
-    - "Completed P5 hardening and committed implementation/tests/documentation as ef1a28543d2aa381fd1b05eb8ca27e781210ff11 (fix: harden P5 bag lifecycle invariants)."
-    - "Fixed BUG-P5-001 by rejecting non-positive/invalid serialized entries and clamping retained ItemStackTemplate counts to each concrete item's actual maximum stack size."
-    - "Hardened Pack open/menu validity against dead, removed, disconnected, and spectator players while retaining exact EquippedBagHandle identity checks before mutation."
-    - "Added five P5 lifecycle/multiplayer regressions plus two corrupt-count regressions; the full suite is 27 tests across four classes."
-    - "Audited exact Minecraft 26.1.2 and Trinkets Updated 4.0.0-beta.3+26.1 sources for click validation, server threading, cursor close behavior, disconnect save/remove ordering, death drops, keepInventory respawn copy, and attachment rebuild identity."
-    - "Completed the full non-rendering required manual matrix with two localhost clients, including every interaction, equipment combination, client/server restart, creative, death, disconnect, stale rebuild, rename, and multiplayer ownership case."
-    - "No open P0/P1 bugs remain, no duplication or loss occurred, and no custom death/respawn/logout state, networking, vanilla inventory injection, or Scout26 mixin was added."
-    - "The human explicitly confirmed P5 complete and explicitly instructed this agent not to begin P6; P6 remains blocked and unstarted."
+    - "The human explicitly authorized P6; activation was committed as d9f9dd5c3f0affe617b1ed4287ea853694b325c2."
+    - "Added immutable compact bag tooltips with a five-entry detail limit and remainder line in 73658d7c6ecd69e3e5067c265f52f1fb541864d1."
+    - "Added client-only index-aware third-person bag rendering, four recipes, component-preserving gold upgrades, PackScreen layout narration, and documentation in 0c3c1074527d1d1a3c771514c602ac1eb3175d4b."
+    - "No custom config was added because the B key is already configurable through vanilla controls and no other clearly useful basic option is required."
+    - "First-person behavior is intentionally documented as no body-worn bag overlay; third-person visual placement remains awaiting human acceptance in the launched development client."
   commands_run:
-    - "Read all 1242 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks; verify clean Git history/ancestry, git fsck, runtime state, and TCP 25565 before activating P5."
-    - ".\\gradlew.bat test; focused BagStorageTest/P5HardeningTest runs; .\\gradlew.bat clean build."
-    - "Inspect exact Minecraft common sources for AbstractContainerMenu, Slot, ServerPlayer, ServerGamePacketListenerImpl, PlayerList, Player, Inventory, ItemStack, ItemStackTemplate, and ItemEntity."
-    - "Inspect exact published Trinkets source for LivingEntityMixin, ServerPlayerMixin, PlayerListMixin, InventoryMixin, ServerGamePacketListenerImplMixin, LivingEntityTrinketAttachment, TrinketInventoryImpl, TrinketsApi, and drop rules."
-    - "Inspect JUnit XML totals, production jar entries, common-source client references, Scout26 mixin entries, git diff --check, and git fsck --no-dangling."
-    - "Directly launch hidden dedicated servers and isolated javaw clients without cmd.exe wrappers; temporarily bind the ignored test server to 127.0.0.1 with offline test identities only."
-    - "Run human-assisted interaction, reload, creative, death/respawn, logout/rejoin, server restart, client restart, equipment-combination, double-click, and rename matrices."
-    - "Close exact client/server test PIDs, remove temporary ops/user-cache identities, restore secure server properties, stop the confirmed Gradle daemon, and audit the free port/process state."
+    - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
+    - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
+    - "Inspect exact Trinkets Updated commit 2509961c1dcf5925dae02f8684156976295a2236 render codecs, attachment helpers, renderer API, and official testmod examples."
+    - ".\\gradlew.bat test; focused BagStorageTest; .\\gradlew.bat clean build; hidden runServer smoke; visible runClient launch."
+    - "Audit recipe JSON, jar entries, common-source client references, Scout26 mixin references, and git diff --check."
   tests_run:
-    - "Baseline: 20/20 pre-P5 tests passed before source changes; Loom resolved as 1.17.19."
-    - "Focused P5/storage result: 16 tests passed after fixing the test-fixture item registration issue; no project deprecation warning remained."
-    - "Final automated result: 27 tests passed, 0 failures/errors/skips across BagStorageTest (11), TrinketsIntegrationTest (4), PackMenuTest (7), and P5HardeningTest (5)."
-    - "Final clean build: BUILD SUCCESSFUL in 9s; all 10 actionable tasks executed with Loom 1.17.19. Only Gradle/plugin deprecation and JOML Unsafe warnings remained; neither originates in Scout26 source."
-    - "Jar audit: 65 entries; all 11 required common/client classes and Trinkets data resources present; zero missing entries, test classes, or mixin entries."
-    - "Isolation/Git audit: zero common-source client references, clean git diff --check, clean git fsck --no-dangling, and clean implementation worktree at ef1a28543d2aa381fd1b05eb8ca27e781210ff11."
-    - "Exact-source review: vanilla checks stillValid before packet clicks and closes invalid menus on the server thread; cursor stacks are safely returned/dropped by vanilla closure/removal; Trinkets rebuilds with new ItemStack identities and applies DROP/KEEP behavior around keepInventory before respawn copy."
-    - "Dedicated-server validation: Scout26/Fabric/Trinkets loaded repeatedly, recipes/advancements loaded, and the server reached Done before and after restart; only the known non-fatal third-party Trinkets dedicated-server client-mixin warnings remained."
-    - "Manual storage/equipment: per-bag contents survived close/reopen, world save/reload, server restart, client restart, physical drop/pickup, populated-bag anvil rename, empty/non-empty equip, satchel replacement, pouch replacement/swap, and no/one/two/all-bag configurations."
-    - "Manual interaction: normal/split/drag/double-click, deterministic merge-before-empty shift-click, bag-to-main-before-hotbar, number-key swap, Q/Ctrl+Q, and normal/shift/number/drag/creative nested-bag rejection all passed."
-    - "Manual stale-handle result: /reload rebuilt Trinkets while ScoutP5A held diamonds on the cursor; PackMenu closed automatically, returned the stack to hotbar position 1 exactly once, conserved the total, retained other contents, and reopened from new live handles."
-    - "Manual lifecycle: keepInventory=false dropped physical equipped bags whose contents survived pickup/re-equip; keepInventory=true retained equipped bags and contents through respawn copy; spectator open was rejected; a forced kick with an open cursor safely dropped/recovered the carried stack and conserved totals."
-    - "Manual creative: middle-click copied a populated bag intentionally, subsequent physical copies diverged without aliasing, nested insertion remained rejected, and creative deletion of the extra copy did not desynchronize the equipped bag."
-    - "Manual multiplayer/restart: ScoutP5A and ScoutP5B concurrently mutated distinct bags with no crossover, both rejoined after logout and a graceful /save-all flush plus /stop/restart, and all contents plus a post-restart mutation persisted."
-    - "Runtime cleanup: online-mode=true, enforce-secure-profile=true, server-ip is empty, gamemode=survival, force-gamemode=false, ops.json is empty, temporary offline user-cache entries were removed, TCP 25565 is free, and all P5 Java/javaw plus the confirmed Gradle daemon were stopped."
+    - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
+    - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
+    - "Clean build passed with all 10 actionable tasks executed; only known third-party Gradle/JOML warnings remain."
+    - "Dedicated server loaded 1519 recipes, reached Done, emitted only the known non-fatal Trinkets client-mixin warning, and TCP 25565 was free after cleanup."
+    - "Development client reached the title screen, loaded the Scout26 item atlas/resources, and emitted no Scout26 model/resource errors; third-person in-world placement awaits human inspection."
+    - "Isolation audit found zero common-source client references and zero Scout26 mixin references."
   files_changed:
     - "README.md"
-    - "src/main/java/com/example/scout26/BagContents.java"
-    - "src/main/java/com/example/scout26/PackMenu.java"
-    - "src/main/java/com/example/scout26/PackNetworking.java"
+    - "src/main/java/com/example/scout26/BagItem.java"
+    - "src/main/java/com/example/scout26/Scout26Mod.java"
+    - "src/client/java/com/example/scout26/client/BagTrinketRenderer.java"
+    - "src/client/java/com/example/scout26/client/PackScreen.java"
+    - "src/client/java/com/example/scout26/client/Scout26Client.java"
+    - "src/main/resources/assets/scout26/lang/en_us.json"
+    - "src/main/resources/data/scout26/recipe/*.json"
     - "src/test/java/com/example/scout26/BagStorageTest.java"
-    - "src/test/java/com/example/scout26/P5HardeningTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
-  blockers: []
-  next_action: "P6 was explicitly authorized on 2026-08-11. Review exact tooltip and Trinkets rendering APIs, then implement the first narrow P6 slice."
+  blockers:
+    - "Human visual acceptance is required for satchel/back and belt-indexed pouch placement in third person."
+  next_action: "In the launched development client, equip one satchel and two pouches, inspect front/back third-person placement and a populated-bag tooltip, then report any placement adjustments needed."
 
 agent_first_prompt:
   text: >
