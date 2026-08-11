@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 11
-last_updated_utc: "2026-08-11T04:31:28Z"
+state_revision: 12
+last_updated_utc: "2026-08-11T04:56:19Z"
 state_owner: "AI coding agent"
-project_status: "P2_COMPLETE_AWAITING_CONFIRMATION"
-current_phase: "P2"
-current_task: "P2"
+project_status: "P3_COMPLETE_AWAITING_CONFIRMATION"
+current_phase: "P3"
+current_task: "P3"
 
 project:
   working_name: "Scout26"
@@ -403,9 +403,10 @@ architecture:
       - "Never persist empty stacks as meaningful entries unless the chosen codec pattern requires it."
       - "Reject nested bag ItemStacks when setting a bag storage slot."
       - "Copy ItemStacks at API boundaries where required to avoid aliasing/mutable-reference bugs."
-    unresolved_api_detail: >
-      P2 must inspect Minecraft 26.1.2/Fabric source to determine the correct DataComponentType codec and
-      network-synchronization configuration. Do not assume persistence automatically implies every desired sync path.
+    resolved_api_detail: >
+      P2 verified Minecraft 26.1.2 source and registered the component with an explicit persistent Codec,
+      explicit network StreamCodec, and encoding cache. ItemStackTemplate snapshots plus component replacement
+      preserve immutability across normal ItemStack copies.
 
   preferred_runtime_objects:
     - name: "BagType / BagDefinition"
@@ -439,9 +440,10 @@ architecture:
       pouch:
         count: 2
         semantic_location: "belt/waist; stable indices define left/right ordering"
-    implementation_note: >
-      Do not invent final Trinkets slot IDs/schema from memory. In P3 inspect the current Trinkets Updated
-      test mod/wiki/source and define data-driven slots using the current 26.1.x format.
+    resolved_implementation: >
+      P3 uses Trinkets Updated's built-in chest/back and legs/belt IDs. Scout26 requests those slots for players,
+      merges legs/belt to amount 2, assigns satchel/pouch item tags, and treats belt indices 0/1 as left/right.
+      EquippedBagHandle re-resolves the live attachment slot and requires exact ItemStack identity.
     bag_stack_size: 1
 
   menu_design:
@@ -643,7 +645,7 @@ phase_plan:
 
   P3:
     name: "Trinkets equipment integration"
-    status: "BLOCKED"
+    status: "DONE"
     objective: "Equip and reliably locate one satchel and two pouches."
     tasks:
       - "Study current Trinkets Updated testmod/wiki/API for 26.1.x."
@@ -827,8 +829,9 @@ repository_state:
   p0_completion_commit: "fc774bb6ec9f586ccbf66b93fca1b2ec1c581ebe"
   p1_completion_commit: "2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
   p2_completion_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
-  last_known_good_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
-  last_tested_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
+  p3_completion_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
+  last_known_good_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
+  last_tested_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -912,6 +915,16 @@ decision_log:
     reason: >
       Minecraft 26.1.2 ItemStack copies may share component values, so immutable snapshots plus component
       replacement prevent cross-bag aliasing while preserving normal save/load and creative copy behavior.
+  - id: "ADR-008"
+    date: "2026-08-11"
+    status: "ACCEPTED"
+    decision: >
+      Use Trinkets Updated's built-in chest/back slot for one satchel and legs/belt indices 0 and 1 for
+      left and right pouches. Request/extend the slots through data resources and locate equipment through
+      a server-side integration layer whose handles re-resolve and require exact ItemStack identity.
+    reason: >
+      This follows the locked 4.0.0-beta.3+26.1 slot loader, item-tag validator, testmod, and attachment APIs;
+      it avoids parallel equipment storage and prevents a stale handle from targeting a replacement bag.
 
 open_questions:
   blocking_before_release:
@@ -945,7 +958,9 @@ known_risks:
   - id: "R-001"
     severity: "HIGH"
     risk: "Live ItemStack identity/locator becomes stale while PackMenu is open."
-    mitigation: "EquippedBagHandle validation; fail closed; never write through to an unrelated replacement stack."
+    mitigation: >
+      P3 EquippedBagHandle re-resolves the current Trinkets slot and requires the exact captured ItemStack object.
+      P4 must validate the handle before every mutation and close/resynchronize when it becomes stale.
   - id: "R-002"
     severity: "HIGH"
     risk: "Mutable ItemStack/list aliasing inside a data component causes cross-bag mutation or hash/equality issues."
@@ -960,7 +975,9 @@ known_risks:
   - id: "R-004"
     severity: "HIGH"
     risk: "Trinkets 26.1.x API churn/alpha compatibility."
-    mitigation: "Lock one tested 26.1.x version in P0 and isolate integration code."
+    mitigation: >
+      Version 4.0.0-beta.3+26.1 remains locked. P3 inspected immutable tag 2509961c1dcf5925dae02f8684156976295a2236,
+      isolated library access in TrinketsIntegration/EquippedBagHandle, and covered the chosen slot schema with tests.
   - id: "R-005"
     severity: "MEDIUM"
     risk: "Client/server source-set leakage."
@@ -1107,53 +1124,71 @@ session_history:
       - "P1 item registration/assets and SCOUT26_AGENT_STATE.yaml"
     blockers: []
     next_action: "Await explicit human confirmation before beginning P2."
+  - session_id: "p2-completion-008"
+    date: "2026-08-11"
+    agent: "GPT-5.6"
+    summary:
+      - "Completed P2 and committed the immutable bag storage implementation as a6c72fb3ec287fe7f12973ae246845f0219a67ce."
+      - "Added persistent/network-synchronized BagContents, item-derived capacities, immediate component replacement, nested-bag rejection, and copy/corruption tests."
+      - "Verified 9/9 tests, clean build, packaged classes/assets, and dedicated-server startup."
+    files_changed:
+      - "P2 storage implementation/tests/documentation and SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Await explicit human confirmation before beginning P3."
 
 latest_session:
-  session_id: "p2-completion-008"
+  session_id: "p3-completion-009"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
-    - "Completed P2 and committed the tested implementation as a6c72fb3ec287fe7f12973ae246845f0219a67ce (feat: add P2 bag contents data model)."
-    - "Registered scout26:bag_contents with an explicit persistent Codec, network StreamCodec, and encoding cache using the actual Minecraft 26.1.2 DataComponentType API."
-    - "Implemented immutable sparse BagContents values backed by ItemStackTemplate snapshots, item-derived capacities of 9/18/3/6, and safe normalization for unknown versions, invalid slots, nested bags, and entries beyond concrete capacity."
-    - "Implemented BagContainer over one live physical bag ItemStack; every mutation replaces the immutable component immediately and all inserted ItemStacks are defensively copied."
-    - "Defined and documented creative/copy semantics: vanilla ItemStack copies intentionally copy non-empty bag contents, share only an immutable initial value, and diverge safely after mutation."
-    - "Added no Trinkets equipment integration, menus, custom networking intents, recipes, rendering, or vanilla inventory GUI mixins."
+    - "Completed P3 and committed the tested implementation as a0375c5fb841b2cb0f016fb3dab63e863077274f (feat: add P3 Trinkets equipment integration)."
+    - "Requested Trinkets Updated's built-in chest/back and legs/belt slots for players, merged the belt amount to two, and assigned only satchels to back and pouches to belt through current data resources."
+    - "Added BagEquipmentRole and a defensive TrinketSlotCompatibilityCallback so Scout26 bags fail closed outside their intended role even if another data pack broadens tags."
+    - "Implemented server-player equipment discovery in stable satchel, left-pouch index 0, right-pouch index 1 order."
+    - "Implemented EquippedBagHandle to re-query the current attachment slot and require exact captured ItemStack identity, invalidating safely after inventory rebuild, replacement, or unequip."
+    - "Kept contents on the equipped physical ItemStack; added no menus, custom networking intents, recipes, rendering, client code in common sources, or Scout26 mixins."
   commands_run:
-    - "Read the complete SCOUT26_AGENT_STATE.yaml, inspect git status/history, and verify the P1 commit is an ancestor of clean main."
+    - "Read the complete SCOUT26_AGENT_STATE.yaml in bounded chunks; inspect git status/history and verify the P2 implementation commit is an ancestor of clean main."
     - ".\\gradlew.bat build --no-daemon --console=plain"
-    - ".\\gradlew.bat genCommonSources --no-daemon --console=plain"
-    - ".\\gradlew.bat test --tests com.example.scout26.BagStorageTest --no-daemon --console=plain"
+    - "Clone exact Trinkets Updated tag 4.0.0-beta.3+26.1 at 2509961c1dcf5925dae02f8684156976295a2236 into ignored build/trinkets-source and inspect source/testmod/resources plus the locked local jar."
+    - ".\\gradlew.bat compileJava processResources --no-daemon --console=plain"
+    - ".\\gradlew.bat test --tests com.example.scout26.BagStorageTest --tests com.example.scout26.TrinketsIntegrationTest --no-daemon --console=plain"
     - ".\\gradlew.bat clean build --no-daemon --console=plain"
-    - "Inspect build/libs/scout26-0.0.0-dev.jar and the JUnit XML report."
+    - "Inspect build/libs/scout26-0.0.0-dev.jar, JUnit XML reports, common-source imports, and Scout26 mixin files."
     - ".\\gradlew.bat runServer --no-daemon --console=plain with stdout/stderr captured under build/."
-    - "Read-only project process-tree and TCP 25565 audits; stop only the exact lingering smoke-test PIDs 19396, 33352, 29844, and 20324."
+    - "Read-only project process-tree and TCP 25565 audits; stop only the exact lingering smoke-test PIDs 17524, 9760, 33520, and 31324."
     - "Parse the complete SCOUT26_AGENT_STATE.yaml with SnakeYAML 2.0 and run git diff --check."
   tests_run:
     - "Toolchain: Microsoft OpenJDK 25.0.4+7; Fabric Loom resolved as 1.17.19."
-    - "Primary-source review: official Fabric 26.1.2 data-component/testing documentation plus Loom-generated Minecraft 26.1.2 sources for DataComponentType, DataComponents.CONTAINER, ItemContainerContents, ItemStackTemplate, ItemStack, PatchedDataComponentMap, DataComponentPatch, RegistryFriendlyByteBuf, RegistryAccess, and Container."
-    - "Mandatory persistence/network review passed: BAG_CONTENTS is non-transient, uses BagContents.CODEC for persistence, and uses an explicit BagContents.STREAM_CODEC through the registered DataComponentType."
-    - "Focused JUnit suite: 9 tests passed, 0 failures/errors/skips. Coverage includes capacities/defaults, defensive snapshots, mutation persistence, ItemStack copy divergence, nested-bag rejection, corrupt/out-of-capacity normalization, unknown-version fail-closed behavior, full ItemStack NBT codec round-trip, and registered component stream-codec round-trip."
-    - "JUnit bootstrap correction: the first focused run had 8 registry-component binding errors because Bootstrap.bootStrap() does not bind item component maps in 26.1.2; tests now bind only their exact fixture items before constructing ItemStacks."
-    - "Clean build: BUILD SUCCESSFUL in 15s; all 10 actionable tasks executed."
-    - "Jar inspection: the production jar contains BagContents, BagContainer, BagItem, BagStorageRules, ModDataComponents, and all four P1 client-item assets."
-    - "Dedicated-server smoke: logged 'Scout26 P2 bag storage initialized', loaded recipes/advancements, and reached 'Done (0.276s)'; the pre-existing third-party Trinkets client-mixin warnings remained non-fatal."
-    - "Runtime cleanup: the world saved, the exact lingering smoke launch chain was stopped, no stderr was emitted, and TCP port 25565 was free afterward."
+    - "Primary-source review: immutable Trinkets tag 2509961c1dcf5925dae02f8684156976295a2236, including README, testmod, SlotLoader, EntitySlotLoader, TrinketsMain predicates, TrinketAttachment, LivingEntityTrinketAttachment, TrinketInventoryImpl, TrinketSlotAccess, DefaultTrinketSlots, and event APIs."
+    - "API/schema result: activate built-in chest/back and legs/belt through data/trinkets/entities; merge belt amount by maximum through data/trinkets/slots; use data/trinkets/tags/item for the default validator; access live stacks with TrinketAttachment.getSlotAccess."
+    - "Focused JUnit suites: 13 tests passed, 0 failures/errors/skips (9 P2 storage plus 4 P3 integration). P3 coverage includes role mapping, exact data contributions, stable satchel/left/right order, wrong-role rejection, live identity, and replacement/unequip fail-closed behavior without content transfer."
+    - "Test correction: the first P3 resource test selected Trinkets' first same-path belt resource and failed 1 of 13; it now enumerates the complete classpath resource stack, matching SlotLoader.listResourceStacks behavior, and all tests pass."
+    - "Clean build: BUILD SUCCESSFUL in 16s; all 10 actionable tasks executed."
+    - "Jar inspection: the production jar contains BagEquipmentRole, TrinketsIntegration, EquippedBagHandle, the player slot request, two-slot belt contribution, and both item tags."
+    - "Dedicated-server smoke: logged 'Scout26 P3 bag equipment integration initialized', automatically found/loaded the Scout26 data pack, loaded recipes/advancements without Trinkets slot-loader errors, and reached 'Done (0.264s)'."
+    - "Isolation review: no client-only imports exist in src/main/java and Scout26 contains no mixin files; the pre-existing third-party Trinkets dedicated-server client-mixin warnings remained non-fatal."
+    - "Runtime cleanup: the world saved, the exact lingering Gradle/server launch chain was stopped, stderr was empty, no project Java/cmd processes remained, and TCP port 25565 was free afterward."
     - "State validation: the complete YAML parsed successfully with SnakeYAML 2.0 and git diff --check passed."
   files_changed:
     - "README.md"
-    - "build.gradle"
-    - "src/main/java/com/example/scout26/BagContainer.java"
-    - "src/main/java/com/example/scout26/BagContents.java"
+    - "src/main/java/com/example/scout26/BagEquipmentRole.java"
     - "src/main/java/com/example/scout26/BagItem.java"
-    - "src/main/java/com/example/scout26/BagStorageRules.java"
-    - "src/main/java/com/example/scout26/ModDataComponents.java"
+    - "src/main/java/com/example/scout26/EquippedBagHandle.java"
     - "src/main/java/com/example/scout26/ModItems.java"
     - "src/main/java/com/example/scout26/Scout26Mod.java"
+    - "src/main/java/com/example/scout26/TrinketsIntegration.java"
+    - "src/main/resources/data/trinkets/entities/scout26.json"
+    - "src/main/resources/data/trinkets/slots/legs/belt.json"
+    - "src/main/resources/data/trinkets/tags/item/chest/back.json"
+    - "src/main/resources/data/trinkets/tags/item/legs/belt.json"
+    - "src/main/resources/fabric.mod.json"
     - "src/test/java/com/example/scout26/BagStorageTest.java"
+    - "src/test/java/com/example/scout26/MinecraftTestBootstrap.java"
+    - "src/test/java/com/example/scout26/TrinketsIntegrationTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Await explicit human confirmation before beginning P3; then inspect the locked Trinkets Updated 4.0.0-beta.3+26.1 primary testmod/source/API before designing equipment slots or live bag handles."
+  next_action: "Await explicit human confirmation before beginning P4; then design the unified server-authoritative PackMenu around per-action EquippedBagHandle validation before adding any keybind, open-intent payload, or screen code."
 
 agent_first_prompt:
   text: >
