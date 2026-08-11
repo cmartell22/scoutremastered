@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 19
-last_updated_utc: "2026-08-11T09:35:35Z"
+state_revision: 20
+last_updated_utc: "2026-08-11T09:41:45Z"
 state_owner: "AI coding agent"
-project_status: "P5_COMPLETE_AWAITING_CONFIRMATION"
+project_status: "P5_COMPLETE_CONFIRMED_P6_NOT_STARTED"
 current_phase: "P5"
-current_task: "P5"
+current_task: "P5_HANDOFF_IDLE"
 
 project:
   working_name: "Scout26"
@@ -1236,7 +1236,7 @@ latest_session:
     - "Audited exact Minecraft 26.1.2 and Trinkets Updated 4.0.0-beta.3+26.1 sources for click validation, server threading, cursor close behavior, disconnect save/remove ordering, death drops, keepInventory respawn copy, and attachment rebuild identity."
     - "Completed the full non-rendering required manual matrix with two localhost clients, including every interaction, equipment combination, client/server restart, creative, death, disconnect, stale rebuild, rename, and multiplayer ownership case."
     - "No open P0/P1 bugs remain, no duplication or loss occurred, and no custom death/respawn/logout state, networking, vanilla inventory injection, or Scout26 mixin was added."
-    - "P5 is complete and awaiting explicit human confirmation before P6; P6 remains blocked."
+    - "The human explicitly confirmed P5 complete and explicitly instructed this agent not to begin P6; P6 remains blocked and unstarted."
   commands_run:
     - "Read all 1242 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks; verify clean Git history/ancestry, git fsck, runtime state, and TCP 25565 before activating P5."
     - ".\\gradlew.bat test; focused BagStorageTest/P5HardeningTest runs; .\\gradlew.bat clean build."
@@ -1271,7 +1271,7 @@ latest_session:
     - "src/test/java/com/example/scout26/P5HardeningTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Await explicit human confirmation before beginning P6; do not start P6 from the P5 completion handoff without that confirmation."
+  next_action: "Remain idle at the confirmed P5 handoff. Begin P6 only after a new explicit human authorization in a future chat."
 
 agent_first_prompt:
   text: >
