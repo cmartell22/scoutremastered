@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 4
-last_updated_utc: "2026-08-11T02:43:20Z"
+state_revision: 6
+last_updated_utc: "2026-08-11T02:54:48Z"
 state_owner: "AI coding agent"
 project_status: "BOOTSTRAPPING"
 current_phase: "P0"
@@ -821,6 +821,24 @@ repository_state:
   last_tested_commit: "0a06971a27c7f8641318156b75ac46a521327e1d"
   working_tree_expected_clean: true
 
+relocation_handoff:
+  status: "READY_TO_MOVE_AFTER_ONEDRIVE_SYNC"
+  verified_at_utc: "2026-08-11T02:54:48Z"
+  current_workspace: "C:\\Users\\cousteau.martell\\OneDrive - Ross Video\\Documents\\SW Dev\\JavaBackport"
+  recommended_destination_example: "C:\\dev\\Scout26"
+  verified:
+    - "git status --short --branch reported a clean main worktree at commit 19f8fd8."
+    - "git fsck --no-dangling passed."
+    - "No Gradle, Minecraft, Java, or command process had the project path in its command line."
+    - "No process was listening on TCP port 25565."
+  remaining_pre_move_actions:
+    - "Wait for OneDrive to show the folder is fully synced before moving it."
+    - "Move the entire JavaBackport directory, including the hidden .git directory, as one unit to a non-synced local location."
+  post_move_verification:
+    - "Open the project from its new location."
+    - "Run git status --short --branch and git fsck --no-dangling."
+    - "Set JAVA_HOME to the installed Microsoft OpenJDK 25 path and run ./gradlew.bat clean build."
+
 task_rules:
   statuses:
     - "BLOCKED"
@@ -986,37 +1004,40 @@ session_history:
       - "Fabric bootstrap files and SCOUT26_AGENT_STATE.yaml"
     blockers: []
     next_action: "Execute P0-T03: add only the locked Trinkets Updated dependency."
+  - session_id: "p0-t03-003"
+    date: "2026-08-11"
+    agent: "GPT-5.6 Terra Medium"
+    summary:
+      - "Added and verified locked Trinkets Updated 4.0.0-beta.3+26.1 on clean build, client, and dedicated server."
+      - "Committed the dependency configuration as 0a06971a27c7f8641318156b75ac46a521327e1d."
+    files_changed:
+      - "build.gradle"
+      - "gradle.properties"
+      - "src/main/resources/fabric.mod.json"
+      - "SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Execute P0-T04: create/tag the reproducible empty baseline."
 
 latest_session:
-  session_id: "p0-t03-003"
+  session_id: "relocation-precheck-004"
   date: "2026-08-11"
-  agent: "GPT-5.6 Terra Medium"
+  agent: "GPT-5.6 Terra High"
   summary:
-    - "Added only the locked Trinkets Updated 4.0.0-beta.3+26.1 dependency, its Nucleoid releases repository, and the corresponding Fabric metadata dependency."
-    - "Verified Gradle resolves Trinkets and its declared Yumi foundation transitively."
-    - "Clean build, client smoke test, and dedicated-server smoke test passed with Trinkets Updated and Scout26 loaded."
-    - "A transient OneDrive lock prevented Gradle clean twice; after verified removal of the Git-ignored generated build directory, clean build succeeded."
-    - "Trinkets emitted a non-fatal dedicated-server warning about its own client CreativeModeInventoryScreen accessor target, but the server loaded its data pack and reached Done."
+    - "Preflighted relocation from OneDrive to a local non-synced directory without advancing P0-T04."
+    - "Confirmed clean Git state and fsck, no project-scoped Gradle/Minecraft processes, and no listener on port 25565."
+    - "Confirmed VS Code no longer has a process command line referencing the workspace; the project is ready to move once OneDrive confirms sync."
   commands_run:
-    - "Read and parse SCOUT26_AGENT_STATE.yaml; inspect git status and locked Trinkets source tag 2509961c1dcf5925dae02f8684156976295a2236."
-    - "apply_patch gradle.properties, build.gradle, and src/main/resources/fabric.mod.json to add only Trinkets Updated configuration."
-    - ".\\gradlew.bat dependencies --configuration runtimeClasspath --no-daemon --console=plain"
-    - ".\\gradlew.bat clean build --no-daemon --console=plain (initial two attempts blocked by a OneDrive build-directory lock)."
-    - "Verified build is Git-ignored and within the workspace; Remove-Item -LiteralPath <workspace>\\build -Recurse -Force; re-ran clean build successfully."
-    - "Run client and server development smoke tests; inspect run\\logs\\latest.log; stop only live project-scoped test processes identified by command line."
-    - "git commit -m 'build: add Trinkets Updated dependency' (0a06971a27c7f8641318156b75ac46a521327e1d)"
+    - "git status --short --branch; git diff --check; git fsck --no-dangling; git log --oneline -5"
+    - "Read and parse SCOUT26_AGENT_STATE.yaml."
+    - "Read-only process query for command lines containing the project path; read-only TCP port 25565 query; OneDrive process query."
   tests_run:
-    - "Dependency resolution: runtimeClasspath contains eu.pb4:trinkets:4.0.0-beta.3+26.1 and dev.yumi.mc.core:yumi-mc-foundation:1.0.1+26.1."
-    - "Clean build: BUILD SUCCESSFUL; compileJava, compileClientJava, jar, sourcesJar, check, and build completed."
-    - "Client smoke test: Fabric Loader listed trinkets_updated 4.0.0-beta.3+26.1, Yumi modules, and scout26 0.0.0-dev; Yumi and Scout26 initialized and client resource/audio rendering initialized."
-    - "Dedicated-server smoke test: Fabric Loader listed trinkets_updated 4.0.0-beta.3+26.1, Yumi modules, and scout26 0.0.0-dev; Trinkets data pack loaded and server logged Done (0.279s)! For help, type help."
+    - "Git integrity: git fsck --no-dangling passed."
+    - "Runtime cleanliness: no project-scoped Gradle/Minecraft process and no TCP 25565 listener found."
   files_changed:
-    - "build.gradle"
-    - "gradle.properties"
-    - "src/main/resources/fabric.mod.json"
     - "SCOUT26_AGENT_STATE.yaml"
-  blockers: []
-  next_action: "After human confirmation, execute P0-T04: create/tag the reproducible empty baseline and record its SHA in repository_state.baseline_commit."
+  blockers:
+    - "Wait for OneDrive to report the folder fully synced before moving the workspace."
+  next_action: "After the human moves the complete project directory to a local non-synced location, reopen it there and run the post_move_verification steps before continuing P0-T04."
 
 agent_first_prompt:
   text: >
