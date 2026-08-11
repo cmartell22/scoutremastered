@@ -2,7 +2,7 @@
 
 - Date: 2026-08-11
 - P7-A status: Accepted architecture
-- P7-B status: Not authorized
+- P7-B status: Authorized and implemented as a default-disabled prototype; manual acceptance pending
 - Decision: Proceed only with a bounded, default-disabled prototype under the constraints below.
 
 ## Context
@@ -157,7 +157,7 @@ Stop P7-B and recommend shipping without integrated inventory if any of these be
 
 **GO for a bounded P7-B prototype, but do not enable it by default.** Exact Minecraft 26.1.2 sources provide a viable 76-slot container-ID-0 topology and vanilla authoritative click path. The four-target surface is substantially smaller than the reviewed historical implementation and keeps storage on existing physical bag stacks.
 
-This is not authorization to implement P7-B. The prototype must remain separately gated, and any hard-stop condition changes the recommendation to **NO-GO: ship the proven Pack Menu without Integrated Inventory**.
+P7-B authorization was granted on 2026-08-11. Implementation does not itself constitute acceptance: the prototype remains separately gated by the required automated and manual matrix, and any hard-stop condition changes the recommendation to **NO-GO: ship the proven Pack Menu without Integrated Inventory**.
 
 ## References
 

@@ -1,6 +1,6 @@
 # Scout26 (temporary working name)
 
-This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P6 adds presentation to the immutable per-ItemStack storage, Trinkets Updated equipment discovery, and dedicated synchronized Pack Inventory menu hardened through P5. No vanilla inventory GUI mixins are present.
+This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P7-B adds a default-disabled Integrated Inventory prototype around the immutable per-ItemStack storage, Trinkets Updated equipment discovery, and dedicated synchronized Pack Inventory menu hardened through P5. The prototype is not release-accepted until its manual matrix passes.
 
 The temporary identifiers are `scout26` and `com.example.scout26`. They are not release identifiers; the final public name, mod ID, Java package, and license remain open project decisions.
 
@@ -60,4 +60,8 @@ $env:Path = "$env:JAVA_HOME\\bin;$env:Path"
 
 ## Optional Integrated Inventory status
 
-P7-A architecture is documented in [ADR-012](docs/adr/ADR-012-p7a-integrated-inventory-architecture.md). No Integrated Inventory prototype is implemented yet: the proposed feature remains default-disabled, the existing B-key Pack Menu is unchanged, and P7-B requires separate authorization.
+P7-B implements the bounded architecture in [ADR-012](docs/adr/ADR-012-p7a-integrated-inventory-architecture.md) as a prototype. It appends 30 fixed dormant slots to `InventoryMenu` on both logical sides and activates only exact-identity survival inventory sessions. The only Scout26 Mixin targets are `InventoryMenu`, `AbstractContainerScreen`, `RecipeBookComponent`, and `EffectsInInventory`; creative Integrated Inventory remains dormant.
+
+The feature is disabled by default. After one client launch, set `integrated_inventory_enabled=true` in `config/scout26-client.properties` and restart the client to opt in. Disabling it leaves no panels or active integrated slots and does not change the configurable B-key Pack Menu.
+
+P7-B is implemented but not complete: the automated suite, clean build, jar/source audits, and client/server startup pass, while the interactive acceptance checklist in [P7-B manual acceptance](docs/P7B_MANUAL_ACCEPTANCE.md) remains required before completion.
