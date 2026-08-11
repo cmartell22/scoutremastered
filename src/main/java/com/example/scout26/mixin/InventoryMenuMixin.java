@@ -35,7 +35,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * desynchronize container ID 0, so both exact-descriptor injections require one match. Version
  * risk: high because this is the common survival inventory protocol boundary.</p>
  */
-@Mixin(InventoryMenu.class)
+// Trinkets Updated's InventoryMenu Mixin has priority 500. Running at 400 makes this RETURN
+// callback execute first, reserving ADR-012 indices 46-75 before Trinkets appends its own slots.
+@Mixin(value = InventoryMenu.class, priority = 400)
 abstract class InventoryMenuMixin extends AbstractCraftingMenu implements IntegratedInventoryMenu {
 	protected InventoryMenuMixin(MenuType<?> menuType, int containerId, int width, int height) {
 		super(menuType, containerId, width, height);
@@ -68,7 +70,7 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 			}
 		}
 		if (((InventoryMenu)(Object)this).slots.size() != IntegratedInventoryLayout.TOTAL_SLOT_COUNT) {
-			throw new IllegalStateException("ADR-012 InventoryMenu topology must contain exactly 76 slots");
+			throw new IllegalStateException("ADR-012 Scout26 slot prefix must end at index 75 before later integrations append slots");
 		}
 	}
 
