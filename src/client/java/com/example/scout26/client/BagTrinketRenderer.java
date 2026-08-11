@@ -60,6 +60,7 @@ final class BagTrinketRenderer implements TrinketRenderer {
 			poseStack.translate(horizontalOffset, 0.34F, 0.01F);
 			poseStack.scale(0.38F, 0.38F, 0.38F);
 		}
+		poseStack.mulPose(new Quaternionf().rotateZ(Mth.PI));
 
 		ItemStackRenderState itemRenderState = new ItemStackRenderState();
 		Minecraft.getInstance().getItemModelResolver().appendItemLayers(
