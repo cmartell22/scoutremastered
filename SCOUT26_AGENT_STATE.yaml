@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 28
-last_updated_utc: "2026-08-11T15:47:51Z"
+state_revision: 29
+last_updated_utc: "2026-08-11T15:54:02Z"
 state_owner: "AI coding agent"
-project_status: "P7A_COMPLETE_AWAITING_P7B_AUTHORIZATION"
-current_phase: "P7-A"
-current_task: "P7A_HANDOFF_IDLE"
+project_status: "P7B_ACTIVE"
+current_phase: "P7-B"
+current_task: "P7B_INTEGRATED_INVENTORY_IMPLEMENTATION"
 
 project:
   working_name: "Scout26"
@@ -745,7 +745,7 @@ phase_plan:
           - "A documented go/no-go recommendation gates P7-B."
       P7-B:
         name: "Integrated Inventory prototype implementation"
-        status: "BLOCKED"
+        status: "ACTIVE"
         decision_gate: "Do not implement until P7-A architecture is accepted and the human explicitly authorizes P7-B."
 
   P8:
@@ -1295,7 +1295,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7a-completion-015"
+  session_id: "p7b-active-016"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1314,7 +1314,9 @@ latest_session:
     - "The reviewed Scout-Recrafted commit 92d39facb151666c1b1b157d279fe01c78037c0e uses eight mixins including packet-handler, player-inventory, death, and global-menu repairs; Scout26 explicitly rejects that broad topology."
     - "P7-A architecture and README status were committed as 9b073c41b9fadbe6f95dc43e07bc8e520f97993d. No P7 implementation, config, payload, slot, or mixin was added."
     - "The first P7-A completion state commit used unverified expanded SHAs from abbreviated Git output; state revision 28 corrects them to the exact hashes returned by git log."
-    - "P7-A is complete. P7-B remains blocked and unstarted pending separate explicit human authorization."
+    - "P7-A is complete. P7-B remained blocked and unstarted pending separate explicit human authorization."
+    - "The human explicitly authorized P7-B on 2026-08-11 to implement ADR-012 within its four-target Mixin boundary; P8 remains blocked and must not begin."
+    - "P7-B implementation is active, default-disabled, and subject to every ADR-012 hard stop."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1327,6 +1329,7 @@ latest_session:
     - "Inspect Fabric ScreenEvents 5.1.0+981dd9b24c signatures, Fabric mixin metadata documentation, SpongePowered Mixin callback-injector rules, and Trinkets Updated 4.0.0-beta.3+26.1 public attachment/slot access signatures."
     - "Clone Scout-Recrafted into the ignored build reference directory, inspect commit 92d39facb151666c1b1b157d279fe01c78037c0e and its integrated-inventory mixin topology, then remove the reference automatically through Gradle clean."
     - "Write docs/adr/ADR-012-p7a-integrated-inventory-architecture.md and update README.md without adding implementation code."
+    - "Read all 1369 lines of state revision 28 and all of ADR-012; verify clean main at 1fef79d4b90ab0eed414a41c51ec74492345644a, required ancestry, git fsck, no Java runtime, and free TCP port 25565 before P7-B activation."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1343,6 +1346,7 @@ latest_session:
     - "P7-A final .\\gradlew.bat clean build passed with Loom 1.17.19 and 10/10 actionable tasks executed; JUnit totals were 30 tests with zero failures, errors, or skips."
     - "Final jar audit confirmed no P7 implementation or mixin entries; git diff --check and git fsck passed."
     - "Final runtime condition: no Scout26 Java/javaw/cmd test processes remained and TCP 25565 was free."
+    - "P7-B baseline: .\\gradlew.bat test passed with 30 tests, zero failures, errors, or skips and Loom 1.17.19."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1356,7 +1360,7 @@ latest_session:
     - "src/test/java/com/example/scout26/BagStorageTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Remain idle at the completed P7-A handoff. Do not activate or implement P7-B without separate explicit human authorization."
+  next_action: "Implement ADR-012 P7-B checkpoint 1: add tests for fixed ranges, layout, dormant behavior, exact-identity bindings, capacity prefixes, stale handles, and nesting rejection."
 
 agent_first_prompt:
   text: >
