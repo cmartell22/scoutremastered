@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 24
-last_updated_utc: "2026-08-11T15:17:33Z"
+state_revision: 25
+last_updated_utc: "2026-08-11T15:24:26Z"
 state_owner: "AI coding agent"
-project_status: "P6_ACTIVE"
+project_status: "P6_COMPLETE_CONFIRMED_P7_NOT_STARTED"
 current_phase: "P6"
-current_task: "P6_MANUAL_RENDERING_ACCEPTANCE"
+current_task: "P6_HANDOFF_IDLE"
 
 project:
   working_name: "Scout26"
@@ -701,7 +701,7 @@ phase_plan:
 
   P6:
     name: "Tooltip, wearable rendering, recipes, polish"
-    status: "ACTIVE"
+    status: "DONE"
     objective: "Add presentation only after storage correctness is stable."
     tasks:
       - "Add compact contents tooltip with sensible limits."
@@ -843,8 +843,9 @@ repository_state:
   p6_implementation_commit: "0c3c1074527d1d1a3c771514c602ac1eb3175d4b"
   p6_render_rotation_fix_commit: "4ebde2a0b8b563f5f5eefaf629d428b084a2debf"
   p6_render_upright_fix_commit: "73af048aae9c242dc28c6c8286f641b03b070a4e"
-  last_known_good_commit: "73af048aae9c242dc28c6c8286f641b03b070a4e"
-  last_tested_commit: "73af048aae9c242dc28c6c8286f641b03b070a4e"
+  p6_completion_commit: "760a2b623ac67f4d32ddfc828fb294d8c94017e5"
+  last_known_good_commit: "760a2b623ac67f4d32ddfc828fb294d8c94017e5"
+  last_tested_commit: "760a2b623ac67f4d32ddfc828fb294d8c94017e5"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1065,7 +1066,7 @@ bug_regressions:
     - id: "BUG-P6-001"
       phase: "P6"
       severity: "P2"
-      status: "FIXED_AWAITING_FINAL_VISUAL_CONFIRMATION"
+      status: "FIXED"
       summary: "Equipped item models rendered horizontally, parallel to the ground, instead of vertically against the player model."
       impact: "Satchel and pouch textures were visible but unusably oriented in third person; storage and inventory behavior were unaffected."
       root_cause: >
@@ -1080,6 +1081,7 @@ bug_regressions:
         - "Human screenshot confirmed the original horizontal orientation."
         - "Human recheck confirmed the corrected plane was vertical but upside down."
         - "Client compilation and all 30 automated tests passed after the correction."
+        - "Human final recheck approved the upright, flat-against-body orientation and accepted the current item-model attachments as placeholder rendering."
 
 session_handoff_protocol:
   startup_steps:
@@ -1261,7 +1263,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p6-active-014"
+  session_id: "p6-completion-014"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1269,24 +1271,30 @@ latest_session:
     - "Added immutable compact bag tooltips with a five-entry detail limit and remainder line in 73658d7c6ecd69e3e5067c265f52f1fb541864d1."
     - "Added client-only index-aware third-person bag rendering, four recipes, component-preserving gold upgrades, PackScreen layout narration, and documentation in 0c3c1074527d1d1a3c771514c602ac1eb3175d4b."
     - "No custom config was added because the B key is already configurable through vanilla controls and no other clearly useful basic option is required."
-    - "First-person behavior is intentionally documented as no body-worn bag overlay; third-person visual placement remains awaiting human acceptance in the launched development client."
+    - "First-person behavior is intentionally documented as no body-worn bag overlay."
     - "Human visual feedback accepted the tooltip but identified horizontal wearable item planes; BUG-P6-001 removes the extra 90-degree X rotation in 4ebde2a0b8b563f5f5eefaf629d428b084a2debf."
     - "The vertical-plane recheck found both textures upside down; 73af048aae9c242dc28c6c8286f641b03b070a4e adds a shared 180-degree Z rotation to turn them upright."
+    - "Human final visual recheck approved the upright, flat-against-body orientation and accepted the current flat item-model attachments as placeholders; custom wearable geometry is deferred to a possible future visuals release."
+    - "P6 is complete and confirmed. P7 remains blocked and unstarted pending a separate explicit human authorization."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
     - "Inspect exact Trinkets Updated commit 2509961c1dcf5925dae02f8684156976295a2236 render codecs, attachment helpers, renderer API, and official testmod examples."
     - ".\\gradlew.bat test; focused BagStorageTest; .\\gradlew.bat clean build; hidden runServer smoke; visible runClient launch."
     - "Audit recipe JSON, jar entries, common-source client references, Scout26 mixin references, and git diff --check."
+    - "After final human visual approval, stop the verified runClient process tree, rerun .\\gradlew.bat clean build, repeat jar/source/Git audits, and verify runtime/server cleanliness."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
     - "Clean build passed with all 10 actionable tasks executed; only known third-party Gradle/JOML warnings remain."
     - "Dedicated server loaded 1519 recipes, reached Done, emitted only the known non-fatal Trinkets client-mixin warning, and TCP 25565 was free after cleanup."
-    - "Development client reached the title screen, loaded the Scout26 item atlas/resources, and emitted no Scout26 model/resource errors; third-person in-world placement awaits human inspection."
+    - "Development client reached the title screen, loaded the Scout26 item atlas/resources, emitted no Scout26 model/resource errors, and received final human approval for third-person placeholder placement/orientation."
     - "Isolation audit found zero common-source client references and zero Scout26 mixin references."
     - "After BUG-P6-001, compileClientJava and all 30 tests passed; a replacement development client was launched for visual confirmation."
     - "After the upright Z-rotation correction, compileClientJava and all 30 tests passed again."
+    - "Final clean build passed with Loom 1.17.19 and 10/10 actionable tasks executed; JUnit totals were 30 tests with zero failures, errors, or skips."
+    - "Final jar audit found required renderer/recipe entries and no test or mixin entries; common-source client-reference and Scout26 mixin audits both returned zero; git diff --check and git fsck passed."
+    - "Final runtime condition: no Scout26 Java/javaw/cmd test processes, TCP 25565 free, secure online survival server properties retained, ops.json empty, and temporary offline test identities removed from usercache."
   files_changed:
     - "README.md"
     - "src/main/java/com/example/scout26/BagItem.java"
@@ -1298,9 +1306,8 @@ latest_session:
     - "src/main/resources/data/scout26/recipe/*.json"
     - "src/test/java/com/example/scout26/BagStorageTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
-  blockers:
-    - "Human final visual recheck is required for upright satchel/back and belt-indexed pouch placement in third person."
-  next_action: "In the relaunched development client, confirm that both vertically oriented wearable textures are now upright and report whether position and scale are acceptable."
+  blockers: []
+  next_action: "Remain idle at the confirmed P6 handoff. Do not activate or implement P7 without separate explicit human authorization."
 
 agent_first_prompt:
   text: >
