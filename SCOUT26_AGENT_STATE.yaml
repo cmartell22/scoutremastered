@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 22
-last_updated_utc: "2026-08-11T10:04:07Z"
+state_revision: 23
+last_updated_utc: "2026-08-11T15:14:01Z"
 state_owner: "AI coding agent"
 project_status: "P6_ACTIVE"
 current_phase: "P6"
@@ -841,8 +841,9 @@ repository_state:
   p6_activation_commit: "d9f9dd5c3f0affe617b1ed4287ea853694b325c2"
   p6_tooltip_commit: "73658d7c6ecd69e3e5067c265f52f1fb541864d1"
   p6_implementation_commit: "0c3c1074527d1d1a3c771514c602ac1eb3175d4b"
-  last_known_good_commit: "0c3c1074527d1d1a3c771514c602ac1eb3175d4b"
-  last_tested_commit: "0c3c1074527d1d1a3c771514c602ac1eb3175d4b"
+  p6_render_rotation_fix_commit: "4ebde2a0b8b563f5f5eefaf629d428b084a2debf"
+  last_known_good_commit: "4ebde2a0b8b563f5f5eefaf629d428b084a2debf"
+  last_tested_commit: "4ebde2a0b8b563f5f5eefaf629d428b084a2debf"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1060,6 +1061,20 @@ bug_regressions:
       regression_tests:
         - "BagStorageTest.oversizedEntriesClampToTheItemsActualMaximum"
         - "BagStorageTest.streamDecodeClampsHugeCountsAndRejectsNonPositiveCounts"
+    - id: "BUG-P6-001"
+      phase: "P6"
+      severity: "P2"
+      status: "FIXED_AWAITING_VISUAL_CONFIRMATION"
+      summary: "Equipped item models rendered horizontally, parallel to the ground, instead of vertically against the player model."
+      impact: "Satchel and pouch textures were visible but unusably oriented in third person; storage and inventory behavior were unaffected."
+      root_cause: >
+        BagTrinketRenderer applied an additional positive 90-degree X rotation even though Minecraft's FIXED
+        item display transform already supplied the required upright item-plane orientation.
+      fix: "Removed the extra X rotation for both satchel and pouch branches, leaving their position, scale, belt-index separation, and satchel Y-facing rotation unchanged."
+      fixed_in_commit: "4ebde2a0b8b563f5f5eefaf629d428b084a2debf"
+      evidence:
+        - "Human screenshot confirmed the original horizontal orientation."
+        - "Client compilation and all 30 automated tests passed after the correction."
 
 session_handoff_protocol:
   startup_steps:
@@ -1250,6 +1265,7 @@ latest_session:
     - "Added client-only index-aware third-person bag rendering, four recipes, component-preserving gold upgrades, PackScreen layout narration, and documentation in 0c3c1074527d1d1a3c771514c602ac1eb3175d4b."
     - "No custom config was added because the B key is already configurable through vanilla controls and no other clearly useful basic option is required."
     - "First-person behavior is intentionally documented as no body-worn bag overlay; third-person visual placement remains awaiting human acceptance in the launched development client."
+    - "Human visual feedback accepted the tooltip but identified horizontal wearable item planes; BUG-P6-001 removes the extra 90-degree X rotation in 4ebde2a0b8b563f5f5eefaf629d428b084a2debf."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1263,6 +1279,7 @@ latest_session:
     - "Dedicated server loaded 1519 recipes, reached Done, emitted only the known non-fatal Trinkets client-mixin warning, and TCP 25565 was free after cleanup."
     - "Development client reached the title screen, loaded the Scout26 item atlas/resources, and emitted no Scout26 model/resource errors; third-person in-world placement awaits human inspection."
     - "Isolation audit found zero common-source client references and zero Scout26 mixin references."
+    - "After BUG-P6-001, compileClientJava and all 30 tests passed; a replacement development client was launched for visual confirmation."
   files_changed:
     - "README.md"
     - "src/main/java/com/example/scout26/BagItem.java"
@@ -1275,8 +1292,8 @@ latest_session:
     - "src/test/java/com/example/scout26/BagStorageTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers:
-    - "Human visual acceptance is required for satchel/back and belt-indexed pouch placement in third person."
-  next_action: "In the launched development client, equip one satchel and two pouches, inspect front/back third-person placement and a populated-bag tooltip, then report any placement adjustments needed."
+    - "Human visual recheck is required for the corrected vertical satchel/back and belt-indexed pouch placement in third person."
+  next_action: "In the relaunched development client, inspect front/back third-person placement after BUG-P6-001 and report whether orientation, position, and scale are now acceptable."
 
 agent_first_prompt:
   text: >
