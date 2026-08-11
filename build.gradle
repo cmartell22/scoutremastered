@@ -3,6 +3,13 @@ plugins {
 	id 'maven-publish'
 }
 
+repositories {
+	maven {
+		name = "Nucleoid"
+		url = "https://maven.nucleoid.xyz/releases"
+	}
+}
+
 version = project.mod_version
 group = project.maven_group
 
@@ -21,6 +28,7 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	implementation "eu.pb4:trinkets:${project.trinkets_version}"
 }
 
 processResources {
@@ -48,4 +56,3 @@ publishing {
 		}
 	}
 }
-
