@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 20
-last_updated_utc: "2026-08-11T09:41:45Z"
+state_revision: 21
+last_updated_utc: "2026-08-11T09:49:39Z"
 state_owner: "AI coding agent"
-project_status: "P5_COMPLETE_CONFIRMED_P6_NOT_STARTED"
-current_phase: "P5"
-current_task: "P5_HANDOFF_IDLE"
+project_status: "P6_ACTIVE"
+current_phase: "P6"
+current_task: "P6_T01_API_REVIEW_AND_TOOLTIP"
 
 project:
   working_name: "Scout26"
@@ -701,7 +701,7 @@ phase_plan:
 
   P6:
     name: "Tooltip, wearable rendering, recipes, polish"
-    status: "BLOCKED"
+    status: "ACTIVE"
     objective: "Add presentation only after storage correctness is stable."
     tasks:
       - "Add compact contents tooltip with sensible limits."
@@ -836,6 +836,9 @@ repository_state:
   p5_activation_commit: "72fd619ec29819bf581634f1609abb668a3b27b2"
   p5_implementation_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
   p5_completion_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
+  p5_bookkeeping_commit: "4c459f632ef2ca1f427a75fdeeb0e939acac4fed"
+  p5_confirmation_commit: "a24b51dbf5d2e22525e722b119e7b168b93e79c6"
+  p6_activation_commit: null
   last_known_good_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
   last_tested_commit: "ef1a28543d2aa381fd1b05eb8ca27e781210ff11"
   working_tree_expected_clean: true
@@ -1271,7 +1274,7 @@ latest_session:
     - "src/test/java/com/example/scout26/P5HardeningTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Remain idle at the confirmed P5 handoff. Begin P6 only after a new explicit human authorization in a future chat."
+  next_action: "P6 was explicitly authorized on 2026-08-11. Review exact tooltip and Trinkets rendering APIs, then implement the first narrow P6 slice."
 
 agent_first_prompt:
   text: >
