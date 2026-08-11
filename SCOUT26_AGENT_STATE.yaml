@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 25
-last_updated_utc: "2026-08-11T15:24:26Z"
+state_revision: 26
+last_updated_utc: "2026-08-11T15:29:38Z"
 state_owner: "AI coding agent"
-project_status: "P6_COMPLETE_CONFIRMED_P7_NOT_STARTED"
-current_phase: "P6"
-current_task: "P6_HANDOFF_IDLE"
+project_status: "P7A_ACTIVE"
+current_phase: "P7-A"
+current_task: "P7A_INTEGRATED_INVENTORY_ARCHITECTURE"
 
 project:
   working_name: "Scout26"
@@ -718,7 +718,7 @@ phase_plan:
 
   P7:
     name: "Optional classic Integrated Inventory"
-    status: "BLOCKED"
+    status: "ACTIVE"
     objective: "Explore classic Scout-like slots around vanilla inventory without compromising the core."
     decision_gate: >
       Human must explicitly approve starting P7 after P0-P6 release-candidate baseline.
@@ -733,6 +733,20 @@ phase_plan:
       - "No storage logic is duplicated."
       - "No P0/P1 regression."
       - "Every mixin has target, reason, failure mode, and version-risk documentation."
+    subphases:
+      P7-A:
+        name: "Integrated Inventory prototype architecture"
+        status: "ACTIVE"
+        scope: "Research and architecture only; do not implement the prototype in this subphase."
+        acceptance:
+          - "Exact Minecraft 26.1.2 inventory-screen/menu sources and relevant Fabric Mixin facilities are reviewed."
+          - "An ADR defines the smallest viable injection surface, server-authority boundaries, feature-flag behavior, failure modes, and version risks."
+          - "The design delegates storage and mutation to the existing live bag containers/menu model without creating a second authoritative store."
+          - "A documented go/no-go recommendation gates P7-B."
+      P7-B:
+        name: "Integrated Inventory prototype implementation"
+        status: "BLOCKED"
+        decision_gate: "Do not implement until P7-A architecture is accepted and the human explicitly authorizes P7-B."
 
   P8:
     name: "Release candidate and packaging"
@@ -1263,7 +1277,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p6-completion-014"
+  session_id: "p7a-active-015"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1275,7 +1289,8 @@ latest_session:
     - "Human visual feedback accepted the tooltip but identified horizontal wearable item planes; BUG-P6-001 removes the extra 90-degree X rotation in 4ebde2a0b8b563f5f5eefaf629d428b084a2debf."
     - "The vertical-plane recheck found both textures upside down; 73af048aae9c242dc28c6c8286f641b03b070a4e adds a shared 180-degree Z rotation to turn them upright."
     - "Human final visual recheck approved the upright, flat-against-body orientation and accepted the current flat item-model attachments as placeholders; custom wearable geometry is deferred to a possible future visuals release."
-    - "P6 is complete and confirmed. P7 remains blocked and unstarted pending a separate explicit human authorization."
+    - "At the P6 completion handoff, P7 remained blocked and unstarted pending a separate explicit human authorization."
+    - "The human explicitly authorized P7-A on 2026-08-11. P7-A architecture research is active; P7-B implementation remains blocked pending P7-A acceptance and separate explicit authorization."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1283,6 +1298,7 @@ latest_session:
     - ".\\gradlew.bat test; focused BagStorageTest; .\\gradlew.bat clean build; hidden runServer smoke; visible runClient launch."
     - "Audit recipe JSON, jar entries, common-source client references, Scout26 mixin references, and git diff --check."
     - "After final human visual approval, stop the verified runClient process tree, rerun .\\gradlew.bat clean build, repeat jar/source/Git audits, and verify runtime/server cleanliness."
+    - "Read all 1320 lines of state revision 25 in bounded chunks; verify clean main at 152c4c19edc323035f31911ca610201b05cfcce7, P6 ancestry, git fsck, runtime cleanliness, and the P6 automated baseline before P7-A activation."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1295,6 +1311,7 @@ latest_session:
     - "Final clean build passed with Loom 1.17.19 and 10/10 actionable tasks executed; JUnit totals were 30 tests with zero failures, errors, or skips."
     - "Final jar audit found required renderer/recipe entries and no test or mixin entries; common-source client-reference and Scout26 mixin audits both returned zero; git diff --check and git fsck passed."
     - "Final runtime condition: no Scout26 Java/javaw/cmd test processes, TCP 25565 free, secure online survival server properties retained, ops.json empty, and temporary offline test identities removed from usercache."
+    - "P7-A baseline: .\\gradlew.bat test passed with all 30 tests up to date and Loom 1.17.19."
   files_changed:
     - "README.md"
     - "src/main/java/com/example/scout26/BagItem.java"
@@ -1307,7 +1324,7 @@ latest_session:
     - "src/test/java/com/example/scout26/BagStorageTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Remain idle at the confirmed P6 handoff. Do not activate or implement P7 without separate explicit human authorization."
+  next_action: "Inspect exact Minecraft 26.1.2 inventory-screen/menu and Fabric Mixin sources, then write the P7-A architecture ADR and go/no-go recommendation without implementing P7-B."
 
 agent_first_prompt:
   text: >
