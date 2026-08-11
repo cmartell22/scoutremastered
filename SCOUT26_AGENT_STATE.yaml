@@ -5,10 +5,10 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 13
-last_updated_utc: "2026-08-11T05:06:20Z"
+state_revision: 14
+last_updated_utc: "2026-08-11T05:21:21Z"
 state_owner: "AI coding agent"
-project_status: "P4_ACTIVE"
+project_status: "P4_ACTIVE_PAUSED_FOR_SHUTDOWN"
 current_phase: "P4"
 current_task: "P4"
 
@@ -830,8 +830,9 @@ repository_state:
   p1_completion_commit: "2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
   p2_completion_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
   p3_completion_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
-  last_known_good_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
-  last_tested_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
+  p4_activation_commit: "36b2482438d4ef9b285f5a975df1c3372f2c5caa"
+  last_known_good_commit: "36b2482438d4ef9b285f5a975df1c3372f2c5caa"
+  last_tested_commit: "36b2482438d4ef9b285f5a975df1c3372f2c5caa"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1189,6 +1190,24 @@ latest_session:
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
   next_action: "Await explicit human confirmation before beginning P4; then design the unified server-authoritative PackMenu around per-action EquippedBagHandle validation before adding any keybind, open-intent payload, or screen code."
+
+pause_handoff:
+  status: "PAUSED_AT_HUMAN_REQUEST"
+  paused_at_utc: "2026-08-11T05:21:21Z"
+  summary:
+    - "The human explicitly approved P4; state revision 13 activated P4 and commit 36b2482438d4ef9b285f5a975df1c3372f2c5caa saved that transition."
+    - "No P4 implementation source or resource files were created or modified before the shutdown request."
+    - "The cheapest baseline `.\\gradlew.bat build --no-daemon --console=plain` passed at 36b2482 with Loom 1.17.19 and all nine tasks up to date."
+    - "Minecraft 26.1.2 common/client sources were generated and inspected for AbstractContainerMenu, Slot, MenuType, MenuProvider, ServerPlayer.openMenu, MenuScreens, AbstractContainerScreen, ContainerScreen, KeyMapping, CustomPacketPayload, StreamCodec, and ByteBufCodecs."
+    - "Exact Maven source jars were downloaded under ignored build/inspected-sources for Fabric menu API 2.0.14+d871b99e4c, networking API 6.3.1+554860db4c, key-mapping API 2.0.4+e2bdee784c, screen API 5.1.0+981dd9b24c, lifecycle events 4.1.1+df84eb3d4c, and Trinkets Updated 4.0.0-beta.3+26.1."
+    - "API review confirmed ExtendedMenuType plus ExtendedMenuProvider for typed server-to-client layout data, PayloadTypeRegistry.serverboundPlay plus ServerPlayNetworking for an empty open-intent payload, MenuScreens.register for the client screen, KeyMappingHelper with KeyMapping.consumeClick, and extractor-era AbstractContainerScreen.extractBackground/extractLabels rendering."
+    - "Trinkets source reconfirmed that TrinketAttachment.getSlotAccess can be invalidated; rebuild replaces inventories, marks old inventories invalid, and copies equipped stacks, so P3 exact ItemStack identity handles correctly fail closed after rebuild."
+  runtime_cleanup:
+    - "The source downloads and Gradle source generation completed; no Gradle or server command was left running by this session."
+    - "No TCP 25565 listener was reported by the shutdown audit. The sandbox denied the optional CIM command-line process audit, but no runClient/runServer task was started in this session."
+  resume_action: >
+    Resume P4 from the API-review/design boundary. Read this entire file again, verify clean Git at the pause bookkeeping commit,
+    inspect ClientTickEvents from the already downloaded exact lifecycle source if build/ still exists, then implement the menu without starting P5.
 
 agent_first_prompt:
   text: >
