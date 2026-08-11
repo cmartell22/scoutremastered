@@ -57,3 +57,7 @@ $env:Path = "$env:JAVA_HOME\\bin;$env:Path"
 - Equipped satchels render on the back and belt-indexed pouches render separately at the left and right waist in third person.
 - Wearable rendering is client-only and reuses the normal item models and textures as an intentional placeholder. Custom wearable geometry is deferred to a possible future visuals release; body-worn bags are intentionally not rendered over first-person arms.
 - Base pouches use leather and string; base satchels add a chest. Gold-ingot transmute recipes upgrade either bag while preserving the original ItemStack components, including all stored contents.
+
+## Optional Integrated Inventory status
+
+P7-A architecture is documented in [ADR-012](docs/adr/ADR-012-p7a-integrated-inventory-architecture.md). No Integrated Inventory prototype is implemented yet: the proposed feature remains default-disabled, the existing B-key Pack Menu is unchanged, and P7-B requires separate authorization.
