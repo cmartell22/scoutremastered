@@ -815,9 +815,10 @@ repository_state:
   default_branch: "main"
   working_branch: "main"
   initial_state_commit: "a26d732c95c51328926bcd9e4a86fed188c0589c"
+  bootstrap_checkpoint_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
   baseline_commit: null
   last_known_good_commit: null
-  last_tested_commit: null
+  last_tested_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
   working_tree_expected_clean: true
 
 task_rules:
@@ -995,6 +996,7 @@ latest_session:
     - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat clean build --no-daemon --console=plain"
     - "Start-Process .\\gradlew.bat runClient --no-daemon --console=plain; inspect run\\logs\\latest.log; stop launched process tree"
     - "Start-Process .\\gradlew.bat runServer --no-daemon --console=plain --args=--nogui; inspect run\\logs\\latest.log and generated run\\eula.txt"
+    - "git commit -m 'chore: bootstrap Fabric 26.1 project' (4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b)"
   tests_run:
     - "Java runtime: Microsoft OpenJDK 25.0.4+7-LTS, 64-bit Server VM."
     - "./gradlew.bat clean build --no-daemon --console=plain: BUILD SUCCESSFUL; compileJava, compileClientJava, jar, sourcesJar, check, and build completed."
