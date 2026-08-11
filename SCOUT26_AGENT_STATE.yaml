@@ -5,10 +5,10 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 15
-last_updated_utc: "2026-08-11T07:17:10Z"
+state_revision: 16
+last_updated_utc: "2026-08-11T07:39:21Z"
 state_owner: "AI coding agent"
-project_status: "P4_ACTIVE"
+project_status: "P4_IMPLEMENTED_AWAITING_MANUAL_VALIDATION"
 current_phase: "P4"
 current_task: "P4"
 
@@ -831,8 +831,9 @@ repository_state:
   p2_completion_commit: "a6c72fb3ec287fe7f12973ae246845f0219a67ce"
   p3_completion_commit: "a0375c5fb841b2cb0f016fb3dab63e863077274f"
   p4_activation_commit: "36b2482438d4ef9b285f5a975df1c3372f2c5caa"
-  last_known_good_commit: "36b2482438d4ef9b285f5a975df1c3372f2c5caa"
-  last_tested_commit: "36b2482438d4ef9b285f5a975df1c3372f2c5caa"
+  p4_implementation_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
+  last_known_good_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
+  last_tested_commit: "3ddfd52ff439a56958c49469ee27776a5a349dbf"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -926,6 +927,17 @@ decision_log:
     reason: >
       This follows the locked 4.0.0-beta.3+26.1 slot loader, item-tag validator, testmod, and attachment APIs;
       it avoids parallel equipment storage and prevents a stale handle from targeting a replacement bag.
+  - id: "ADR-009"
+    date: "2026-08-11"
+    status: "ACCEPTED"
+    decision: >
+      Open a dedicated extended PackMenu from an empty C2S intent. Send only server-derived capacities as
+      opening layout data; keep contents and slot identities server-owned. Route bag slots in satchel,
+      left-pouch, right-pouch order and validate every captured EquippedBagHandle before mutation.
+    reason: >
+      Minecraft's synchronized menu protocol already owns slot changes. Server rediscovery plus exact live
+      ItemStack identity prevents client-forged capacity/content state and fails closed after Trinkets inventory
+      rebuild, replacement, or unequip, while vanilla moveItemStackTo provides merge-before-empty behavior.
 
 open_questions:
   blocking_before_release:
@@ -1136,79 +1148,87 @@ session_history:
       - "P2 storage implementation/tests/documentation and SCOUT26_AGENT_STATE.yaml"
     blockers: []
     next_action: "Await explicit human confirmation before beginning P3."
+  - session_id: "p3-completion-009"
+    date: "2026-08-11"
+    agent: "GPT-5.6"
+    summary:
+      - "Completed P3 and committed the Trinkets equipment implementation as a0375c5fb841b2cb0f016fb3dab63e863077274f."
+      - "Added data-driven back/belt roles, stable satchel/left/right discovery, and exact-identity live EquippedBagHandle validation."
+      - "Verified 13 tests, clean build, packaged classes/resources, and dedicated-server startup."
+    files_changed:
+      - "P3 Trinkets integration implementation/tests/documentation and SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Await explicit human confirmation before beginning P4."
+  - session_id: "p4-pause-resume-010"
+    date: "2026-08-11"
+    agent: "GPT-5.6"
+    summary:
+      - "Activated P4 in 36b2482438d4ef9b285f5a975df1c3372f2c5caa, then saved an expedited clean pause handoff in f2cf685add42503aaadb2bc786c7f11270331e3f."
+      - "Resumed P4 in a3e3fe6 after re-reading and validating the complete durable state and confirming the worktree was clean."
+      - "Inspected exact Minecraft 26.1.2, Fabric API 0.155.2+26.1.2 module, and Trinkets Updated 4.0.0-beta.3+26.1 sources for the P4 APIs and live-slot behavior."
+    files_changed:
+      - "SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Implement the source-reviewed P4 extended menu, empty open intent, client keybind/screen, and live-backing guards."
 
 latest_session:
-  session_id: "p3-completion-009"
+  session_id: "p4-implementation-011"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
-    - "Completed P3 and committed the tested implementation as a0375c5fb841b2cb0f016fb3dab63e863077274f (feat: add P3 Trinkets equipment integration)."
-    - "Requested Trinkets Updated's built-in chest/back and legs/belt slots for players, merged the belt amount to two, and assigned only satchels to back and pouches to belt through current data resources."
-    - "Added BagEquipmentRole and a defensive TrinketSlotCompatibilityCallback so Scout26 bags fail closed outside their intended role even if another data pack broadens tags."
-    - "Implemented server-player equipment discovery in stable satchel, left-pouch index 0, right-pouch index 1 order."
-    - "Implemented EquippedBagHandle to re-query the current attachment slot and require exact captured ItemStack identity, invalidating safely after inventory rebuild, replacement, or unequip."
-    - "Kept contents on the equipped physical ItemStack; added no menus, custom networking intents, recipes, rendering, client code in common sources, or Scout26 mixins."
+    - "Implemented P4 and committed the reviewed source/tests as 3ddfd52ff439a56958c49469ee27776a5a349dbf (feat: add P4 unified pack menu)."
+    - "Added a dedicated Fabric extended PackMenu and custom extractor-era PackScreen, opened by a configurable client B key through an empty C2S intent."
+    - "The server rejects invalid open state, re-discovers Trinkets equipment, and sends only role capacities for matching client layout; it never accepts client contents, slot identities, or capacities."
+    - "Menu order is satchel, left pouch, right pouch, player inventory, hotbar. Shift-click globally merges compatible bag stacks first, then fills empty eligible slots in that same stable order; bag-to-player uses main inventory before hotbar."
+    - "Bag slots and BagContainer reject nested bags. Server click handling, PackMenu, and live-handle BagContainer mutations all fail closed when any exact captured ItemStack is removed, replaced, or rebuilt."
+    - "Kept client classes in the client source set, introduced no Scout26 mixins or vanilla inventory injection, wrote through on every mutation, and did not begin P5."
+    - "Automated/build/server/client smoke evidence is complete. P4 remains ACTIVE only because the durable acceptance gate still requires a connected remote client and practical menu interaction."
   commands_run:
-    - "Read the complete SCOUT26_AGENT_STATE.yaml in bounded chunks; inspect git status/history and verify the P2 implementation commit is an ancestor of clean main."
-    - ".\\gradlew.bat build --no-daemon --console=plain"
-    - "Clone exact Trinkets Updated tag 4.0.0-beta.3+26.1 at 2509961c1dcf5925dae02f8684156976295a2236 into ignored build/trinkets-source and inspect source/testmod/resources plus the locked local jar."
-    - ".\\gradlew.bat compileJava processResources --no-daemon --console=plain"
-    - ".\\gradlew.bat test --tests com.example.scout26.BagStorageTest --tests com.example.scout26.TrinketsIntegrationTest --no-daemon --console=plain"
+    - "Read and parse the complete SCOUT26_AGENT_STATE.yaml; verify clean main at the P4 pause/resume bookkeeping commits and run the cheapest baseline build."
+    - "Inspect generated Minecraft 26.1.2 common/client sources for AbstractContainerMenu, Slot, MenuType, MenuProvider, ServerPlayer.openMenu, server click validation, MenuScreens, AbstractContainerScreen, ContainerScreen, KeyMapping, CustomPacketPayload, StreamCodec, and ByteBufCodecs."
+    - "Inspect exact source jars for Fabric menu API 2.0.14+d871b99e4c, networking API 6.3.1+554860db4c, key-mapping API 2.0.4+e2bdee784c, screen API 5.1.0+981dd9b24c, lifecycle events 4.1.1+df84eb3d4c, and Trinkets Updated 4.0.0-beta.3+26.1."
+    - ".\\gradlew.bat compileJava compileClientJava processResources --no-daemon --console=plain"
+    - ".\\gradlew.bat test --tests com.example.scout26.PackMenuTest --tests com.example.scout26.BagStorageTest --tests com.example.scout26.TrinketsIntegrationTest --no-daemon --console=plain"
     - ".\\gradlew.bat clean build --no-daemon --console=plain"
-    - "Inspect build/libs/scout26-0.0.0-dev.jar, JUnit XML reports, common-source imports, and Scout26 mixin files."
-    - ".\\gradlew.bat runServer --no-daemon --console=plain with stdout/stderr captured under build/."
-    - "Read-only project process-tree and TCP 25565 audits; stop only the exact lingering smoke-test PIDs 17524, 9760, 33520, and 31324."
-    - "Parse the complete SCOUT26_AGENT_STATE.yaml with SnakeYAML 2.0 and run git diff --check."
+    - "Inspect build/libs/scout26-0.0.0-dev.jar, JUnit XML counts, common-source imports, and Scout26 mixin files."
+    - ".\\gradlew.bat runServer --no-daemon --console=plain and .\\gradlew.bat runClient --no-daemon --console=plain as separate smoke runs."
+    - "Audit exact test process trees and TCP 25565, stop only P4 smoke-test descendants, and restore run/server.properties to online-mode=true."
+    - "Query the Windows Application log after background cmd.exe fallback popups; no matching Application Error event was recorded, and background cmd.exe launching was abandoned."
+    - "Run git diff --check and commit the P4 implementation."
   tests_run:
     - "Toolchain: Microsoft OpenJDK 25.0.4+7; Fabric Loom resolved as 1.17.19."
-    - "Primary-source review: immutable Trinkets tag 2509961c1dcf5925dae02f8684156976295a2236, including README, testmod, SlotLoader, EntitySlotLoader, TrinketsMain predicates, TrinketAttachment, LivingEntityTrinketAttachment, TrinketInventoryImpl, TrinketSlotAccess, DefaultTrinketSlots, and event APIs."
-    - "API/schema result: activate built-in chest/back and legs/belt through data/trinkets/entities; merge belt amount by maximum through data/trinkets/slots; use data/trinkets/tags/item for the default validator; access live stacks with TrinketAttachment.getSlotAccess."
-    - "Focused JUnit suites: 13 tests passed, 0 failures/errors/skips (9 P2 storage plus 4 P3 integration). P3 coverage includes role mapping, exact data contributions, stable satchel/left/right order, wrong-role rejection, live identity, and replacement/unequip fail-closed behavior without content transfer."
-    - "Test correction: the first P3 resource test selected Trinkets' first same-path belt resource and failed 1 of 13; it now enumerates the complete classpath resource stack, matching SlotLoader.listResourceStacks behavior, and all tests pass."
-    - "Clean build: BUILD SUCCESSFUL in 16s; all 10 actionable tasks executed."
-    - "Jar inspection: the production jar contains BagEquipmentRole, TrinketsIntegration, EquippedBagHandle, the player slot request, two-slot belt contribution, and both item tags."
-    - "Dedicated-server smoke: logged 'Scout26 P3 bag equipment integration initialized', automatically found/loaded the Scout26 data pack, loaded recipes/advancements without Trinkets slot-loader errors, and reached 'Done (0.264s)'."
-    - "Isolation review: no client-only imports exist in src/main/java and Scout26 contains no mixin files; the pre-existing third-party Trinkets dedicated-server client-mixin warnings remained non-fatal."
-    - "Runtime cleanup: the world saved, the exact lingering Gradle/server launch chain was stopped, stderr was empty, no project Java/cmd processes remained, and TCP port 25565 was free afterward."
-    - "State validation: the complete YAML parsed successfully with SnakeYAML 2.0 and git diff --check passed."
+    - "Exact-source API review confirmed ExtendedMenuType/ExtendedMenuProvider, serverbound typed payload registration/receivers, client key mapping/tick APIs, screen registration/extractor rendering, server pre-click stillValid checks, and merge-before-empty moveItemStackTo behavior."
+    - "Trinkets review reconfirmed that inventory rebuild creates a replacement inventory, copies equipped stacks to new ItemStack objects, and invalidates old slot access, so exact identity handles fail closed."
+    - "Focused/full JUnit result: 20 tests passed, 0 failures/errors/skips (9 P2, 4 P3, 7 P4). P4 covers typed capacity data/codec bounds, stable slots/layout, global merge-before-empty routing, main-before-hotbar routing, every nested-bag ingress tested, empty payload bytes, and stale backing mutation refusal."
+    - "Clean build: BUILD SUCCESSFUL in 15s; all 10 actionable tasks executed."
+    - "Jar inspection: production jar contains BagContainer, OpenPackPayload, PackMenu and BagSlot, PackMenuData, PackMenuLayout, PackMenuProvider, PackNetworking, PackScreen, Scout26Client, and translations."
+    - "Dedicated-server smoke: logged 'Scout26 P4 unified pack menu initialized', loaded the Scout26 data pack/resources, loaded recipes/advancements, and reached 'Done (0.312s)'; only the known non-fatal third-party Trinkets client-mixin warnings remained."
+    - "Standalone development-client smoke: Scout26 initialized on the render thread, Indigo/client resources and GUI atlas loaded, and no Scout26 keybind/menu/screen registration or classloading error occurred. Expected unauthenticated development-account and Realms warnings were non-fatal."
+    - "Isolation review: no client-only imports exist in src/main/java and Scout26 contains no mixin files."
+    - "Practical limitation: a connected remote development client was not run because the local dev identity cannot authenticate to online-mode=true. A temporary offline-mode direct-Java test required explicit security approval and was blocked before launch; online-mode=true was restored. Physical B-key/menu interaction therefore remains human-assisted validation."
+    - "Runtime cleanup: all exact Gradle/Minecraft smoke-test process trees were stopped, TCP 25565 was free, and run/server.properties was restored to online-mode=true."
   files_changed:
     - "README.md"
-    - "src/main/java/com/example/scout26/BagEquipmentRole.java"
-    - "src/main/java/com/example/scout26/BagItem.java"
-    - "src/main/java/com/example/scout26/EquippedBagHandle.java"
-    - "src/main/java/com/example/scout26/ModItems.java"
+    - "src/client/java/com/example/scout26/client/PackScreen.java"
+    - "src/client/java/com/example/scout26/client/Scout26Client.java"
+    - "src/main/java/com/example/scout26/BagContainer.java"
+    - "src/main/java/com/example/scout26/ModMenus.java"
+    - "src/main/java/com/example/scout26/OpenPackPayload.java"
+    - "src/main/java/com/example/scout26/PackMenu.java"
+    - "src/main/java/com/example/scout26/PackMenuData.java"
+    - "src/main/java/com/example/scout26/PackMenuLayout.java"
+    - "src/main/java/com/example/scout26/PackMenuProvider.java"
+    - "src/main/java/com/example/scout26/PackNetworking.java"
     - "src/main/java/com/example/scout26/Scout26Mod.java"
-    - "src/main/java/com/example/scout26/TrinketsIntegration.java"
-    - "src/main/resources/data/trinkets/entities/scout26.json"
-    - "src/main/resources/data/trinkets/slots/legs/belt.json"
-    - "src/main/resources/data/trinkets/tags/item/chest/back.json"
-    - "src/main/resources/data/trinkets/tags/item/legs/belt.json"
-    - "src/main/resources/fabric.mod.json"
-    - "src/test/java/com/example/scout26/BagStorageTest.java"
-    - "src/test/java/com/example/scout26/MinecraftTestBootstrap.java"
-    - "src/test/java/com/example/scout26/TrinketsIntegrationTest.java"
+    - "src/main/resources/assets/scout26/lang/en_us.json"
+    - "src/test/java/com/example/scout26/PackMenuTest.java"
     - "SCOUT26_AGENT_STATE.yaml"
-  blockers: []
-  next_action: "Await explicit human confirmation before beginning P4; then design the unified server-authoritative PackMenu around per-action EquippedBagHandle validation before adding any keybind, open-intent payload, or screen code."
-
-pause_handoff:
-  status: "RESUMED"
-  paused_at_utc: "2026-08-11T05:21:21Z"
-  resumed_at_utc: "2026-08-11T07:17:10Z"
-  summary:
-    - "The human explicitly approved P4; state revision 13 activated P4 and commit 36b2482438d4ef9b285f5a975df1c3372f2c5caa saved that transition."
-    - "No P4 implementation source or resource files were created or modified before the shutdown request."
-    - "The cheapest baseline `.\\gradlew.bat build --no-daemon --console=plain` passed at 36b2482 with Loom 1.17.19 and all nine tasks up to date."
-    - "Minecraft 26.1.2 common/client sources were generated and inspected for AbstractContainerMenu, Slot, MenuType, MenuProvider, ServerPlayer.openMenu, MenuScreens, AbstractContainerScreen, ContainerScreen, KeyMapping, CustomPacketPayload, StreamCodec, and ByteBufCodecs."
-    - "Exact Maven source jars were downloaded under ignored build/inspected-sources for Fabric menu API 2.0.14+d871b99e4c, networking API 6.3.1+554860db4c, key-mapping API 2.0.4+e2bdee784c, screen API 5.1.0+981dd9b24c, lifecycle events 4.1.1+df84eb3d4c, and Trinkets Updated 4.0.0-beta.3+26.1."
-    - "API review confirmed ExtendedMenuType plus ExtendedMenuProvider for typed server-to-client layout data, PayloadTypeRegistry.serverboundPlay plus ServerPlayNetworking for an empty open-intent payload, MenuScreens.register for the client screen, KeyMappingHelper with KeyMapping.consumeClick, and extractor-era AbstractContainerScreen.extractBackground/extractLabels rendering."
-    - "Trinkets source reconfirmed that TrinketAttachment.getSlotAccess can be invalidated; rebuild replaces inventories, marks old inventories invalid, and copies equipped stacks, so P3 exact ItemStack identity handles correctly fail closed after rebuild."
-  runtime_cleanup:
-    - "The source downloads and Gradle source generation completed; no Gradle or server command was left running by this session."
-    - "No TCP 25565 listener was reported by the shutdown audit. The sandbox denied the optional CIM command-line process audit, but no runClient/runServer task was started in this session."
-  resume_action: >
-    Resume P4 from the API-review/design boundary. Read this entire file again, verify clean Git at the pause bookkeeping commit,
-    inspect ClientTickEvents from the already downloaded exact lifecycle source if build/ still exists, then implement the menu without starting P5.
+  blockers:
+    - "P4's connected remote-client and physical menu-interaction acceptance remains pending; implementation and automated/server/standalone-client checks pass."
+  next_action: >
+    Run a human-assisted connected development-client validation of the B key, custom Pack Inventory screen, bag combinations,
+    normal clicks, shift-click policy, nested-bag rejection, and stale-backing close behavior. Then mark P4 DONE and request explicit
+    human confirmation before beginning P5; do not start P5 meanwhile.
 
 agent_first_prompt:
   text: >
