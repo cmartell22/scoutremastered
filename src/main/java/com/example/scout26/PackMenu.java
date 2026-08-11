@@ -101,8 +101,7 @@ public final class PackMenu extends AbstractContainerMenu {
 		if (slotIndex < this.bagSlotCount) {
 			moved = this.moveItemStackTo(source, this.playerInventoryStart, this.playerInventoryEnd, false);
 		} else {
-			moved = BagStorageRules.canStore(source)
-				&& this.moveItemStackTo(source, 0, this.bagSlotCount, false);
+			moved = BagQuickMove.moveToBags(source, 0, this.bagSlotCount, this::moveItemStackTo);
 		}
 
 		if (!moved) {
@@ -156,42 +155,19 @@ public final class PackMenu extends AbstractContainerMenu {
 
 	private void addSatchelSlots(Container container) {
 		for (int slot = 0; slot < container.getContainerSize(); slot++) {
-			this.addSlot(new BagSlot(container, slot, this.layout.satchelSlotX(slot), this.layout.satchelSlotY(slot)));
+			this.addSlot(new BagStorageSlot(container, slot, this.layout.satchelSlotX(slot), this.layout.satchelSlotY(slot)));
 		}
 	}
 
 	private void addLeftPouchSlots(Container container) {
 		for (int slot = 0; slot < container.getContainerSize(); slot++) {
-			this.addSlot(new BagSlot(container, slot, this.layout.leftPouchSlotX(slot), this.layout.pouchSlotY(slot)));
+			this.addSlot(new BagStorageSlot(container, slot, this.layout.leftPouchSlotX(slot), this.layout.pouchSlotY(slot)));
 		}
 	}
 
 	private void addRightPouchSlots(Container container) {
 		for (int slot = 0; slot < container.getContainerSize(); slot++) {
-			this.addSlot(new BagSlot(container, slot, this.layout.rightPouchSlotX(slot), this.layout.pouchSlotY(slot)));
-		}
-	}
-
-	private static final class BagSlot extends Slot {
-		private BagSlot(Container container, int slot, int x, int y) {
-			super(container, slot, x, y);
-		}
-
-		@Override
-		public boolean mayPlace(ItemStack stack) {
-			return BagStorageRules.canStore(stack) && this.container.canPlaceItem(this.getContainerSlot(), stack);
-		}
-
-		@Override
-		public void set(ItemStack stack) {
-			if (stack.isEmpty() || this.mayPlace(stack)) {
-				super.set(stack);
-			}
-		}
-
-		@Override
-		public boolean mayPickup(Player player) {
-			return this.container.stillValid(player);
+			this.addSlot(new BagStorageSlot(container, slot, this.layout.rightPouchSlotX(slot), this.layout.pouchSlotY(slot)));
 		}
 	}
 }
