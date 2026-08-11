@@ -54,12 +54,10 @@ final class BagTrinketRenderer implements TrinketRenderer {
 		if (bagItem.equipmentRole() == BagEquipmentRole.SATCHEL) {
 			poseStack.translate(0.0F, 0.13F, 0.36F);
 			poseStack.mulPose(new Quaternionf().rotateY(Mth.PI));
-			poseStack.mulPose(new Quaternionf().rotateX(Mth.HALF_PI));
 			poseStack.scale(0.72F, 0.72F, 0.72F);
 		} else {
 			float horizontalOffset = slot.index() == 0 ? 0.22F : -0.22F;
 			poseStack.translate(horizontalOffset, 0.34F, 0.01F);
-			poseStack.mulPose(new Quaternionf().rotateX(Mth.HALF_PI));
 			poseStack.scale(0.38F, 0.38F, 0.38F);
 		}
 
