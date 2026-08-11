@@ -1,6 +1,6 @@
 # Scout26 (temporary working name)
 
-This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P3 provides immutable per-ItemStack storage plus Trinkets Updated equipment discovery; menus, networking intents, recipes, and rendering remain later phases. No vanilla inventory GUI mixins are present.
+This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P4 provides immutable per-ItemStack storage, Trinkets Updated equipment discovery, and a dedicated synchronized Pack Inventory menu. Recipes and wearable rendering remain later phases. No vanilla inventory GUI mixins are present.
 
 The temporary identifiers are `scout26` and `com.example.scout26`. They are not release identifiers; the final public name, mod ID, Java package, and license remain open project decisions.
 
@@ -33,3 +33,13 @@ $env:Path = "$env:JAVA_HOME\\bin;$env:Path"
 - Server-side discovery returns bags in stable satchel, left-pouch, right-pouch order.
 - An equipped-bag handle re-resolves its live Trinkets slot and fails closed if that slot is rebuilt, emptied, or replaced by another ItemStack.
 - Equipping and unequipping never extracts bag contents; the physical equipped ItemStack remains their owner.
+
+## P4 pack menu semantics
+
+- Press the configurable Open Pack Inventory key, initially `B`, to request the menu.
+- The C2S payload is empty intent only. The server rejects invalid player/menu state and re-discovers equipped bags through Trinkets Updated.
+- Slots are ordered satchel, left pouch, right pouch, player inventory, then hotbar.
+- Player-to-bag shift-click first merges compatible stacks across bags in that order, then fills empty eligible slots in the same order.
+- Bag-to-player shift-click fills the main inventory before the hotbar.
+- Every menu action requires every captured equipped-bag handle to remain live. Replacement, unequip, or Trinkets inventory rebuild invalidates the menu and causes it to close safely.
+- Bag slots reject bag items and any stack carrying bag contents through normal clicks, drag, number-key swap, and shift-click.

@@ -2,5 +2,11 @@
   "item.scout26.satchel": "Satchel",
   "item.scout26.upgraded_satchel": "Upgraded Satchel",
   "item.scout26.pouch": "Pouch",
-  "item.scout26.upgraded_pouch": "Upgraded Pouch"
+  "item.scout26.upgraded_pouch": "Upgraded Pouch",
+  "container.scout26.pack": "Pack Inventory",
+  "container.scout26.satchel": "Satchel",
+  "container.scout26.left_pouch": "Left Pouch",
+  "container.scout26.right_pouch": "Right Pouch",
+  "key.scout26.open_pack": "Open Pack Inventory",
+  "message.scout26.no_equipped_bags": "Equip a satchel or pouch to open the Pack Inventory."
 }

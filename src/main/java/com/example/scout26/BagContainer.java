@@ -1,5 +1,7 @@
 package com.example.scout26;
 
+import java.util.Objects;
+import java.util.Optional;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -16,14 +18,24 @@ public final class BagContainer implements Container {
 	private final ItemStack bagStack;
 	private final BagItem bagItem;
 	private final NonNullList<ItemStack> items;
+	private final Optional<EquippedBagHandle> liveHandle;
 
 	public BagContainer(ItemStack bagStack) {
+		this(bagStack, Optional.empty());
+	}
+
+	public BagContainer(EquippedBagHandle liveHandle) {
+		this(resolveLiveBag(liveHandle), Optional.of(liveHandle));
+	}
+
+	private BagContainer(ItemStack bagStack, Optional<EquippedBagHandle> liveHandle) {
 		if (bagStack.isEmpty() || !(bagStack.getItem() instanceof BagItem bagItem)) {
 			throw new IllegalArgumentException("BagContainer requires a non-empty BagItem stack");
 		}
 
 		this.bagStack = bagStack;
 		this.bagItem = bagItem;
+		this.liveHandle = liveHandle;
 		BagContents stored = bagStack.getOrDefault(ModDataComponents.BAG_CONTENTS, BagContents.EMPTY);
 		BagContents normalized = stored.normalized(bagItem.capacity());
 		this.items = normalized.copyItems(bagItem.capacity());
@@ -39,6 +51,9 @@ public final class BagContainer implements Container {
 
 	@Override
 	public boolean isEmpty() {
+		if (!this.isLive()) {
+			return true;
+		}
 		for (ItemStack stack : this.items) {
 			if (!stack.isEmpty()) {
 				return false;
@@ -49,12 +64,12 @@ public final class BagContainer implements Container {
 
 	@Override
 	public ItemStack getItem(int slot) {
-		return this.isValidSlot(slot) ? this.items.get(slot) : ItemStack.EMPTY;
+		return this.isLive() && this.isValidSlot(slot) ? this.items.get(slot) : ItemStack.EMPTY;
 	}
 
 	@Override
 	public ItemStack removeItem(int slot, int amount) {
-		if (!this.isValidSlot(slot) || amount <= 0) {
+		if (!this.isLive() || !this.isValidSlot(slot) || amount <= 0) {
 			return ItemStack.EMPTY;
 		}
 		ItemStack removed = ContainerHelper.removeItem(this.items, slot, amount);
@@ -66,7 +81,7 @@ public final class BagContainer implements Container {
 
 	@Override
 	public ItemStack removeItemNoUpdate(int slot) {
-		if (!this.isValidSlot(slot)) {
+		if (!this.isLive() || !this.isValidSlot(slot)) {
 			return ItemStack.EMPTY;
 		}
 		ItemStack removed = ContainerHelper.takeItem(this.items, slot);
@@ -79,6 +94,9 @@ public final class BagContainer implements Container {
 	@Override
 	public void setItem(int slot, ItemStack stack) {
 		this.checkSlot(slot);
+		if (!this.isLive()) {
+			return;
+		}
 		if (!stack.isEmpty() && !BagStorageRules.canStore(stack)) {
 			throw new IllegalArgumentException("Bag items and stacks carrying bag contents cannot be nested");
 		}
@@ -93,21 +111,26 @@ public final class BagContainer implements Container {
 
 	@Override
 	public void setChanged() {
-		this.persist();
+		if (this.isLive()) {
+			this.persist();
+		}
 	}
 
 	@Override
 	public boolean stillValid(Player player) {
-		return !this.bagStack.isEmpty() && this.bagStack.getItem() == this.bagItem;
+		return this.isLive() && !this.bagStack.isEmpty() && this.bagStack.getItem() == this.bagItem;
 	}
 
 	@Override
 	public boolean canPlaceItem(int slot, ItemStack stack) {
-		return this.isValidSlot(slot) && BagStorageRules.canStore(stack);
+		return this.isLive() && this.isValidSlot(slot) && BagStorageRules.canStore(stack);
 	}
 
 	@Override
 	public void clearContent() {
+		if (!this.isLive()) {
+			return;
+		}
 		this.items.clear();
 		this.persist();
 	}
@@ -116,7 +139,16 @@ public final class BagContainer implements Container {
 		return this.bagItem.capacity();
 	}
 
+	public boolean isLive() {
+		return this.liveHandle
+			.map(handle -> handle.resolve().filter(stack -> stack == this.bagStack).isPresent())
+			.orElse(true);
+	}
+
 	private void persist() {
+		if (!this.isLive()) {
+			return;
+		}
 		for (int slot = 0; slot < this.items.size(); slot++) {
 			ItemStack stack = this.items.get(slot);
 			if (stack.isEmpty() || !BagStorageRules.canStore(stack)) {
@@ -142,5 +174,11 @@ public final class BagContainer implements Container {
 		if (!this.isValidSlot(slot)) {
 			throw new IndexOutOfBoundsException("Bag slot " + slot + " outside capacity " + this.items.size());
 		}
+	}
+
+	private static ItemStack resolveLiveBag(EquippedBagHandle liveHandle) {
+		return Objects.requireNonNull(liveHandle, "liveHandle")
+			.resolve()
+			.orElseThrow(() -> new IllegalArgumentException("Equipped bag handle is already stale"));
 	}
 }
