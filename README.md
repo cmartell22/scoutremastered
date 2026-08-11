@@ -1,6 +1,6 @@
 # Scout26 (temporary working name)
 
-This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P4 provides immutable per-ItemStack storage, Trinkets Updated equipment discovery, and a dedicated synchronized Pack Inventory menu. Recipes and wearable rendering remain later phases. No vanilla inventory GUI mixins are present.
+This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P5 hardens the immutable per-ItemStack storage, Trinkets Updated equipment discovery, and dedicated synchronized Pack Inventory menu delivered through P4. Recipes and wearable rendering remain later phases. No vanilla inventory GUI mixins are present.
 
 The temporary identifiers are `scout26` and `com.example.scout26`. They are not release identifiers; the final public name, mod ID, Java package, and license remain open project decisions.
 
@@ -43,3 +43,10 @@ $env:Path = "$env:JAVA_HOME\\bin;$env:Path"
 - Bag-to-player shift-click fills the main inventory before the hotbar.
 - Every menu action requires every captured equipped-bag handle to remain live. Replacement, unequip, or Trinkets inventory rebuild invalidates the menu and causes it to close safely.
 - Bag slots reject bag items and any stack carrying bag contents through normal clicks, drag, number-key swap, and shift-click.
+
+## P5 lifecycle hardening
+
+- Persistent and streamed entries are normalized to the concrete item's actual maximum stack size; malformed non-positive or ineligible entries are discarded.
+- Server-backed Pack Inventories become invalid for dead, removed, disconnected, or spectator players as well as stale equipped-bag handles.
+- Every accepted bag-slot mutation replaces the physical equipped ItemStack's component immediately; closing the menu is not a write-back boundary.
+- Vanilla death, respawn, logout, and restart behavior follows the physical equipped ItemStack managed by Trinkets Updated. A Trinkets inventory rebuild creates new physical stacks and invalidates every previously captured menu handle.

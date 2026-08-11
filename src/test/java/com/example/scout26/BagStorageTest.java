@@ -9,8 +9,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -129,6 +131,51 @@ final class BagStorageTest {
 		assertTrue(container.getItem(0).isEmpty());
 		assertEquals(3, container.getItem(1).getCount());
 		assertEquals(1, pouch.get(ModDataComponents.BAG_CONTENTS).entryCount());
+	}
+
+	@Test
+	void oversizedEntriesClampToTheItemsActualMaximum() {
+		ItemStack oversized = new ItemStack(Items.DIAMOND, 99);
+		BagContents fromRuntimeStack = BagContents.fromItems(List.of(oversized), 9);
+		assertEquals(64, fromRuntimeStack.getStack(0).getCount());
+
+		String json = """
+			{
+			  "format_version": 1,
+			  "entries": [
+			    {"slot": 0, "item": {"id": "minecraft:diamond", "count": 99}}
+			  ]
+			}
+			""";
+		BagContents decoded = BagContents.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(json)).getOrThrow();
+		assertEquals(64, decoded.getStack(0).getCount());
+
+		ItemStack bag = new ItemStack(ModItems.SATCHEL);
+		bag.set(ModDataComponents.BAG_CONTENTS, decoded);
+		assertEquals(64, new BagContainer(bag).getItem(0).getCount());
+	}
+
+	@Test
+	void streamDecodeClampsHugeCountsAndRejectsNonPositiveCounts() {
+		RegistryAccess registryAccess = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+		RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), registryAccess);
+		try {
+			ByteBufCodecs.VAR_INT.encode(buffer, BagContents.FORMAT_VERSION);
+			ByteBufCodecs.VAR_INT.encode(buffer, 2);
+
+			ByteBufCodecs.VAR_INT.encode(buffer, 0);
+			ItemStackTemplate.STREAM_CODEC.encode(buffer, new ItemStackTemplate(Items.DIAMOND, Integer.MAX_VALUE));
+
+			ByteBufCodecs.VAR_INT.encode(buffer, 1);
+			ItemStackTemplate.STREAM_CODEC.encode(buffer, new ItemStackTemplate(Items.EMERALD, -1));
+
+			BagContents decoded = BagContents.STREAM_CODEC.decode(buffer);
+			assertEquals(1, decoded.entryCount());
+			assertEquals(64, decoded.getStack(0).getCount());
+			assertTrue(decoded.getStack(1).isEmpty());
+		} finally {
+			buffer.release();
+		}
 	}
 
 	@Test

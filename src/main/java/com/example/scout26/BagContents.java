@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -61,10 +62,8 @@ public final class BagContents {
 	private BagContents(List<SlotEntry> rawEntries) {
 		Map<Integer, ItemStackTemplate> normalized = new TreeMap<>();
 		for (SlotEntry entry : rawEntries) {
-			if (entry.slot() >= 0
-				&& entry.slot() < MAX_SERIALIZED_SLOTS
-				&& BagStorageRules.canStore(entry.item())) {
-				normalized.put(entry.slot(), entry.item());
+			if (entry.slot() >= 0 && entry.slot() < MAX_SERIALIZED_SLOTS) {
+				normalizeItem(entry.item()).ifPresent(item -> normalized.put(entry.slot(), item));
 			}
 		}
 
@@ -150,6 +149,20 @@ public final class BagContents {
 
 	private static int sanitizeCapacity(int capacity) {
 		return Math.clamp(capacity, 0, MAX_SERIALIZED_SLOTS);
+	}
+
+	private static Optional<ItemStackTemplate> normalizeItem(ItemStackTemplate template) {
+		if (template.count() <= 0 || !BagStorageRules.canStore(template)) {
+			return Optional.empty();
+		}
+
+		ItemStack unitStack = template.withCount(1).create();
+		if (unitStack.isEmpty() || !BagStorageRules.canStore(unitStack)) {
+			return Optional.empty();
+		}
+
+		int normalizedCount = Math.min(template.count(), unitStack.getMaxStackSize());
+		return normalizedCount > 0 ? Optional.of(template.withCount(normalizedCount)) : Optional.empty();
 	}
 
 	@Override

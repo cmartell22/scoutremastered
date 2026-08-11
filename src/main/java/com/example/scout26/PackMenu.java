@@ -65,7 +65,13 @@ public final class PackMenu extends AbstractContainerMenu {
 	@Override
 	public boolean stillValid(Player player) {
 		return !this.serverBacked
-			|| player == this.owner && player.isAlive() && this.liveHandles.stream().allMatch(EquippedBagHandle::isValid);
+			|| player == this.owner
+				&& player instanceof ServerPlayer serverPlayer
+				&& player.isAlive()
+				&& !player.isRemoved()
+				&& !player.isSpectator()
+				&& !serverPlayer.hasDisconnected()
+				&& this.liveHandles.stream().allMatch(EquippedBagHandle::isValid);
 	}
 
 	@Override

@@ -19,7 +19,9 @@ public final class PackNetworking {
 
 	static boolean canOpenPack(ServerPlayer player) {
 		return player.isAlive()
+			&& !player.isRemoved()
 			&& !player.isSpectator()
+			&& !player.hasDisconnected()
 			&& player.containerMenu == player.inventoryMenu;
 	}
 
