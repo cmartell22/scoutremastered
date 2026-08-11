@@ -1,0 +1,1017 @@
+# SCOUT26_AGENT_STATE.yaml
+# Durable project memory for an AI coding agent.
+# RULE: Read this entire file before changing code. Update it at the end of every work session.
+# RULE: Facts in "verified_external_facts" are snapshots, not eternal truths. Re-verify versions when instructed.
+# RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
+
+schema_version: 1
+state_revision: 1
+last_updated_utc: "2026-08-11T00:25:27Z"
+state_owner: "AI coding agent"
+project_status: "PLANNING"
+current_phase: "P0"
+current_task: "P0-T02"
+
+project:
+  working_name: "Scout26"
+  public_name: null
+  mod_id: null
+  java_package: null
+  repository: null
+  target_platform: "Fabric"
+  target_minecraft_line: "26.1.x"
+  preferred_build_baseline: "26.1.2"
+  java_version: 25
+  inspiration_repo: "https://github.com/danieelkx/Scout-Recrafted"
+  inspiration_license: "LGPL-2.1"
+  new_project_license: null
+  release_goal: "A stable, modern, Scout-inspired wearable bag mod for Minecraft 26.1.x."
+  naming_note: >
+    Scout26 is only a working codename. Do not publish artifacts under this name until the human
+    chooses the final project name, mod_id, Java package, and license.
+
+north_star:
+  player_experience:
+    - "Equip one satchel on the back."
+    - "Equip up to two pouches at the waist/belt."
+    - "Bag contents belong to the physical ItemStack and move with that ItemStack."
+    - "Press a configurable key (initial default: B) to open one unified Pack Inventory menu."
+    - "The Pack Inventory shows equipped satchel/pouch storage plus the player's normal inventory."
+    - "Shift-clicking should be predictable and safe."
+    - "Bag contents should be visible in a tooltip after the core system is stable."
+    - "Wearable models should render after storage/equipment/menu correctness is proven."
+  initial_capacities:
+    satchel: 9
+    upgraded_satchel: 18
+    pouch: 3
+    upgraded_pouch: 6
+    rationale: "Matches the current Scout-Recrafted gameplay capacities; treat as tunable game design."
+  future_optional_feature:
+    name: "Integrated Inventory"
+    description: >
+      Optionally display bag slots around the vanilla inventory screen in a classic Scout-like layout.
+      This is explicitly post-MVP and must not be used as the underlying storage system.
+
+success_definition:
+  - "No known item duplication or loss in survival, creative, death/respawn, logout, or multiplayer flows."
+  - "Dedicated server works without client-class loading errors."
+  - "Bag contents persist through save/reload and remain attached to the correct bag ItemStack."
+  - "Equipped bags are discovered through Trinkets Updated, not through ad-hoc global player state."
+  - "The server is authoritative for all inventory mutation."
+  - "No bag can be inserted into any bag."
+  - "Core MVP requires zero vanilla inventory GUI mixins."
+  - "A clean build succeeds from a fresh checkout using documented prerequisites."
+  - "All release-gate manual tests and available automated tests pass."
+
+non_goals_until_core_release_candidate:
+  - "Do not port Scout-Recrafted line-by-line."
+  - "Do not implement classic vanilla-inventory slot injection."
+  - "Do not support Forge/NeoForge."
+  - "Do not implement migration from old Scout/Scout-Recrafted bag data yet."
+  - "Do not add nested bags."
+  - "Do not add remote/shared/cloud storage."
+  - "Do not optimize rendering before storage correctness."
+  - "Do not add config complexity beyond what is required for basic development."
+  - "Do not copy LGPL implementation code by default."
+
+verified_external_facts:
+  snapshot_date: "2026-08-10"
+  fabric_26_1:
+    minecraft_is_unobfuscated: true
+    yarn_officially_supported_for_26_1: false
+    required_java: 25
+    loom_plugin_family: "net.fabricmc.fabric-loom"
+    dependency_configuration_style: "standard Gradle implementation/compileOnly rather than legacy modImplementation-style remapping"
+    official_example_branch: "26.1.2"
+    official_example_snapshot:
+      minecraft_version: "26.1.2"
+      loader_version: "0.19.3"
+      loom_version: "1.17-SNAPSHOT"
+      fabric_api_version: "0.155.2+26.1.2"
+      note: >
+        These are reference values observed in FabricMC/fabric-example-mod's 26.1.2 branch.
+        P0 must re-verify recommended/available versions before locking dependencies.
+  trinkets_updated:
+    project: "Trinkets Updated"
+    source_repo: "https://github.com/Patbox/trinkets"
+    maven_coordinate_family: "eu.pb4:trinkets:<version>"
+    package_family: "eu.pb4.trinkets"
+    supports_26_1_x: true
+    has_data_driven_slots: true
+    has_data_driven_trinket_rendering: true
+    notes:
+      - "26.1 migration changed package names and refactored the API."
+      - "Use the current 26.1.x release compatible with the chosen Fabric baseline; do not blindly pin an alpha from this file."
+  fabric_architecture:
+    data_components: "Modern persistent structured per-ItemStack data mechanism."
+    networking: "Typed custom payloads; logical server must own authoritative state."
+    menus: "Menu handles synchronized container interaction/shift-click; screen handles client rendering."
+
+openai_agent_model_plan:
+  strategy:
+    default_model: "GPT-5.6 Terra High"
+    principle: >
+      Use the least expensive model that maintains a high probability of
+      correctness. Escalate to Sol for API-sensitive, architectural, persistence,
+      synchronization, anti-dupe, or difficult debugging work.
+
+  stages:
+    - stage: "P0-T01"
+      name: "Dependency and version research"
+      model: "GPT-5.6 Sol Medium"
+      reason: >
+        Requires careful reconciliation of Minecraft/Fabric/Loom/Trinkets versions,
+        current APIs, and primary-source evidence.
+
+    - stage: "P0-T02"
+      name: "Bootstrap fresh project"
+      model: "GPT-5.6 Terra High"
+      reason: >
+        Primarily implementation of an established project structure plus
+        Gradle/build troubleshooting.
+
+    - stage: "P0-T03"
+      name: "Add Trinkets dependency"
+      model: "GPT-5.6 Terra Medium"
+      reason: >
+        Narrow dependency/configuration task with clear build and server
+        acceptance tests.
+
+    - stage: "P0-T04"
+      name: "Baseline commit and agent-state update"
+      model: "GPT-5.6 Terra Medium"
+      reason: >
+        Mechanical verification, Git bookkeeping, and state maintenance.
+
+    - stage: "P1"
+      name: "Items and static assets"
+      model: "GPT-5.6 Terra Medium"
+      reason: >
+        Mostly repetitive registrations, assets, translations, models,
+        recipes, and straightforward validation.
+
+    - stage: "P2"
+      name: "BagContents, data components, and storage"
+      model: "GPT-5.6 Sol High"
+      reason: >
+        Correctness-critical persistence work involving immutability,
+        serialization, copying, normalization, ItemStack storage, networking,
+        and aliasing. Errors can cause item loss or duplication.
+
+    - stage: "P3"
+      name: "Trinkets equipment integration"
+      model: "GPT-5.6 Sol Medium"
+      reason: >
+        Requires careful use of current Trinkets APIs and correct handling
+        of equipped ItemStack identity and lifecycle.
+      escalation_model: "GPT-5.6 Sol High"
+      escalate_if:
+        - "Live ItemStack identity becomes ambiguous."
+        - "EquippedBagHandle becomes stale."
+        - "Equipment synchronization behaves unexpectedly."
+
+    - stage: "P4"
+      name: "Unified PackMenu"
+      model: "GPT-5.6 Sol High"
+      reason: >
+        High-risk client/server inventory architecture involving server authority,
+        synchronized slots, shift-click behavior, live equipped stacks,
+        stale handles, and mutation boundaries.
+
+    - stage: "P5"
+      name: "Anti-dupe, lifecycle, and multiplayer hardening"
+      model: "GPT-5.6 Sol High"
+      reason: >
+        Requires adversarial reasoning across death, creative mode,
+        disconnects, multiplayer, stale stacks, item movement, duplication,
+        loss, corruption, and desynchronization.
+
+    - stage: "P6"
+      name: "Tooltip, rendering, recipes, and polish"
+      model: "GPT-5.6 Terra High"
+      reason: >
+        Competent implementation and API work is needed, but this stage is
+        intentionally separated from storage and inventory correctness.
+      escalation_model: "GPT-5.6 Sol Medium"
+      escalate_if:
+        - "Minecraft 26.1 rendering APIs are unclear."
+        - "Trinkets rendering behavior differs from documented expectations."
+        - "A rendering issue appears to involve architecture rather than presentation."
+
+    - stage: "P7-A"
+      name: "Integrated Inventory prototype architecture"
+      model: "GPT-5.6 Sol High"
+      reason: >
+        Vanilla inventory modification and mixin design are version-sensitive
+        and architecturally risky. The initial design decision deserves the
+        strongest reasoning model.
+
+    - stage: "P7-B"
+      name: "Integrated Inventory prototype implementation"
+      model: "GPT-5.6 Terra High"
+      reason: >
+        Once exact mixin targets, invariants, and architecture are established,
+        implementation can be downshifted to Terra High.
+      escalation_model: "GPT-5.6 Sol High"
+      escalate_if:
+        - "Mixin targets fail or differ from researched mappings."
+        - "Vanilla inventory behavior regresses."
+        - "Synchronization or duplication concerns appear."
+        - "The established architecture must change."
+
+    - stage: "P8"
+      name: "Release candidate, packaging, and final verification"
+      model: "GPT-5.6 Terra High"
+      reason: >
+        Primarily exhaustive verification, dependency ranges, documentation,
+        licenses, artifact inspection, cleanup, and packaging.
+      escalation_model: "GPT-5.6 Sol High"
+      escalate_if:
+        - "Any unexplained duplication occurs."
+        - "Any item loss or corruption occurs."
+        - "Client/server desynchronization occurs."
+        - "Serialization or persistence fails."
+        - "A release-gate regression cannot be explained."
+
+  execution_order:
+    - "P0-T01: GPT-5.6 Sol Medium"
+    - "P0-T02: GPT-5.6 Terra High"
+    - "P0-T03: GPT-5.6 Terra Medium"
+    - "P0-T04: GPT-5.6 Terra Medium"
+    - "P1: GPT-5.6 Terra Medium"
+    - "P2: GPT-5.6 Sol High"
+    - "P3: GPT-5.6 Sol Medium"
+    - "P4: GPT-5.6 Sol High"
+    - "P5: GPT-5.6 Sol High"
+    - "P6: GPT-5.6 Terra High"
+    - "P7-A: GPT-5.6 Sol High"
+    - "P7-B: GPT-5.6 Terra High"
+    - "P8: GPT-5.6 Terra High"
+
+  model_roles:
+    "GPT-5.6 Terra Medium":
+      use_for:
+        - "Mechanical changes"
+        - "Static assets"
+        - "Simple registrations"
+        - "Straightforward dependency changes"
+        - "Git and agent-state bookkeeping"
+        - "Known validation procedures"
+
+    "GPT-5.6 Terra High":
+      use_for:
+        - "Normal implementation work"
+        - "Implementation after architecture is established"
+        - "Build troubleshooting"
+        - "Rendering and polish"
+        - "Release verification and packaging"
+
+    "GPT-5.6 Sol Medium":
+      use_for:
+        - "Unfamiliar API investigation"
+        - "Version-sensitive research"
+        - "Moderately important design decisions"
+        - "Source-code/API reconciliation"
+        - "Integration work with nontrivial semantics"
+
+    "GPT-5.6 Sol High":
+      use_for:
+        - "Persistence and serialization architecture"
+        - "Inventory architecture"
+        - "Client/server synchronization"
+        - "Anti-duplication reasoning"
+        - "Item-loss and corruption prevention"
+        - "Multiplayer lifecycle correctness"
+        - "Risky mixin architecture"
+        - "Major architecture changes"
+        - "Difficult unexplained regressions"
+
+  global_escalation_rules:
+    - condition: "A difficult blocker remains after two serious attempts."
+      action: "Escalate to GPT-5.6 Sol High."
+
+    - condition: >
+        The task involves possible duplication, item loss, corruption,
+        persistence failure, or client/server desynchronization.
+      action: "Use GPT-5.6 Sol High."
+
+    - condition: >
+        The current API or version behavior must be researched before
+        implementation can safely continue.
+      action: "Use at least GPT-5.6 Sol Medium."
+
+  global_downshift_rule: >
+    Once the architecture, API usage, and invariants have been verified,
+    and the remaining work is primarily mechanical implementation or
+    verification, downshift from Sol to Terra.
+
+  summary:
+    default: "GPT-5.6 Terra High"
+    cheapest_routine_model: "GPT-5.6 Terra Medium"
+    research_model: "GPT-5.6 Sol Medium"
+    correctness_critical_model: "GPT-5.6 Sol High"
+
+source_references:
+  - id: "fabric_26_1_blog"
+    url: "https://www.fabricmc.net/2026/03/14/261.html"
+    purpose: "26.1 Java/tooling/unobfuscation changes"
+  - id: "fabric_26_1_porting"
+    url: "https://docs.fabricmc.net/develop/porting/index"
+    purpose: "Official 26.1 porting guidance"
+  - id: "fabric_example_26_1_2"
+    url: "https://github.com/FabricMC/fabric-example-mod/tree/26.1.2"
+    purpose: "Authoritative build-script shape for 26.1.2"
+  - id: "fabric_data_components"
+    url: "https://docs.fabricmc.net/develop/items/custom-data-components"
+    purpose: "Custom ItemStack data components"
+  - id: "fabric_networking"
+    url: "https://docs.fabricmc.net/develop/networking"
+    purpose: "Current typed networking API"
+  - id: "fabric_container_menus"
+    url: "https://docs.fabricmc.net/develop/blocks/container-menus"
+    purpose: "Current menu/screen synchronization pattern"
+  - id: "trinkets_updated"
+    url: "https://modrinth.com/mod/trinkets-updated"
+    purpose: "Current Trinkets Updated project/developer coordinates"
+  - id: "trinkets_source"
+    url: "https://github.com/Patbox/trinkets"
+    purpose: "Primary API source, test mod, data formats"
+  - id: "scout_recrafted"
+    url: "https://github.com/danieelkx/Scout-Recrafted"
+    purpose: "Behavioral reference and historical bug knowledge"
+
+legal_and_provenance:
+  default_strategy: "behavioral_reference_clean_implementation"
+  rules:
+    - >
+      Use Scout-Recrafted to understand behavior, capacities, UI ideas, and known edge cases.
+      Prefer writing new 26.1-native implementation code from scratch.
+    - >
+      If substantial code or a method is copied/adapted from Scout-Recrafted, record it in
+      copied_code_provenance before committing and preserve/apply required LGPL-2.1 notices/obligations.
+    - "Do not remove existing copyright/license notices from copied code."
+    - "Do not claim the new project is the original Scout."
+  copied_code_provenance: []
+
+architecture:
+  guiding_principle: >
+    Equipment selects which physical bag ItemStacks are active. Each bag ItemStack owns its contents.
+    A dedicated server-authoritative menu exposes those contents. UI is a view/controller, never the source of truth.
+
+  invariants:
+    - id: "INV-001"
+      rule: "Bag contents are stored on the bag ItemStack in a custom typed data component."
+    - id: "INV-002"
+      rule: "Bag component values are immutable/value-like; never expose a mutable list stored inside a component."
+    - id: "INV-003"
+      rule: "Capacity is derived from the bag item definition, not trusted from serialized bag contents."
+    - id: "INV-004"
+      rule: "Invalid/out-of-range serialized entries are normalized or rejected safely; never crash a world load."
+    - id: "INV-005"
+      rule: "All inventory mutation is performed on the logical server."
+    - id: "INV-006"
+      rule: "Client packets express intent only; the server validates bag presence, menu ownership, slot, and action."
+    - id: "INV-007"
+      rule: "No static/global mutable map is the authoritative store for bag contents."
+    - id: "INV-008"
+      rule: "Do not rely on write-back only when a menu closes; mutation must persist safely as it occurs."
+    - id: "INV-009"
+      rule: "Bag items cannot be placed inside bag storage slots, including through shift-click."
+    - id: "INV-010"
+      rule: "Core phases P0-P6 use no vanilla inventory GUI mixins unless an ADR proves there is no reasonable API solution."
+    - id: "INV-011"
+      rule: "Common/server code must not reference client-only Minecraft classes."
+    - id: "INV-012"
+      rule: "Dedicated-server behavior is a release gate, not an afterthought."
+    - id: "INV-013"
+      rule: "Equipment discovery uses Trinkets Updated slot/attachment APIs."
+    - id: "INV-014"
+      rule: "The bag menu operates on live equipped bag ItemStacks, not detached copies."
+    - id: "INV-015"
+      rule: "Shift-click routing order is deterministic and documented."
+    - id: "INV-016"
+      rule: "Classic integrated-inventory UI, if added later, must delegate to the same tested core storage/menu model."
+
+  preferred_data_model:
+    component_id: "<mod_id>:bag_contents"
+    conceptual_shape:
+      format_version: 1
+      entries: "immutable sparse list of {slot_index, ItemStack}; exact Codec/StreamCodec API to be verified in P2"
+    normalization_rules:
+      - "Ignore/reject negative slot indices."
+      - "Ignore/reject indices >= capacity for the concrete bag item."
+      - "Never persist empty stacks as meaningful entries unless the chosen codec pattern requires it."
+      - "Reject nested bag ItemStacks when setting a bag storage slot."
+      - "Copy ItemStacks at API boundaries where required to avoid aliasing/mutable-reference bugs."
+    unresolved_api_detail: >
+      P2 must inspect Minecraft 26.1.2/Fabric source to determine the correct DataComponentType codec and
+      network-synchronization configuration. Do not assume persistence automatically implies every desired sync path.
+
+  preferred_runtime_objects:
+    - name: "BagType / BagDefinition"
+      responsibility: "Defines kind, capacity, equipment role, upgrade tier, and item-specific behavior."
+    - name: "BagContents"
+      responsibility: "Immutable serialized value stored in the ItemStack component."
+    - name: "BagContainer"
+      responsibility: >
+        Server-side Container adapter over a live bag ItemStack. Reads component state and writes a replaced
+        immutable component on mutation.
+    - name: "EquippedBagHandle"
+      responsibility: >
+        Resolves and updates the live ItemStack in a specific Trinkets equipment slot/index. Must guard against
+        stale/replaced stacks while a menu is open.
+    - name: "PackMenu"
+      responsibility: "Server-authoritative menu with bag slots + player inventory slots + shift-click rules."
+    - name: "PackScreen"
+      responsibility: "Client rendering/input for PackMenu only."
+    - name: "OpenPackPayload"
+      responsibility: "Minimal client-to-server intent for opening the pack; server re-discovers equipment."
+    - name: "PackClient"
+      responsibility: "Key mapping, screen registration, client-only rendering/tooltip hooks."
+    - name: "TrinketsIntegration"
+      responsibility: "Slot definitions/access/equip rules; isolate library-specific code behind a narrow layer."
+
+  equipment_design:
+    required_slots:
+      satchel:
+        count: 1
+        semantic_location: "back/chest area"
+      pouch:
+        count: 2
+        semantic_location: "belt/waist; stable indices define left/right ordering"
+    implementation_note: >
+      Do not invent final Trinkets slot IDs/schema from memory. In P3 inspect the current Trinkets Updated
+      test mod/wiki/source and define data-driven slots using the current 26.1.x format.
+    bag_stack_size: 1
+
+  menu_design:
+    open_action: "Configurable keybind; initial default B."
+    open_flow:
+      - "Client keybind sends OpenPack intent."
+      - "Server validates player state and re-discovers equipped bags."
+      - "Server opens PackMenu via current Fabric menu API."
+      - "Client receives menu metadata needed only for layout; contents remain normal synchronized slots."
+    slot_groups:
+      - "satchel slots if equipped"
+      - "left pouch slots if equipped"
+      - "right pouch slots if equipped"
+      - "player inventory"
+      - "player hotbar"
+    shift_click_policy_initial:
+      player_to_bags_priority:
+        - "satchel"
+        - "left_pouch"
+        - "right_pouch"
+      algorithm:
+        - "Merge into compatible non-full stacks first."
+        - "Then fill empty eligible slots."
+        - "Never insert bag items into bag slots."
+      bag_to_player:
+        - "Move to player inventory/hotbar using normal deterministic range."
+    stale_handle_policy: >
+      If the equipped ItemStack backing a BagContainer is replaced/removed while the menu is open,
+      stop allowing mutation for that bag and close or resynchronize the menu safely. Never write old
+      contents into an unrelated replacement ItemStack.
+
+  rendering_design:
+    phase: "P6"
+    preference: "Use Trinkets Updated data-driven rendering/model attachment facilities when adequate."
+    fallback: "Use code-driven rendering only when the data-driven API cannot express the required satchel/pouch model."
+    rule: "Rendering bugs must never affect bag content correctness."
+
+  optional_integrated_inventory:
+    phase: "P7"
+    default_enabled: false
+    conditions_to_start:
+      - "P0-P6 complete."
+      - "Core release-candidate test matrix passes."
+      - "A stable baseline tag/commit exists."
+    constraints:
+      - "Feature must be isolated behind a config/feature flag."
+      - "Minimize mixin count and injection surface."
+      - "Do not duplicate storage or click logic already implemented by PackMenu."
+      - "If 26.1 vanilla internals make this brittle, ship without it."
+
+testing_strategy:
+  philosophy: "Every historical duplication/desync bug becomes a regression test or explicit manual test."
+  automated:
+    discover_first:
+      - "./gradlew tasks"
+      - "Inspect current Fabric GameTest support before inventing task names."
+    priorities:
+      - "Codec/component round-trip tests where practical."
+      - "BagContainer mutation tests."
+      - "Nested-bag rejection."
+      - "Capacity normalization."
+      - "Shift-click routing logic factored into testable helpers where practical."
+  required_manual_matrix:
+    storage:
+      - "Put items in each bag; close/reopen menu."
+      - "Save and reload world."
+      - "Restart game."
+      - "Move/drop/pick up bag and verify contents stay with it."
+      - "Rename/enchant/damage-compatible metadata changes do not detach contents."
+    equipment:
+      - "Equip/unequip empty bag."
+      - "Equip/unequip non-empty bag."
+      - "Replace one pouch with another."
+      - "Swap left/right pouch ordering if supported."
+      - "Open menu with only satchel, only one pouch, two pouches, all bags, and no bags."
+    interaction:
+      - "Normal click, right-click split, drag, double-click if supported by vanilla menu behavior."
+      - "Shift-click player -> bags."
+      - "Shift-click bag -> player."
+      - "Hotbar number-key swap."
+      - "Q and Ctrl+Q drop behavior."
+      - "Attempt bag-inside-bag by every interaction path."
+    lifecycle:
+      - "Death with keepInventory=false."
+      - "Death with keepInventory=true."
+      - "Respawn."
+      - "Disconnect while menu is open."
+      - "Server shutdown/save while bags contain items."
+    creative:
+      - "Creative pick/block cloning does not duplicate non-empty bag contents unexpectedly."
+      - "Creative delete/drop interactions do not desynchronize equipment."
+      - "Copying a bag ItemStack behaves intentionally and is documented."
+    multiplayer:
+      - "Dedicated server with two clients."
+      - "Simultaneous unrelated inventory actions by both players."
+      - "Other players cannot mutate another player's bag."
+      - "Rejoin server and verify persistence."
+    compatibility:
+      - "Run with Fabric API + Trinkets Updated only."
+      - "Run without client-only optional UI mods."
+      - "Verify clean dedicated server startup."
+
+release_gates:
+  build:
+    - "Fresh checkout resolves dependencies."
+    - "./gradlew clean build passes."
+    - "No compilation warnings indicating client/common class leakage that are under project control."
+  functional:
+    - "Required manual matrix completed with results recorded."
+    - "No open P0/P1 severity duplication, item-loss, crash, or world-corruption bugs."
+    - "Dedicated server smoke test passes."
+  documentation:
+    - "README installation/dependencies are accurate."
+    - "License files and third-party notices are present."
+    - "Known limitations are documented."
+    - "State file reflects final tested versions and baseline commit."
+
+severity_model:
+  P0: "Item duplication, item loss, world corruption, remote exploit, or dedicated-server hard crash."
+  P1: "Common gameplay crash/desync or bag contents become inaccessible/wrong."
+  P2: "Feature malfunction with workaround; rendering/UI significant bug."
+  P3: "Polish, visual, wording, or minor compatibility issue."
+
+phase_plan:
+  P0:
+    name: "Reconnaissance and reproducible bootstrap"
+    status: "ACTIVE"
+    objective: "Create a minimal 26.1.x Fabric project that builds and runs before any bag logic."
+    tasks:
+      P0-T01:
+        status: "DONE"
+        action: >
+          Re-verify the current recommended 26.1.x Minecraft patch, Java 25, Fabric Loader, Fabric API,
+          non-remapping Loom, Gradle wrapper, and a compatible Trinkets Updated 26.1.x version using primary sources.
+        outputs:
+          - "Update dependency_lock below."
+          - "Record URLs/commit/tag/version evidence in dependency_lock.evidence."
+        acceptance:
+          - "No version is chosen solely from this planning file."
+      P0-T02:
+        status: "NEXT"
+        action: >
+          Initialize a fresh project from the Fabric 26.1.2 example/template shape.
+          Use temporary identifiers only if the human has not supplied final name/mod_id/package.
+        acceptance:
+          - "./gradlew clean build passes."
+          - "Client development run reaches title screen."
+          - "Dedicated server development run starts without mod errors."
+      P0-T03:
+        status: "BLOCKED_BY_P0-T02"
+        action: "Add Trinkets Updated dependency only; make no bag code yet."
+        acceptance:
+          - "./gradlew clean build passes."
+          - "Client starts with Trinkets Updated."
+          - "Dedicated server starts with Trinkets Updated."
+      P0-T04:
+        status: "BLOCKED_BY_P0-T03"
+        action: "Commit/tag the reproducible empty baseline."
+        acceptance:
+          - "git working tree clean."
+          - "baseline commit SHA recorded in repository_state.baseline_commit."
+    exit_gate: "All P0 tasks accepted and dependency_lock complete."
+
+  P1:
+    name: "Items and static game data"
+    status: "BLOCKED"
+    objective: "Register bag/material items and static assets without storage behavior."
+    tasks:
+      - "Register satchel, upgraded satchel, pouch, upgraded pouch, and any chosen crafting materials."
+      - "Set bag max stack size to 1."
+      - "Add translations and basic generated/static item models."
+      - "Add temporary/simple recipes only after confirming desired crafting design."
+    acceptance:
+      - "All items obtainable in development."
+      - "No missing-model texture errors for intended assets."
+      - "Client and dedicated server still start."
+      - "./gradlew clean build passes."
+
+  P2:
+    name: "Bag contents data model"
+    status: "BLOCKED"
+    objective: "Make a bag ItemStack persist contents correctly without Trinkets or custom UI."
+    tasks:
+      - "Implement BagContents immutable value and registered custom data component."
+      - "Implement normalization/validation by concrete item capacity."
+      - "Implement BagContainer adapter over one live ItemStack."
+      - "Implement nested-bag rejection centrally."
+      - "Add tests for round-trip, capacity, mutation, and copy semantics where practical."
+      - "Create a temporary developer command/test hook to inspect/fill bag contents if needed."
+    acceptance:
+      - "Component survives ItemStack serialization/save-load."
+      - "Contents follow ItemStack copies according to normal ItemStack copy semantics and documented creative behavior."
+      - "No aliasing bug: changing one bag's storage never mutates another bag unintentionally."
+      - "Out-of-range/corrupt entries fail safely."
+      - "./gradlew clean build passes."
+    mandatory_review_question: >
+      Is the component's network/persistence configuration correct for 26.1.x ItemStack synchronization?
+      Verify against actual source/API, not memory.
+
+  P3:
+    name: "Trinkets equipment integration"
+    status: "BLOCKED"
+    objective: "Equip and reliably locate one satchel and two pouches."
+    tasks:
+      - "Study current Trinkets Updated testmod/wiki/API for 26.1.x."
+      - "Define/request data-driven equipment slots."
+      - "Restrict satchel to back role and pouches to belt role."
+      - "Implement TrinketsIntegration and EquippedBagHandle."
+      - "Define stable left/right pouch ordering from slot indices."
+      - "Handle equip/unequip with non-empty bags without moving contents out of the ItemStack."
+    acceptance:
+      - "Correct items equip only to intended roles."
+      - "Server can locate live equipped bag stacks."
+      - "Replacing/unequipping a bag cannot cause contents to jump to another bag."
+      - "Dedicated server passes."
+      - "./gradlew clean build passes."
+
+  P4:
+    name: "Unified Pack Menu MVP"
+    status: "BLOCKED"
+    objective: "Ship the core usable gameplay loop with a dedicated synchronized bag menu."
+    tasks:
+      - "Register current Fabric menu type/provider."
+      - "Implement OpenPack keybind and minimal C2S open intent."
+      - "Server re-discovers equipped bags and opens PackMenu."
+      - "Implement bag storage slots, player inventory slots, and hotbar slots."
+      - "Implement deterministic shift-click routing."
+      - "Implement PackScreen using 26.1 render-state/extractor-era GUI APIs."
+      - "Gracefully handle no bags or bag removal while menu is open."
+    acceptance:
+      - "All equipped bag contents are accessible from one screen."
+      - "Normal slot actions behave correctly."
+      - "Shift-click behavior matches documented policy."
+      - "Bag-inside-bag is impossible."
+      - "No custom packet directly mutates an inventory slot."
+      - "Dedicated server + remote client test passes."
+      - "./gradlew clean build passes."
+
+  P5:
+    name: "Hardening, lifecycle, anti-dupe, multiplayer"
+    status: "BLOCKED"
+    objective: "Attack the implementation with historical Scout failure modes."
+    tasks:
+      - "Run the full required_manual_matrix except rendering-specific checks."
+      - "Test survival/creative/death/respawn/logout/server restart."
+      - "Test hotbar swap, Q/Ctrl+Q, drag, shift-click, equipment replacement."
+      - "Test stale EquippedBagHandle behavior."
+      - "Add regression tests for every bug found."
+      - "Review thread-safety/logical-side assumptions."
+    acceptance:
+      - "No open P0/P1 bugs."
+      - "Every discovered duplication/loss bug has a regression entry."
+      - "Two-client dedicated-server test passes."
+      - "./gradlew clean build passes."
+
+  P6:
+    name: "Tooltip, wearable rendering, recipes, polish"
+    status: "BLOCKED"
+    objective: "Add presentation only after storage correctness is stable."
+    tasks:
+      - "Add compact contents tooltip with sensible limits."
+      - "Implement satchel/pouch wearable rendering, preferring Trinkets data-driven facilities."
+      - "Add/finalize textures/models."
+      - "Finalize recipes and item group/tab placement."
+      - "Add basic config only for clearly useful options such as keybind/UI behavior where appropriate."
+      - "Accessibility pass on PackScreen labels/narration where APIs support it."
+    acceptance:
+      - "Rendering has no server-side class leakage."
+      - "Models render in third person; first person behavior documented."
+      - "Tooltip never mutates contents."
+      - "Fresh build and required manual tests pass."
+
+  P7:
+    name: "Optional classic Integrated Inventory"
+    status: "BLOCKED"
+    objective: "Explore classic Scout-like slots around vanilla inventory without compromising the core."
+    decision_gate: >
+      Human must explicitly approve starting P7 after P0-P6 release-candidate baseline.
+      If the implementation requires broad fragile mixins, recommend shipping without P7.
+    tasks:
+      - "Prototype UI-only integration against the proven storage model."
+      - "Minimize and document each mixin."
+      - "Feature-flag the integration."
+      - "Repeat creative/multiplayer/recipe-book/inventory interaction regression matrix."
+    acceptance:
+      - "Disabling feature returns to mixin-free PackMenu experience."
+      - "No storage logic is duplicated."
+      - "No P0/P1 regression."
+      - "Every mixin has target, reason, failure mode, and version-risk documentation."
+
+  P8:
+    name: "Release candidate and packaging"
+    status: "BLOCKED"
+    objective: "Produce a clean, documented release artifact."
+    tasks:
+      - "Run all release gates."
+      - "Create changelog and known-limitations section."
+      - "Finalize project name/mod_id/package/license if still temporary."
+      - "Verify fabric.mod.json dependency ranges."
+      - "Verify jar contents and source/license notices."
+      - "Tag release candidate."
+    acceptance:
+      - "Release gates all green."
+      - "State file points to tested commit and artifact."
+      - "No temporary project identifiers remain unless explicitly approved."
+
+dependency_lock:
+  status: "LOCKED"
+  minecraft: "26.1.2"
+  java: 25
+  gradle: "9.5.1"
+  fabric_loader: "0.19.3"
+  fabric_loom: "1.17-SNAPSHOT"
+  fabric_loom_resolved_snapshot: "1.17-20260807.132355-18"
+  fabric_api: "0.155.2+26.1.2"
+  trinkets_updated: "4.0.0-beta.3+26.1"
+  evidence:
+    - component: "Minecraft and Java"
+      source: "Fabric 26.1 announcement"
+      url: "https://www.fabricmc.net/2026/03/14/261.html"
+      observed: "Minecraft 26.1 is unobfuscated, requires Java 25 for the Gradle JVM, and uses net.fabricmc.fabric-loom without remapping."
+      verified_at_utc: "2026-08-11T00:25:27Z"
+    - component: "Minecraft"
+      source: "Mojang version manifest v2"
+      url: "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
+      observed: "26.1.2 is the newest release entry in the 26.1.x line; releaseTime is 2026-04-09T10:12:23Z."
+      verified_at_utc: "2026-08-11T00:25:27Z"
+    - component: "Fabric baseline"
+      source: "FabricMC fabric-example-mod 26.1.2 branch"
+      url: "https://github.com/FabricMC/fabric-example-mod/tree/27c9ae062374e59b9732d86ce229bfb42175408e"
+      ref: "refs/heads/26.1.2 at 27c9ae062374e59b9732d86ce229bfb42175408e"
+      observed: "gradle.properties selects Minecraft 26.1.2, Loader 0.19.3, Loom 1.17-SNAPSHOT, and Fabric API 0.155.2+26.1.2; the wrapper selects Gradle 9.5.1."
+      verified_at_utc: "2026-08-11T00:25:27Z"
+    - component: "Fabric Loader"
+      source: "Fabric Meta API and Fabric Maven"
+      url: "https://meta.fabricmc.net/v2/versions/loader/26.1.2"
+      artifact_url: "https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.3/fabric-loader-0.19.3.pom"
+      observed: "0.19.3 is listed for Minecraft 26.1.2 and the exact POM returned HTTP 200."
+      verified_at_utc: "2026-08-11T00:25:27Z"
+    - component: "Fabric Loom"
+      source: "Fabric Maven snapshot metadata"
+      url: "https://maven.fabricmc.net/net/fabricmc/fabric-loom/1.17-SNAPSHOT/maven-metadata.xml"
+      observed: "The example's 1.17-SNAPSHOT resolved to timestamped build 1.17-20260807.132355-18; metadata returned HTTP 200."
+      verified_at_utc: "2026-08-11T00:25:27Z"
+    - component: "Fabric API"
+      source: "Fabric Maven"
+      url: "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/0.155.2+26.1.2/fabric-api-0.155.2+26.1.2.pom"
+      observed: "The exact Fabric API POM returned HTTP 200."
+      verified_at_utc: "2026-08-11T00:25:27Z"
+    - component: "Gradle"
+      source: "Fabric example wrapper and Gradle distribution service"
+      url: "https://raw.githubusercontent.com/FabricMC/fabric-example-mod/27c9ae062374e59b9732d86ce229bfb42175408e/gradle/wrapper/gradle-wrapper.properties"
+      artifact_url: "https://services.gradle.org/distributions/gradle-9.5.1-bin.zip"
+      observed: "The immutable example wrapper selects Gradle 9.5.1 and the distribution returned HTTP 200."
+      verified_at_utc: "2026-08-11T00:25:27Z"
+    - component: "Trinkets Updated"
+      source: "Patbox/trinkets release tag and Nucleoid Maven"
+      url: "https://github.com/Patbox/trinkets/releases/tag/4.0.0-beta.3%2B26.1"
+      ref: "refs/tags/4.0.0-beta.3+26.1 at 2509961c1dcf5925dae02f8684156976295a2236"
+      metadata_url: "https://maven.nucleoid.xyz/releases/eu/pb4/trinkets/maven-metadata.xml"
+      artifact_url: "https://maven.nucleoid.xyz/releases/eu/pb4/trinkets/4.0.0-beta.3+26.1/trinkets-4.0.0-beta.3+26.1.pom"
+      observed: "This is the newest published 26.1 build; its immutable fabric.mod.json declares minecraft 26.1.x, fabricloader >=0.18.0, and Fabric API, and the exact POM returned HTTP 200."
+      verified_at_utc: "2026-08-11T00:25:27Z"
+  rule: >
+    Once resolved, change status to LOCKED and record exact versions plus evidence.
+    Do not casually upgrade mid-phase. Dependency upgrades are explicit tasks with a build/test checkpoint.
+
+repository_state:
+  initialized: true
+  remote: null
+  default_branch: "main"
+  working_branch: "main"
+  baseline_commit: null
+  last_known_good_commit: null
+  last_tested_commit: null
+  working_tree_expected_clean: true
+
+task_rules:
+  statuses:
+    - "BLOCKED"
+    - "NEXT"
+    - "ACTIVE"
+    - "DONE"
+    - "DEFERRED"
+  execution:
+    - "Work on one narrowly-defined task at a time."
+    - "Before edits: read this file, run git status, inspect relevant source/docs, and confirm current task."
+    - "Do not skip a phase exit gate merely because later code is easy to write."
+    - "Prefer small compileable commits."
+    - "After meaningful edits, run the cheapest relevant verification; before DONE, run full task acceptance."
+    - "When an API name/signature is uncertain, inspect current source/docs instead of guessing repeatedly."
+    - "Do not paper over errors with broad try/catch(Throwable), reflection, or suppressed validation unless an ADR justifies it."
+    - "Never resolve an inventory desync by trusting client state."
+    - "Never delete a failing regression test to make the build green."
+    - "If blocked for >2 serious attempts, stop changing code and record the blocker/evidence/next hypothesis."
+
+decision_log:
+  - id: "ADR-001"
+    date: "2026-08-10"
+    status: "ACCEPTED"
+    decision: "Build a new 26.1-native mod instead of porting Scout-Recrafted line-by-line."
+    reason: "26.1 tooling/API changes and Scout's fragile inventory-screen mixins make a clean architecture lower risk."
+  - id: "ADR-002"
+    date: "2026-08-10"
+    status: "ACCEPTED"
+    decision: "Use a dedicated Pack Menu for MVP; classic vanilla inventory integration is post-MVP."
+    reason: "Reduces mixin surface and isolates storage correctness from vanilla inventory UI internals."
+  - id: "ADR-003"
+    date: "2026-08-10"
+    status: "ACCEPTED"
+    decision: "Store contents on each bag ItemStack using a typed custom data component."
+    reason: "The physical bag carries its own inventory across equipment, drops, containers, saves, and movement."
+  - id: "ADR-004"
+    date: "2026-08-10"
+    status: "ACCEPTED"
+    decision: "Use Trinkets Updated for equipment roles, not for bag content storage."
+    reason: "Separates equipment attachment from inventory ownership."
+  - id: "ADR-005"
+    date: "2026-08-10"
+    status: "ACCEPTED"
+    decision: "Prohibit nested bags."
+    reason: "Avoid recursive inventory semantics and a large class of duplication/serialization risks."
+  - id: "ADR-006"
+    date: "2026-08-10"
+    status: "ACCEPTED"
+    decision: "Default to behavioral reference rather than copied Scout-Recrafted implementation code."
+    reason: "Produces a cleaner 26.1-native design and simplifies provenance/licensing."
+
+open_questions:
+  blocking_before_release:
+    - id: "Q-001"
+      question: "Final public project name?"
+      status: "OPEN"
+      blocking_phase: "P8"
+    - id: "Q-002"
+      question: "Final mod_id and Java package?"
+      status: "OPEN"
+      blocking_phase: "P8"
+    - id: "Q-003"
+      question: "New project's license?"
+      status: "OPEN"
+      blocking_phase: "P8"
+  nonblocking_now:
+    - id: "Q-010"
+      question: "Should base/upgraded capacities remain 9/18 and 3/6?"
+      current_default: "yes"
+    - id: "Q-011"
+      question: "Should right-clicking a held unequipped bag also open a single-bag menu?"
+      current_default: "defer"
+    - id: "Q-012"
+      question: "Should old Scout/Scout-Recrafted bag data be migrated?"
+      current_default: "post-MVP only"
+    - id: "Q-013"
+      question: "Should Integrated Inventory eventually be enabled by default?"
+      current_default: "no; feature does not exist until P7"
+
+known_risks:
+  - id: "R-001"
+    severity: "HIGH"
+    risk: "Live ItemStack identity/locator becomes stale while PackMenu is open."
+    mitigation: "EquippedBagHandle validation; fail closed; never write through to an unrelated replacement stack."
+  - id: "R-002"
+    severity: "HIGH"
+    risk: "Mutable ItemStack/list aliasing inside a data component causes cross-bag mutation or hash/equality issues."
+    mitigation: "Immutable component value; defensive copies; component replacement on mutation."
+  - id: "R-003"
+    severity: "HIGH"
+    risk: "Creative-mode stack cloning duplicates a non-empty bag."
+    mitigation: >
+      Define and test intentional semantics. A copied ItemStack naturally copying its component may duplicate contents;
+      decide whether that is acceptable creative behavior or whether bag identity rules are needed. Never invent identity
+      UUIDs until this behavior has been reasoned through and tested.
+  - id: "R-004"
+    severity: "HIGH"
+    risk: "Trinkets 26.1.x API churn/alpha compatibility."
+    mitigation: "Lock one tested 26.1.x version in P0 and isolate integration code."
+  - id: "R-005"
+    severity: "MEDIUM"
+    risk: "Client/server source-set leakage."
+    mitigation: "Use split environment source sets and dedicated-server smoke test each phase touching client code."
+  - id: "R-006"
+    severity: "MEDIUM"
+    risk: "Classic inventory integration recreates old Scout fragility."
+    mitigation: "P7 only, feature flagged, minimal mixins, core remains independent."
+
+bug_regressions:
+  # Add one entry for every bug discovered, especially duplication/loss/desync.
+  # Never remove a regression entry; mark fixed_in_commit and test evidence.
+  entries: []
+
+session_handoff_protocol:
+  startup_steps:
+    - "Read SCOUT26_AGENT_STATE.yaml completely."
+    - "Check schema_version and current_phase/current_task."
+    - "Run `git status --short --branch` if a repository exists."
+    - "Confirm HEAD equals or descends from repository_state.last_known_good_commit when that field exists."
+    - "Read the acceptance criteria for the active task."
+    - "Inspect current primary docs/source for any uncertain API touched by the task."
+    - "Run the cheapest baseline build/test relevant to the current state before large edits."
+  shutdown_steps:
+    - "Run acceptance checks appropriate to work performed."
+    - "Update current task status and phase status."
+    - "Update repository_state SHAs."
+    - "Update dependency_lock if dependencies changed."
+    - "Append decisions that will matter to future sessions."
+    - "Append bugs/regressions discovered."
+    - "Record commands/tests and outcomes in latest_session."
+    - "Set next_action to one concrete action."
+    - "Increment state_revision."
+    - "Keep the file valid YAML."
+  compression_rule: >
+    Keep latest_session detailed. When session_history exceeds 20 entries, compress oldest entries into
+    history_summary while preserving decisions, bug regressions, dependency changes, and commit SHAs.
+  invariant: "The state file is part of the deliverable, not disposable notes."
+
+history_summary: "Architecture and phased plan created on 2026-08-10; dependency baseline locked and local Git history started on 2026-08-11."
+session_history:
+  - session_id: "planning-000"
+    date: "2026-08-10"
+    agent: "GPT-5.6 Sol"
+    summary:
+      - "Assessed a 26.1-native rebuild as feasible with staged execution."
+      - "Selected dedicated Pack Menu architecture for MVP."
+      - "Selected ItemStack custom data component storage."
+      - "Selected Trinkets Updated as equipment integration."
+      - "Deferred classic integrated inventory UI until after release-candidate core."
+    commands_run: []
+    tests_run: []
+    files_changed:
+      - "SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Execute P0-T01: re-verify and lock exact 26.1.x dependency versions from primary sources."
+
+latest_session:
+  session_id: "p0-t01-001"
+  date: "2026-08-11"
+  agent: "GPT-5.6 Sol"
+  summary:
+    - "Completed P0-T01 using current primary Mojang, Fabric, Gradle, GitHub, and Nucleoid sources."
+    - "Locked the official Fabric 26.1.2 example baseline and the newest published Trinkets Updated 26.1 build."
+    - "Initialized the workspace as a local Git repository on main at the human's request."
+    - "Confirmed that Java is not currently available on PATH; Java 25 is the first P0-T02 prerequisite."
+  commands_run:
+    - "Get-Content -Raw -LiteralPath 'SCOUT26_AGENT_STATE.yaml' (terminal output truncated; followed by complete bounded reads)"
+    - "$lines = Get-Content -LiteralPath 'SCOUT26_AGENT_STATE.yaml'; $lines[0..249], $lines[250..499], $lines[500..749], and $lines[750..end]"
+    - "git status --short --branch (before repository initialization; returned not a git repository)"
+    - "git ls-remote https://github.com/FabricMC/fabric-example-mod.git refs/heads/26.1.2"
+    - "git ls-remote https://github.com/Patbox/trinkets.git 'refs/tags/4.0.0-beta.3+26.1*'"
+    - "Invoke-WebRequest/Invoke-RestMethod checks against Mojang version manifest, Fabric Meta/Maven, Gradle distributions, Nucleoid Maven, and immutable GitHub raw files"
+    - "java -version (command not found)"
+    - "git --version (2.53.0.windows.1)"
+    - "git init -b main"
+    - "Bundled Python 3.12 with temporary PyYAML 6.0.2: yaml.safe_load(SCOUT26_AGENT_STATE.yaml)"
+  tests_run:
+    - "Artifact availability: Loader 0.19.3 POM, Loom 1.17-SNAPSHOT metadata, Fabric API 0.155.2+26.1.2 POM, Trinkets 4.0.0-beta.3+26.1 POM, and Gradle 9.5.1 distribution all returned HTTP 200."
+    - "Immutable-source compatibility: Trinkets tag fabric.mod.json declares Minecraft 26.1.x and Fabric Loader >=0.18.0."
+    - "Version-line check: Mojang manifest lists 26.1.2 as the newest 26.1.x release."
+    - "State-file syntax: PyYAML safe_load passed and returned schema 1, revision 1, phase P0, task P0-T02, lock status LOCKED, and 8 evidence records."
+  files_changed:
+    - "SCOUT26_AGENT_STATE.yaml"
+  blockers:
+    - "Java is not available on PATH; P0-T02 requires a Java 25 JDK before Gradle can build or run the project."
+  next_action: "After human confirmation, begin P0-T02 by locating or installing a Java 25 JDK, then bootstrap from Fabric example commit 27c9ae062374e59b9732d86ce229bfb42175408e."
+
+agent_first_prompt:
+  text: >
+    You are continuing a Minecraft Fabric 26.1.x mod project. Treat SCOUT26_AGENT_STATE.yaml as durable project memory
+    and the source of truth for goals, invariants, phase gates, and current task. Read it completely before acting.
+    Work only on the current task unless a prerequisite forces a smaller subtask. Use primary/current Fabric, Minecraft,
+    and Trinkets source/docs for API facts; do not guess signatures. Keep the server authoritative, preserve the no-nested-bag
+    invariant, and do not introduce vanilla inventory GUI mixins before P7 without an explicit ADR. Make small buildable changes,
+    verify acceptance criteria, then update the state file with exact commands/tests/SHAs/decisions and one concrete next action.
+    Begin with current_phase/current_task from the state file.
