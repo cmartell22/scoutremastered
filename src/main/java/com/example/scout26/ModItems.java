@@ -14,10 +14,10 @@ import net.minecraft.world.item.Item;
  * Bag item definitions and their item-derived capacities.
  */
 public final class ModItems {
-	public static final BagItem SATCHEL = registerBag("satchel", 9);
-	public static final BagItem UPGRADED_SATCHEL = registerBag("upgraded_satchel", 18);
-	public static final BagItem POUCH = registerBag("pouch", 3);
-	public static final BagItem UPGRADED_POUCH = registerBag("upgraded_pouch", 6);
+	public static final BagItem SATCHEL = registerBag("satchel", 9, BagEquipmentRole.SATCHEL);
+	public static final BagItem UPGRADED_SATCHEL = registerBag("upgraded_satchel", 18, BagEquipmentRole.SATCHEL);
+	public static final BagItem POUCH = registerBag("pouch", 3, BagEquipmentRole.POUCH);
+	public static final BagItem UPGRADED_POUCH = registerBag("upgraded_pouch", 6, BagEquipmentRole.POUCH);
 
 	private ModItems() {
 	}
@@ -31,11 +31,11 @@ public final class ModItems {
 		});
 	}
 
-	private static BagItem registerBag(String path, int capacity) {
+	private static BagItem registerBag(String path, int capacity, BagEquipmentRole equipmentRole) {
 		Item.Properties properties = new Item.Properties()
 			.stacksTo(1)
 			.component(ModDataComponents.BAG_CONTENTS, BagContents.EMPTY);
-		return register(path, itemProperties -> new BagItem(itemProperties, capacity), properties);
+		return register(path, itemProperties -> new BagItem(itemProperties, capacity, equipmentRole), properties);
 	}
 
 	private static <T extends Item> T register(String path, Function<Item.Properties, T> factory, Item.Properties properties) {

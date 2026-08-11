@@ -3,7 +3,7 @@
   "id": "scout26",
   "version": "${version}",
   "name": "Scout26 (Temporary)",
-  "description": "Temporary Fabric 26.1.x bootstrap for a wearable bag mod.",
+  "description": "Temporary Fabric 26.1.x wearable bag mod under staged development.",
   "environment": "*",
   "entrypoints": {
     "main": [

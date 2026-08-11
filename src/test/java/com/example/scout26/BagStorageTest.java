@@ -4,18 +4,12 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import io.netty.buffer.Unpooled;
 import java.util.List;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.server.Bootstrap;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,29 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 final class BagStorageTest {
 	@BeforeAll
 	static void bootstrapMinecraft() {
-		SharedConstants.tryDetectVersion();
-		Bootstrap.bootStrap();
-		bindItemComponents(Items.DIAMOND, 64, false);
-		bindItemComponents(Items.EMERALD, 64, false);
-		bindItemComponents(Items.GOLD_INGOT, 64, false);
-		bindItemComponents(Items.APPLE, 64, false);
-		bindItemComponents(ModItems.SATCHEL, 1, true);
-		bindItemComponents(ModItems.UPGRADED_SATCHEL, 1, true);
-		bindItemComponents(ModItems.POUCH, 1, true);
-		bindItemComponents(ModItems.UPGRADED_POUCH, 1, true);
-	}
-
-	@SuppressWarnings("deprecation")
-	private static void bindItemComponents(Item item, int maxStackSize, boolean bag) {
-		DataComponentMap.Builder components = DataComponentMap.builder()
-			.addAll(DataComponents.COMMON_ITEM_COMPONENTS)
-			.set(DataComponents.MAX_STACK_SIZE, maxStackSize)
-			.set(DataComponents.ITEM_NAME, Component.translatable(item.getDescriptionId()))
-			.set(DataComponents.ITEM_MODEL, BuiltInRegistries.ITEM.getKey(item));
-		if (bag) {
-			components.set(ModDataComponents.BAG_CONTENTS, BagContents.EMPTY);
-		}
-		item.builtInRegistryHolder().bindComponents(components.build());
+		MinecraftTestBootstrap.initialize();
 	}
 
 	@Test

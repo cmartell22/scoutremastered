@@ -15,6 +15,7 @@ public final class Scout26Mod implements ModInitializer {
 	public void onInitialize() {
 		ModDataComponents.initialize();
 		ModItems.initialize();
-		LOGGER.info("Scout26 P2 bag storage initialized");
+		TrinketsIntegration.initialize();
+		LOGGER.info("Scout26 P3 bag equipment integration initialized");
 	}
 }

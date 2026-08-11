@@ -1,6 +1,6 @@
 # Scout26 (temporary working name)
 
-This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P2 provides the immutable per-ItemStack storage core; equipment, menus, networking intents, recipes, and rendering remain later phases. No vanilla inventory GUI mixins are present.
+This is a clean, Fabric 26.1.x wearable-bag mod under staged development. P3 provides immutable per-ItemStack storage plus Trinkets Updated equipment discovery; menus, networking intents, recipes, and rendering remain later phases. No vanilla inventory GUI mixins are present.
 
 The temporary identifiers are `scout26` and `com.example.scout26`. They are not release identifiers; the final public name, mod ID, Java package, and license remain open project decisions.
 
@@ -25,3 +25,11 @@ $env:Path = "$env:JAVA_HOME\\bin;$env:Path"
 - Negative, excessive, unknown-version, nested-bag, and over-capacity data fails closed or is normalized.
 - Bag contents are persistent and network-synchronized using the Minecraft 26.1.2 component codecs.
 - Vanilla `ItemStack.copy()` intentionally copies a bag's contents. The copies share an immutable value initially and diverge safely when either bag is mutated. In creative mode this means copying a non-empty bag also copies its contents by design.
+
+## P3 equipment semantics
+
+- Satchels equip only in Trinkets Updated's built-in `chest/back` slot.
+- Pouches equip only in `legs/belt`; Scout26 requests two belt indices, where index 0 is left and index 1 is right.
+- Server-side discovery returns bags in stable satchel, left-pouch, right-pouch order.
+- An equipped-bag handle re-resolves its live Trinkets slot and fails closed if that slot is rebuilt, emptied, or replaced by another ItemStack.
+- Equipping and unequipping never extracts bag contents; the physical equipped ItemStack remains their owner.
