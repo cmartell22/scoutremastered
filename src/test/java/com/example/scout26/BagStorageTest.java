@@ -3,22 +3,29 @@ package com.example.scout26;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import io.netty.buffer.Unpooled;
+import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.RegistryOps;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -215,5 +222,33 @@ final class BagStorageTest {
 		} finally {
 			buffer.release();
 		}
+	}
+
+	@Test
+	void tooltipSummarizesContentsWithoutMutatingTheBag() {
+		ItemStack bag = new ItemStack(ModItems.UPGRADED_POUCH);
+		BagContainer container = new BagContainer(bag);
+		container.setItem(0, new ItemStack(Items.DIAMOND, 12));
+		container.setItem(1, new ItemStack(Items.EMERALD, 3));
+		BagContents before = bag.get(ModDataComponents.BAG_CONTENTS);
+
+		List<Component> tooltip = new ArrayList<>();
+		ModItems.UPGRADED_POUCH.appendHoverText(
+			bag,
+			Item.TooltipContext.EMPTY,
+			TooltipDisplay.DEFAULT,
+			tooltip::add,
+			TooltipFlag.NORMAL
+		);
+
+		TranslatableContents summary = assertInstanceOf(TranslatableContents.class, tooltip.getFirst().getContents());
+		assertEquals("tooltip.scout26.slots_used", summary.getKey());
+		assertEquals(2, summary.getArgs()[0]);
+		assertEquals(6, summary.getArgs()[1]);
+		TranslatableContents diamond = assertInstanceOf(TranslatableContents.class, tooltip.get(1).getContents());
+		assertEquals("tooltip.scout26.entry", diamond.getKey());
+		assertEquals(12, diamond.getArgs()[1]);
+		assertSame(before, bag.get(ModDataComponents.BAG_CONTENTS));
+		assertEquals(12, before.getStack(0).getCount());
 	}
 }
