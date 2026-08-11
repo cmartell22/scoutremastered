@@ -1,0 +1,200 @@
+package com.example.scout26;
+
+import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
+import io.netty.buffer.Unpooled;
+import java.util.List;
+import net.minecraft.SharedConstants;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+final class BagStorageTest {
+	@BeforeAll
+	static void bootstrapMinecraft() {
+		SharedConstants.tryDetectVersion();
+		Bootstrap.bootStrap();
+		bindItemComponents(Items.DIAMOND, 64, false);
+		bindItemComponents(Items.EMERALD, 64, false);
+		bindItemComponents(Items.GOLD_INGOT, 64, false);
+		bindItemComponents(Items.APPLE, 64, false);
+		bindItemComponents(ModItems.SATCHEL, 1, true);
+		bindItemComponents(ModItems.UPGRADED_SATCHEL, 1, true);
+		bindItemComponents(ModItems.POUCH, 1, true);
+		bindItemComponents(ModItems.UPGRADED_POUCH, 1, true);
+	}
+
+	@SuppressWarnings("deprecation")
+	private static void bindItemComponents(Item item, int maxStackSize, boolean bag) {
+		DataComponentMap.Builder components = DataComponentMap.builder()
+			.addAll(DataComponents.COMMON_ITEM_COMPONENTS)
+			.set(DataComponents.MAX_STACK_SIZE, maxStackSize)
+			.set(DataComponents.ITEM_NAME, Component.translatable(item.getDescriptionId()))
+			.set(DataComponents.ITEM_MODEL, BuiltInRegistries.ITEM.getKey(item));
+		if (bag) {
+			components.set(ModDataComponents.BAG_CONTENTS, BagContents.EMPTY);
+		}
+		item.builtInRegistryHolder().bindComponents(components.build());
+	}
+
+	@Test
+	void capacitiesAndDefaultComponentsComeFromBagItems() {
+		assertEquals(9, ModItems.SATCHEL.capacity());
+		assertEquals(18, ModItems.UPGRADED_SATCHEL.capacity());
+		assertEquals(3, ModItems.POUCH.capacity());
+		assertEquals(6, ModItems.UPGRADED_POUCH.capacity());
+		assertEquals(1, new ItemStack(ModItems.SATCHEL).getMaxStackSize());
+		assertEquals(BagContents.EMPTY, new ItemStack(ModItems.SATCHEL).get(ModDataComponents.BAG_CONTENTS));
+	}
+
+	@Test
+	void componentSnapshotsDoNotAliasMutableItemStacks() {
+		ItemStack source = new ItemStack(Items.DIAMOND, 12);
+		BagContents contents = BagContents.fromItems(List.of(source), 9);
+
+		source.setCount(1);
+		assertEquals(12, contents.getStack(0).getCount());
+
+		ItemStack extracted = contents.getStack(0);
+		extracted.setCount(2);
+		assertEquals(12, contents.getStack(0).getCount());
+	}
+
+	@Test
+	void containerMutationsPersistAndInputStacksAreCopied() {
+		ItemStack bag = new ItemStack(ModItems.POUCH);
+		BagContainer container = new BagContainer(bag);
+		ItemStack source = new ItemStack(Items.DIAMOND, 32);
+
+		container.setItem(0, source);
+		source.setCount(1);
+		assertEquals(32, bag.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
+
+		container.getItem(0).shrink(2);
+		container.setChanged();
+		assertEquals(30, bag.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
+
+		ItemStack removed = container.removeItem(0, 5);
+		assertEquals(5, removed.getCount());
+		assertEquals(25, bag.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
+	}
+
+	@Test
+	void vanillaBagCopiesShareOnlyImmutableValuesAndDivergeOnMutation() {
+		ItemStack originalBag = new ItemStack(ModItems.SATCHEL);
+		BagContainer originalContainer = new BagContainer(originalBag);
+		originalContainer.setItem(0, new ItemStack(Items.EMERALD, 7));
+
+		ItemStack copiedBag = originalBag.copy();
+		assertSame(
+			originalBag.get(ModDataComponents.BAG_CONTENTS),
+			copiedBag.get(ModDataComponents.BAG_CONTENTS)
+		);
+
+		BagContainer copiedContainer = new BagContainer(copiedBag);
+		copiedContainer.removeItem(0, 2);
+
+		assertEquals(7, originalBag.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
+		assertEquals(5, copiedBag.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
+		assertNotSame(
+			originalBag.get(ModDataComponents.BAG_CONTENTS),
+			copiedBag.get(ModDataComponents.BAG_CONTENTS)
+		);
+	}
+
+	@Test
+	void nestedBagsAreRejectedAtEveryWriteBoundary() {
+		ItemStack outerBag = new ItemStack(ModItems.SATCHEL);
+		ItemStack innerBag = new ItemStack(ModItems.POUCH);
+		BagContainer container = new BagContainer(outerBag);
+
+		assertFalse(container.canPlaceItem(0, innerBag));
+		assertThrows(IllegalArgumentException.class, () -> container.setItem(0, innerBag));
+		assertTrue(BagContents.fromItems(List.of(innerBag), 9).isEmpty());
+	}
+
+	@Test
+	void corruptAndOutOfCapacityEntriesNormalizeWithoutCrashing() {
+		String json = """
+			{
+			  "format_version": 1,
+			  "entries": [
+			    {"slot": -1, "item": {"id": "minecraft:emerald"}},
+			    {"slot": 1, "item": {"id": "minecraft:diamond", "count": 3}},
+			    {"slot": 2, "item": {"id": "scout26:satchel"}},
+			    {"slot": 5, "item": {"id": "minecraft:gold_ingot", "count": 4}},
+			    {"slot": 300, "item": {"id": "minecraft:apple"}}
+			  ]
+			}
+			""";
+		BagContents decoded = BagContents.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(json)).getOrThrow();
+		assertEquals(2, decoded.entryCount());
+
+		ItemStack pouch = new ItemStack(ModItems.POUCH);
+		pouch.set(ModDataComponents.BAG_CONTENTS, decoded);
+		BagContainer container = new BagContainer(pouch);
+
+		assertEquals(3, container.capacity());
+		assertTrue(container.getItem(0).isEmpty());
+		assertEquals(3, container.getItem(1).getCount());
+		assertEquals(1, pouch.get(ModDataComponents.BAG_CONTENTS).entryCount());
+	}
+
+	@Test
+	void unknownFormatVersionsFailClosedToEmpty() {
+		String json = """
+			{"format_version": 999, "entries": [{"slot": 0, "item": {"id": "minecraft:diamond"}}]}
+			""";
+		BagContents decoded = BagContents.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(json)).getOrThrow();
+		assertEquals(BagContents.EMPTY, decoded);
+	}
+
+	@Test
+	void itemStackCodecRoundTripPersistsBagContents() {
+		ItemStack bag = new ItemStack(ModItems.UPGRADED_POUCH);
+		BagContainer container = new BagContainer(bag);
+		container.setItem(4, new ItemStack(Items.APPLE, 6));
+
+		RegistryAccess registryAccess = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+		RegistryOps<Tag> ops = RegistryOps.create(NbtOps.INSTANCE, registryAccess);
+		Tag encoded = ItemStack.CODEC.encodeStart(ops, bag).getOrThrow();
+		ItemStack decoded = ItemStack.CODEC.parse(ops, encoded).getOrThrow();
+
+		assertSame(ModItems.UPGRADED_POUCH, decoded.getItem());
+		assertEquals(6, decoded.get(ModDataComponents.BAG_CONTENTS).getStack(4).getCount());
+	}
+
+	@Test
+	void streamCodecRoundTripSynchronizesBagContents() {
+		BagContents original = BagContents.fromItems(List.of(new ItemStack(Items.APPLE, 4)), 9);
+		RegistryAccess registryAccess = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+		RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), registryAccess);
+		try {
+			assertFalse(ModDataComponents.BAG_CONTENTS.isTransient());
+			ModDataComponents.BAG_CONTENTS.streamCodec().encode(buffer, original);
+			BagContents decoded = ModDataComponents.BAG_CONTENTS.streamCodec().decode(buffer);
+			assertEquals(original, decoded);
+		} finally {
+			buffer.release();
+		}
+	}
+}

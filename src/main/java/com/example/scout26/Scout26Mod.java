@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Temporary P0 bootstrap entrypoint. Gameplay and storage logic begin in later phases.
+ * Common entrypoint for the temporary Scout26 project.
  */
 public final class Scout26Mod implements ModInitializer {
 	public static final String MOD_ID = "scout26";
@@ -13,7 +13,8 @@ public final class Scout26Mod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ModDataComponents.initialize();
 		ModItems.initialize();
-		LOGGER.info("Scout26 P1 items initialized");
+		LOGGER.info("Scout26 P2 bag storage initialized");
 	}
 }

@@ -11,13 +11,13 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 
 /**
- * P1 item definitions. These are plain, non-storage items until P2 adds bag contents.
+ * Bag item definitions and their item-derived capacities.
  */
 public final class ModItems {
-	public static final Item SATCHEL = register("satchel", Item::new, new Item.Properties().stacksTo(1));
-	public static final Item UPGRADED_SATCHEL = register("upgraded_satchel", Item::new, new Item.Properties().stacksTo(1));
-	public static final Item POUCH = register("pouch", Item::new, new Item.Properties().stacksTo(1));
-	public static final Item UPGRADED_POUCH = register("upgraded_pouch", Item::new, new Item.Properties().stacksTo(1));
+	public static final BagItem SATCHEL = registerBag("satchel", 9);
+	public static final BagItem UPGRADED_SATCHEL = registerBag("upgraded_satchel", 18);
+	public static final BagItem POUCH = registerBag("pouch", 3);
+	public static final BagItem UPGRADED_POUCH = registerBag("upgraded_pouch", 6);
 
 	private ModItems() {
 	}
@@ -31,7 +31,14 @@ public final class ModItems {
 		});
 	}
 
-	private static Item register(String path, Function<Item.Properties, Item> factory, Item.Properties properties) {
+	private static BagItem registerBag(String path, int capacity) {
+		Item.Properties properties = new Item.Properties()
+			.stacksTo(1)
+			.component(ModDataComponents.BAG_CONTENTS, BagContents.EMPTY);
+		return register(path, itemProperties -> new BagItem(itemProperties, capacity), properties);
+	}
+
+	private static <T extends Item> T register(String path, Function<Item.Properties, T> factory, Item.Properties properties) {
 		ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Scout26Mod.MOD_ID, path));
 		return Registry.register(BuiltInRegistries.ITEM, itemKey, factory.apply(properties.setId(itemKey)));
 	}
