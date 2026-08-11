@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 33
-last_updated_utc: "2026-08-11T16:59:14Z"
+state_revision: 34
+last_updated_utc: "2026-08-11T17:12:44Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -1160,7 +1160,7 @@ bug_regressions:
     - id: "BUG-P7B-003"
       phase: "P7-B"
       severity: "P1"
-      status: "FIXED_PENDING_MANUAL_RETEST"
+      status: "FIXED"
       summary: "Opening the enabled survival inventory with no bags equipped left most of the vanilla GUI invisible or displaced, including the usable player inventory and hotbar slots."
       impact: "The player could not access newly obtained bags to equip them, blocking the enabled Integrated Inventory acceptance matrix."
       root_cause: >
@@ -1183,6 +1183,7 @@ bug_regressions:
         - "Post-fix exported transformed bytecode assigns each dimension only from its constructor parameter and the generated Scout26 accessor methods only read the target fields."
         - "compileClientJava plus all 37 tests passed, followed by a clean build with all 10 actionable tasks executed."
         - "The corrected quick-play client logged Player135 into P7B-test with no Mixin application error; visual inventory confirmation remains pending."
+        - "Human retest on 2026-08-11 confirmed the corrected no-bag inventory is centered and complete, with the vanilla background, 27 main slots, and 9 hotbar slots all visible."
 
 session_handoff_protocol:
   startup_steps:
@@ -1403,6 +1404,7 @@ latest_session:
     - "Those zero dimensions directly explain both symptoms: InventoryScreen blitted a zero-sized vanilla background and AbstractContainerScreen centered the remaining elements against a zero-sized container."
     - "b09f01f1277ed2b5ebd96ba2be11dc4b422aae20 replaces the unsafe target-field shadows with generated @Accessor methods, preserving Minecraft's dimensions without expanding ADR-012's authorized Mixin targets."
     - "Post-fix transformed bytecode contains only the vanilla constructor-argument assignments for imageWidth/imageHeight, all 37 tests and the clean build pass, and the enabled quick-play client logged Player135 into P7B-test for manual retest."
+    - "The human supplied a post-fix screenshot and accepted the no-bag baseline: the complete vanilla inventory is centered with all 27 main and 9 hotbar slots visible. BUG-P7B-003 is fixed and the no-bag equipment/capacity checklist row is complete."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1458,7 +1460,7 @@ latest_session:
     - "BUG-P7B-002 verification: clean build passed all 37 tests; the corrected quick-play client started the integrated server and logged Player132 into P7B-test without another invalid-player-data error."
     - "BUG-P7B-003 automated verification: compileClientJava and 37/37 tests passed; the subsequent clean build executed all 10 tasks successfully."
     - "BUG-P7B-003 transformed-class verification: imageWidth/imageHeight retain only their constructor-parameter assignments, and generated accessors contain read-only getfield instructions."
-    - "BUG-P7B-003 runtime startup verification: the corrected client started the integrated server and logged Player135 into P7B-test; the no-bag inventory visual retest is pending human confirmation."
+    - "BUG-P7B-003 runtime startup verification: the corrected client started the integrated server and logged Player135 into P7B-test; the human then confirmed the complete centered no-bag inventory from a screenshot."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1497,9 +1499,8 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
-    - "BUG-P7B-003 requires a human visual no-bag inventory retest before its fix can be accepted."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "In the currently open P7B-test world, press E with no bags equipped and confirm the complete centered vanilla inventory and hotbar are visible on commit b09f01f1277ed2b5ebd96ba2be11dc4b422aae20."
+  next_action: "With the corrected client still open, equip only the base satchel into Trinkets chest/back while the inventory is open, verify no panel activates until close/reopen, then confirm exactly one 9-slot satchel row appears below the vanilla panel."
 
 agent_first_prompt:
   text: >

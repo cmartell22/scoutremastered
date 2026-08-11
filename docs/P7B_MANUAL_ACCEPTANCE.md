@@ -10,7 +10,7 @@ P7-B must remain active, not complete, until every item below is verified with n
 
 ## Equipment and capacity combinations
 
-- [ ] No bags.
+- [x] No bags.
 - [ ] Base and upgraded satchel separately.
 - [ ] Base and upgraded left pouch separately.
 - [ ] Base and upgraded right pouch separately.
