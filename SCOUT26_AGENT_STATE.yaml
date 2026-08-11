@@ -5,10 +5,10 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 7
-last_updated_utc: "2026-08-11T03:14:25Z"
+state_revision: 8
+last_updated_utc: "2026-08-11T03:21:30Z"
 state_owner: "AI coding agent"
-project_status: "BOOTSTRAPPING"
+project_status: "P0_COMPLETE_AWAITING_CONFIRMATION"
 current_phase: "P0"
 current_task: "P0-T04"
 
@@ -568,7 +568,7 @@ severity_model:
 phase_plan:
   P0:
     name: "Reconnaissance and reproducible bootstrap"
-    status: "ACTIVE"
+    status: "DONE"
     objective: "Create a minimal 26.1.x Fabric project that builds and runs before any bag logic."
     tasks:
       P0-T01:
@@ -598,7 +598,7 @@ phase_plan:
           - "Client starts with Trinkets Updated."
           - "Dedicated server starts with Trinkets Updated."
       P0-T04:
-        status: "NEXT"
+        status: "DONE"
         action: "Commit/tag the reproducible empty baseline."
         acceptance:
           - "git working tree clean."
@@ -816,9 +816,10 @@ repository_state:
   working_branch: "main"
   initial_state_commit: "a26d732c95c51328926bcd9e4a86fed188c0589c"
   bootstrap_checkpoint_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
-  baseline_commit: null
-  last_known_good_commit: "c6fa87e712efc97abce205dd700906c222c93234"
-  last_tested_commit: "c6fa87e712efc97abce205dd700906c222c93234"
+  baseline_commit: "7438556b743a3061af31e5a819e05d3462c47437"
+  baseline_tag: "p0-baseline-26.1.2"
+  last_known_good_commit: "7438556b743a3061af31e5a819e05d3462c47437"
+  last_tested_commit: "7438556b743a3061af31e5a819e05d3462c47437"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1040,34 +1041,45 @@ session_history:
     blockers:
       - "Wait for OneDrive to report the folder fully synced before moving the workspace."
     next_action: "After the human moves the complete project directory to a local non-synced location, reopen it there and run the post_move_verification steps before continuing P0-T04."
+  - session_id: "relocation-complete-005"
+    date: "2026-08-11"
+    agent: "GPT-5.6"
+    summary:
+      - "Recorded completion of the intact move to C:\\CodexLocalProjects\\JavaBackport without advancing P0-T04."
+      - "Confirmed the relocated repository was clean and intact at c6fa87e712efc97abce205dd700906c222c93234 and recorded the successful post-move clean build."
+      - "Confirmed apply_patch can create, update, and delete a probe file at the new root; the probe was removed immediately."
+    commands_run:
+      - "git status --short --branch; git fsck --no-dangling; git merge-base --is-ancestor 0a06971a27c7f8641318156b75ac46a521327e1d HEAD"
+      - "apply_patch probe create/update/delete and YAML validation with local snakeyaml-2.0.jar."
+    tests_run:
+      - "Git integrity passed; no TCP 25565 listener was found."
+      - "Post-move .\\gradlew.bat clean build --no-daemon --console=plain passed with Microsoft OpenJDK 25.0.4+7."
+    files_changed:
+      - "SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Execute P0-T04: commit/tag the reproducible empty baseline."
 
 latest_session:
-  session_id: "relocation-complete-005"
+  session_id: "p0-t04-006"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
-    - "Recorded completion of the intact move from the OneDrive workspace to C:\\CodexLocalProjects\\JavaBackport without advancing P0-T04."
-    - "Confirmed the relocated repository is clean and intact at c6fa87e712efc97abce205dd700906c222c93234, and recorded the successful post-move clean build."
-    - "Confirmed apply_patch can create, update, and delete an existing probe file at the new root; the probe was removed immediately."
+    - "Completed P0-T04 without starting P1."
+    - "Verified a clean build of 7438556b743a3061af31e5a819e05d3462c47437 using the locked Microsoft OpenJDK 25.0.4+7 toolchain."
+    - "Created annotated tag p0-baseline-26.1.2 at 7438556b743a3061af31e5a819e05d3462c47437 and recorded it as the reproducible empty baseline."
   commands_run:
-    - "Read all 1050 lines of SCOUT26_AGENT_STATE.yaml in bounded ranges before editing."
-    - "apply_patch: add .scout26_patch_probe.tmp; update probe-v1 to probe-v2; delete .scout26_patch_probe.tmp"
     - "git status --short --branch"
     - "git fsck --no-dangling"
-    - "git merge-base --is-ancestor 0a06971a27c7f8641318156b75ac46a521327e1d HEAD"
-    - "Get-NetTCPConnection -LocalPort 25565 -State Listen -ErrorAction SilentlyContinue"
-    - "Microsoft OpenJDK 25 source launcher with Gradle's local snakeyaml-2.0.jar parsed SCOUT26_AGENT_STATE.yaml; temporary Scout26YamlCheck.java was removed immediately."
-    - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat clean build --no-daemon --console=plain (completed post-move before this state update)"
+    - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat clean build --no-daemon --console=plain"
+    - "git tag -a p0-baseline-26.1.2 7438556b743a3061af31e5a819e05d3462c47437 -m \"P0 reproducible empty baseline for Minecraft 26.1.2\""
   tests_run:
-    - "Patch-tool writability: create/update/delete probe passed and no probe remained."
-    - "State validation: SCOUT26_AGENT_STATE.yaml parsed successfully as YAML with state_revision 7 and current_task P0-T04."
-    - "Git integrity: git fsck --no-dangling passed; key history remained present through c6fa87e712efc97abce205dd700906c222c93234."
-    - "Post-move clean build: .\\gradlew.bat clean build --no-daemon --console=plain passed with Microsoft OpenJDK 25.0.4+7."
-    - "Runtime cleanliness: no TCP 25565 listener found."
+    - "Git integrity: git fsck --no-dangling passed before tagging."
+    - "Clean build: BUILD SUCCESSFUL; 8 actionable tasks executed; Fabric Loom resolved as 1.17.19."
+    - "P0-T04 acceptance: baseline commit recorded and the pre-state-update baseline worktree was clean."
   files_changed:
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "After explicit human confirmation, execute P0-T04: commit/tag the reproducible empty baseline and record its SHA."
+  next_action: "Await explicit human confirmation before beginning P1."
 
 agent_first_prompt:
   text: >
