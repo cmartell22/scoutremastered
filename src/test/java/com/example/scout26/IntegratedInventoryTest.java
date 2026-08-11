@@ -49,6 +49,12 @@ final class IntegratedInventoryTest {
 		assertEquals(24, IntegratedInventoryLayout.leftPanelWidth(3));
 		assertEquals(42, IntegratedInventoryLayout.rightPanelWidth(6));
 		assertEquals(42, IntegratedInventoryLayout.satchelPanelHeight(18));
+		IntegratedInventoryData all = new IntegratedInventoryData(18, 6, 6);
+		assertTrue(IntegratedInventoryLayout.isInsideActivePanel(-21, 17, all));
+		assertTrue(IntegratedInventoryLayout.isInsideActivePanel(181, 17, all));
+		assertTrue(IntegratedInventoryLayout.isInsideActivePanel(8, 175, all));
+		assertFalse(IntegratedInventoryLayout.isInsideActivePanel(80, 80, all));
+		assertFalse(IntegratedInventoryLayout.isInsideActivePanel(-21, 17, IntegratedInventoryData.EMPTY));
 	}
 
 	@Test

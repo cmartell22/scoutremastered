@@ -26,7 +26,9 @@ public final class Scout26Client implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		IntegratedInventoryConfig.load();
 		IntegratedInventoryClientNetworking.initialize();
+		IntegratedInventoryScreenEvents.initialize();
 		MenuScreens.register(ModMenus.PACK, PackScreen::new);
 		TrinketRendererRegistry.registerRenderer(ModItems.SATCHEL, BagTrinketRenderer.INSTANCE);
 		TrinketRendererRegistry.registerRenderer(ModItems.UPGRADED_SATCHEL, BagTrinketRenderer.INSTANCE);

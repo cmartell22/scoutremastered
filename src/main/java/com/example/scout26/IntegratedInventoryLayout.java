@@ -58,4 +58,21 @@ public final class IntegratedInventoryLayout {
 	public static int satchelPanelHeight(int capacity) {
 		return capacity <= 0 ? 0 : capacity <= 9 ? 24 : 42;
 	}
+
+	public static boolean isInsideActivePanel(double relativeX, double relativeY, IntegratedInventoryData data) {
+		int leftWidth = leftPanelWidth(data.leftPouchCapacity());
+		if (leftWidth > 0 && relativeX >= -leftWidth && relativeX < 0 && relativeY >= 11 && relativeY < 77) {
+			return true;
+		}
+		int rightWidth = rightPanelWidth(data.rightPouchCapacity());
+		if (rightWidth > 0 && relativeX >= 176 && relativeX < 176 + rightWidth && relativeY >= 11 && relativeY < 77) {
+			return true;
+		}
+		int satchelHeight = satchelPanelHeight(data.satchelCapacity());
+		return satchelHeight > 0
+			&& relativeX >= 2
+			&& relativeX < 174
+			&& relativeY >= 168
+			&& relativeY < 168 + satchelHeight;
+	}
 }

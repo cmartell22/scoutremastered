@@ -5,6 +5,11 @@
   "mixins": [
     "InventoryMenuMixin"
   ],
+  "client": [
+    "client.AbstractContainerScreenMixin",
+    "client.RecipeBookComponentMixin",
+    "client.EffectsInInventoryMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
