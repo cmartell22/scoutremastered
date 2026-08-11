@@ -814,6 +814,7 @@ repository_state:
   remote: null
   default_branch: "main"
   working_branch: "main"
+  initial_state_commit: "a26d732c95c51328926bcd9e4a86fed188c0589c"
   baseline_commit: null
   last_known_good_commit: null
   last_tested_commit: null
@@ -994,6 +995,7 @@ latest_session:
     - "java -version (command not found)"
     - "git --version (2.53.0.windows.1)"
     - "git init -b main"
+    - "git commit -m 'chore: lock 26.1 dependency baseline' (a26d732c95c51328926bcd9e4a86fed188c0589c)"
     - "Bundled Python 3.12 with temporary PyYAML 6.0.2: yaml.safe_load(SCOUT26_AGENT_STATE.yaml)"
   tests_run:
     - "Artifact availability: Loader 0.19.3 POM, Loom 1.17-SNAPSHOT metadata, Fabric API 0.155.2+26.1.2 POM, Trinkets 4.0.0-beta.3+26.1 POM, and Gradle 9.5.1 distribution all returned HTTP 200."
