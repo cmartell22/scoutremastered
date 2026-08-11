@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 2
-last_updated_utc: "2026-08-11T00:42:10Z"
+state_revision: 3
+last_updated_utc: "2026-08-11T02:24:51Z"
 state_owner: "AI coding agent"
 project_status: "BOOTSTRAPPING"
 current_phase: "P0"
-current_task: "P0-T02"
+current_task: "P0-T03"
 
 project:
   working_name: "Scout26"
@@ -582,7 +582,7 @@ phase_plan:
         acceptance:
           - "No version is chosen solely from this planning file."
       P0-T02:
-        status: "ACTIVE"
+        status: "DONE"
         action: >
           Initialize a fresh project from the Fabric 26.1.2 example/template shape.
           Use temporary identifiers only if the human has not supplied final name/mod_id/package.
@@ -591,7 +591,7 @@ phase_plan:
           - "Client development run reaches title screen."
           - "Dedicated server development run starts without mod errors."
       P0-T03:
-        status: "BLOCKED_BY_P0-T02"
+        status: "NEXT"
         action: "Add Trinkets Updated dependency only; make no bag code yet."
         acceptance:
           - "./gradlew clean build passes."
@@ -817,7 +817,7 @@ repository_state:
   initial_state_commit: "a26d732c95c51328926bcd9e4a86fed188c0589c"
   bootstrap_checkpoint_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
   baseline_commit: null
-  last_known_good_commit: null
+  last_known_good_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
   last_tested_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
   working_tree_expected_clean: true
 
@@ -985,7 +985,9 @@ latest_session:
     - "Installed and verified Microsoft OpenJDK 25.0.4+7 after confirming no JDK was present."
     - "Bootstrapped a minimal Fabric project from FabricMC/fabric-example-mod commit 27c9ae062374e59b9732d86ce229bfb42175408e."
     - "Used temporary identifiers scout26 and com.example.scout26; included Fabric API only and no Trinkets or mixins."
-    - "Clean build and client startup passed; the dedicated server loaded Scout26 then stopped only because eula.txt is false."
+    - "Clean build and client startup passed."
+    - "The human explicitly authorized Minecraft EULA acceptance for the local development server; run/eula.txt was changed to true."
+    - "Dedicated server startup then passed, reaching Done (2.239s) after loading Scout26 on the logical server."
   commands_run:
     - "git status --short --branch; git log --oneline -2; git merge-base --is-ancestor a26d732c95c51328926bcd9e4a86fed188c0589c HEAD"
     - "winget search --id Microsoft.OpenJDK.25 --exact"
@@ -997,11 +999,14 @@ latest_session:
     - "Start-Process .\\gradlew.bat runClient --no-daemon --console=plain; inspect run\\logs\\latest.log; stop launched process tree"
     - "Start-Process .\\gradlew.bat runServer --no-daemon --console=plain --args=--nogui; inspect run\\logs\\latest.log and generated run\\eula.txt"
     - "git commit -m 'chore: bootstrap Fabric 26.1 project' (4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b)"
+    - "apply_patch run/eula.txt: eula=false -> eula=true (explicit human authorization)"
+    - "Start-Process .\\gradlew.bat runServer --no-daemon --console=plain --args=--nogui; inspect run\\logs\\latest.log for Done; stop launched process tree"
   tests_run:
     - "Java runtime: Microsoft OpenJDK 25.0.4+7-LTS, 64-bit Server VM."
     - "./gradlew.bat clean build --no-daemon --console=plain: BUILD SUCCESSFUL; compileJava, compileClientJava, jar, sourcesJar, check, and build completed."
     - "Client smoke test: loaded Minecraft 26.1.2/Fabric Loader 0.19.3, loaded scout26 0.0.0-dev, initialized Scout26Mod on the render thread, and initialized rendering/audio/resource managers."
     - "Server startup attempt: loaded Minecraft 26.1.2/Fabric Loader 0.19.3, loaded scout26 0.0.0-dev, and initialized Scout26Mod on the logical server. It then correctly required the unaccepted Minecraft EULA."
+    - "Dedicated-server smoke test after EULA acceptance: loaded scout26 0.0.0-dev, created the development world, bound *:25565, prepared spawn, and logged Done (2.239s)! For help, type help."
   files_changed:
     - ".gitignore"
     - "README.md"
@@ -1016,10 +1021,10 @@ latest_session:
     - "src/client/java/com/example/scout26/client/Scout26Client.java"
     - "src/client/resources/.gitkeep"
     - "src/main/resources/fabric.mod.json"
+    - "run/eula.txt (generated local development-server state; ignored by Git)"
     - "SCOUT26_AGENT_STATE.yaml"
-  blockers:
-    - "Minecraft generated run/eula.txt with eula=false. The dedicated-server acceptance criterion requires explicit human authorization to change it to true."
-  next_action: "Await the human's explicit instruction to accept the Minecraft EULA for this local development server; then set run/eula.txt to true, re-run the dedicated-server smoke test, and complete P0-T02."
+  blockers: []
+  next_action: "After human confirmation, begin P0-T03 by adding only the locked Trinkets Updated dependency and running clean/client/dedicated-server acceptance checks."
 
 agent_first_prompt:
   text: >
