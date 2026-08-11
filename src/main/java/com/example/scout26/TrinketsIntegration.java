@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -39,7 +38,7 @@ public final class TrinketsIntegration {
 	/**
 	 * Discovers equipped bags from live Trinkets inventories in stable menu order.
 	 */
-	public static EquippedBags findEquippedBags(ServerPlayer player) {
+	public static EquippedBags findEquippedBags(Player player) {
 		Objects.requireNonNull(player, "player");
 		return new EquippedBags(
 			capture(player, DefaultTrinketSlots.CHEST_BACK, SATCHEL_INDEX, BagEquipmentRole.SATCHEL),
@@ -62,7 +61,7 @@ public final class TrinketsIntegration {
 	}
 
 	private static Optional<EquippedBagHandle> capture(
-		ServerPlayer player,
+		Player player,
 		String slotId,
 		int slotIndex,
 		BagEquipmentRole role
@@ -75,7 +74,7 @@ public final class TrinketsIntegration {
 		);
 	}
 
-	private static ItemStack resolveStack(ServerPlayer player, String slotId, int slotIndex) {
+	private static ItemStack resolveStack(Player player, String slotId, int slotIndex) {
 		TrinketSlotAccess access = TrinketsApi.getAttachment(player).getSlotAccess(slotId, slotIndex);
 		return access != null && access.isValid() ? access.get() : ItemStack.EMPTY;
 	}
