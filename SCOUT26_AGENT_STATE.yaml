@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 9
-last_updated_utc: "2026-08-11T03:49:30Z"
+state_revision: 10
+last_updated_utc: "2026-08-11T03:53:40Z"
 state_owner: "AI coding agent"
 project_status: "P1_COMPLETE_AWAITING_CONFIRMATION"
 current_phase: "P1"
@@ -818,8 +818,10 @@ repository_state:
   bootstrap_checkpoint_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
   baseline_commit: "7438556b743a3061af31e5a819e05d3462c47437"
   baseline_tag: "p0-baseline-26.1.2"
-  last_known_good_commit: "7438556b743a3061af31e5a819e05d3462c47437"
-  last_tested_commit: "7438556b743a3061af31e5a819e05d3462c47437"
+  p0_completion_commit: "fc774bb6ec9f586ccbf66b93fca1b2ec1c581ebe"
+  p1_completion_commit: "2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
+  last_known_good_commit: "2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
+  last_tested_commit: "2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1058,28 +1060,74 @@ session_history:
       - "SCOUT26_AGENT_STATE.yaml"
     blockers: []
     next_action: "Execute P0-T04: commit/tag the reproducible empty baseline."
+  - session_id: "p0-t04-006"
+    date: "2026-08-11"
+    agent: "GPT-5.6"
+    summary:
+      - "Completed P0-T04 without starting P1."
+      - "Verified a clean build of 7438556b743a3061af31e5a819e05d3462c47437 using the locked Microsoft OpenJDK 25.0.4+7 toolchain."
+      - "Created annotated tag p0-baseline-26.1.2 at 7438556b743a3061af31e5a819e05d3462c47437 and recorded it as the reproducible empty baseline."
+    commands_run:
+      - "git status --short --branch"
+      - "git fsck --no-dangling"
+      - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat clean build --no-daemon --console=plain"
+      - "git tag -a p0-baseline-26.1.2 7438556b743a3061af31e5a819e05d3462c47437 -m \"P0 reproducible empty baseline for Minecraft 26.1.2\""
+    tests_run:
+      - "Git integrity: git fsck --no-dangling passed before tagging."
+      - "Clean build: BUILD SUCCESSFUL; 8 actionable tasks executed; Fabric Loom resolved as 1.17.19."
+      - "P0-T04 acceptance: baseline commit recorded and the pre-state-update baseline worktree was clean."
+    files_changed:
+      - "SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Await explicit human confirmation before beginning P1."
 
 latest_session:
-  session_id: "p0-t04-006"
+  session_id: "p1-completion-007"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
-    - "Completed P0-T04 without starting P1."
-    - "Verified a clean build of 7438556b743a3061af31e5a819e05d3462c47437 using the locked Microsoft OpenJDK 25.0.4+7 toolchain."
-    - "Created annotated tag p0-baseline-26.1.2 at 7438556b743a3061af31e5a819e05d3462c47437 and recorded it as the reproducible empty baseline."
+    - "Completed P1 and committed it as 2b6acfddfc9740eb21d9b8959318467c4ed47ce2 (feat: add P1 bag items and assets)."
+    - "Added satchel, upgraded_satchel, pouch, and upgraded_pouch as plain stack-size-one items and exposed them in the Tools & Utilities creative tab."
+    - "Added English translations, modern client-item definitions, generated item models, and four original 16x16 RGBA item textures."
+    - "Resolved the Fabric API 0.155.2+26.1.2 creative-tab API as CreativeModeTabEvents.modifyOutputEvent(...); the legacy ItemGroupEvents API and modifyEntriesEvent are not valid for this baseline."
+    - "Intentionally added no recipes; crafting design remains deferred. Added no storage, data components, Trinkets slots, menus, networking, mixins, or bag behavior."
+    - "Reconciled the stale repository_state and latest_session bookkeeping after the P1 implementation commit; P2 remains blocked pending explicit human confirmation."
   commands_run:
+    - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat build --no-daemon --console=plain"
     - "git status --short --branch"
-    - "git fsck --no-dangling"
-    - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat clean build --no-daemon --console=plain"
-    - "git tag -a p0-baseline-26.1.2 7438556b743a3061af31e5a819e05d3462c47437 -m \"P0 reproducible empty baseline for Minecraft 26.1.2\""
+    - "git show --no-ext-diff --format=fuller --stat --summary 2b6acfddfc9740eb21d9b8959318467c4ed47ce2"
+    - "git merge-base --is-ancestor 7438556b743a3061af31e5a819e05d3462c47437 HEAD"
+    - "git merge-base --is-ancestor 2b6acfddfc9740eb21d9b8959318467c4ed47ce2 HEAD"
+    - "Parse the complete SCOUT26_AGENT_STATE.yaml with SnakeYAML 2.0 and run git diff --check."
   tests_run:
-    - "Git integrity: git fsck --no-dangling passed before tagging."
-    - "Clean build: BUILD SUCCESSFUL; 8 actionable tasks executed; Fabric Loom resolved as 1.17.19."
-    - "P0-T04 acceptance: baseline commit recorded and the pre-state-update baseline worktree was clean."
+    - "Toolchain: Microsoft OpenJDK 25.0.4+7."
+    - "API correction: the initial P1 compile attempt failed because Fabric API 0.155.2+26.1.2 does not provide the attempted legacy ItemGroupEvents/modifyEntriesEvent path; switching to CreativeModeTabEvents.modifyOutputEvent(...) corrected the compile failure."
+    - "Build: .\\gradlew.bat build --no-daemon --console=plain passed; Fabric Loom resolved as 1.17.19."
+    - "Jar inspection: all four translations, client-item definitions, generated item models, and textures were packaged."
+    - "Dedicated-server smoke test: logged 'Scout26 P1 items initialized' and reached 'Done'; no client-class loading failure occurred."
+    - "Client smoke test: logged 'Scout26 P1 items initialized' and loaded the resource manager and item atlas successfully."
+    - "Runtime cleanup: temporary client/server test processes were stopped and TCP port 25565 was free afterward."
+    - "Git reconciliation: main was clean at 2b6acfddfc9740eb21d9b8959318467c4ed47ce2 before this bookkeeping edit; the P0 baseline and P1 completion commits were both confirmed as HEAD ancestors."
+    - "State validation: the complete YAML parsed successfully with SnakeYAML 2.0 and git diff --check passed."
   files_changed:
     - "SCOUT26_AGENT_STATE.yaml"
+    - "src/main/java/com/example/scout26/ModItems.java"
+    - "src/main/java/com/example/scout26/Scout26Mod.java"
+    - "src/main/resources/assets/scout26/items/pouch.json"
+    - "src/main/resources/assets/scout26/items/satchel.json"
+    - "src/main/resources/assets/scout26/items/upgraded_pouch.json"
+    - "src/main/resources/assets/scout26/items/upgraded_satchel.json"
+    - "src/main/resources/assets/scout26/lang/en_us.json"
+    - "src/main/resources/assets/scout26/models/item/pouch.json"
+    - "src/main/resources/assets/scout26/models/item/satchel.json"
+    - "src/main/resources/assets/scout26/models/item/upgraded_pouch.json"
+    - "src/main/resources/assets/scout26/models/item/upgraded_satchel.json"
+    - "src/main/resources/assets/scout26/textures/item/pouch.png"
+    - "src/main/resources/assets/scout26/textures/item/satchel.png"
+    - "src/main/resources/assets/scout26/textures/item/upgraded_pouch.png"
+    - "src/main/resources/assets/scout26/textures/item/upgraded_satchel.png"
   blockers: []
-  next_action: "Await explicit human confirmation before beginning P1."
+  next_action: "Await explicit human confirmation to begin P2; before implementation, inspect current primary Minecraft 26.1.2 and Fabric sources for every uncertain data-component, Codec, StreamCodec, synchronization, and ItemStack-copy API fact."
 
 agent_first_prompt:
   text: >
