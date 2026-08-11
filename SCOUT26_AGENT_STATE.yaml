@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 3
-last_updated_utc: "2026-08-11T02:24:51Z"
+state_revision: 4
+last_updated_utc: "2026-08-11T02:43:20Z"
 state_owner: "AI coding agent"
 project_status: "BOOTSTRAPPING"
 current_phase: "P0"
-current_task: "P0-T03"
+current_task: "P0-T04"
 
 project:
   working_name: "Scout26"
@@ -591,14 +591,14 @@ phase_plan:
           - "Client development run reaches title screen."
           - "Dedicated server development run starts without mod errors."
       P0-T03:
-        status: "NEXT"
+        status: "DONE"
         action: "Add Trinkets Updated dependency only; make no bag code yet."
         acceptance:
           - "./gradlew clean build passes."
           - "Client starts with Trinkets Updated."
           - "Dedicated server starts with Trinkets Updated."
       P0-T04:
-        status: "BLOCKED_BY_P0-T03"
+        status: "NEXT"
         action: "Commit/tag the reproducible empty baseline."
         acceptance:
           - "git working tree clean."
@@ -817,8 +817,8 @@ repository_state:
   initial_state_commit: "a26d732c95c51328926bcd9e4a86fed188c0589c"
   bootstrap_checkpoint_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
   baseline_commit: null
-  last_known_good_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
-  last_tested_commit: "4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b"
+  last_known_good_commit: "0a06971a27c7f8641318156b75ac46a521327e1d"
+  last_tested_commit: "0a06971a27c7f8641318156b75ac46a521327e1d"
   working_tree_expected_clean: true
 
 task_rules:
@@ -976,55 +976,47 @@ session_history:
       - "SCOUT26_AGENT_STATE.yaml"
     blockers: []
     next_action: "Execute P0-T01: re-verify and lock exact 26.1.x dependency versions from primary sources."
+  - session_id: "p0-t02-002"
+    date: "2026-08-11"
+    agent: "GPT-5.6 Terra High"
+    summary:
+      - "Installed Microsoft OpenJDK 25.0.4+7 and bootstrapped the minimal Fabric 26.1.2 project."
+      - "Verified clean build, client startup, and dedicated-server startup after explicit human authorization to accept the Minecraft EULA for the local development server."
+    files_changed:
+      - "Fabric bootstrap files and SCOUT26_AGENT_STATE.yaml"
+    blockers: []
+    next_action: "Execute P0-T03: add only the locked Trinkets Updated dependency."
 
 latest_session:
-  session_id: "p0-t02-002"
+  session_id: "p0-t03-003"
   date: "2026-08-11"
-  agent: "GPT-5.6 Terra High"
+  agent: "GPT-5.6 Terra Medium"
   summary:
-    - "Installed and verified Microsoft OpenJDK 25.0.4+7 after confirming no JDK was present."
-    - "Bootstrapped a minimal Fabric project from FabricMC/fabric-example-mod commit 27c9ae062374e59b9732d86ce229bfb42175408e."
-    - "Used temporary identifiers scout26 and com.example.scout26; included Fabric API only and no Trinkets or mixins."
-    - "Clean build and client startup passed."
-    - "The human explicitly authorized Minecraft EULA acceptance for the local development server; run/eula.txt was changed to true."
-    - "Dedicated server startup then passed, reaching Done (2.239s) after loading Scout26 on the logical server."
+    - "Added only the locked Trinkets Updated 4.0.0-beta.3+26.1 dependency, its Nucleoid releases repository, and the corresponding Fabric metadata dependency."
+    - "Verified Gradle resolves Trinkets and its declared Yumi foundation transitively."
+    - "Clean build, client smoke test, and dedicated-server smoke test passed with Trinkets Updated and Scout26 loaded."
+    - "A transient OneDrive lock prevented Gradle clean twice; after verified removal of the Git-ignored generated build directory, clean build succeeded."
+    - "Trinkets emitted a non-fatal dedicated-server warning about its own client CreativeModeInventoryScreen accessor target, but the server loaded its data pack and reached Done."
   commands_run:
-    - "git status --short --branch; git log --oneline -2; git merge-base --is-ancestor a26d732c95c51328926bcd9e4a86fed188c0589c HEAD"
-    - "winget search --id Microsoft.OpenJDK.25 --exact"
-    - "winget install --id Microsoft.OpenJDK.25 --exact --source winget --accept-package-agreements --accept-source-agreements"
-    - "C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot\\bin\\java.exe -version"
-    - "git clone --no-checkout https://github.com/FabricMC/fabric-example-mod.git <TEMP>\\scout26-fabric-example-27c9ae0; git -C <TEMP>\\scout26-fabric-example-27c9ae0 checkout --detach 27c9ae062374e59b9732d86ce229bfb42175408e"
-    - "Copy-Item of the exact template Gradle wrapper files; apply_patch for the project scaffold"
-    - "$env:JAVA_HOME='C:\\Program Files\\Microsoft\\jdk-25.0.4.7-hotspot'; .\\gradlew.bat clean build --no-daemon --console=plain"
-    - "Start-Process .\\gradlew.bat runClient --no-daemon --console=plain; inspect run\\logs\\latest.log; stop launched process tree"
-    - "Start-Process .\\gradlew.bat runServer --no-daemon --console=plain --args=--nogui; inspect run\\logs\\latest.log and generated run\\eula.txt"
-    - "git commit -m 'chore: bootstrap Fabric 26.1 project' (4b2b4f26ebfe16f9d0f3c19b3b1421cf3fdaee3b)"
-    - "apply_patch run/eula.txt: eula=false -> eula=true (explicit human authorization)"
-    - "Start-Process .\\gradlew.bat runServer --no-daemon --console=plain --args=--nogui; inspect run\\logs\\latest.log for Done; stop launched process tree"
+    - "Read and parse SCOUT26_AGENT_STATE.yaml; inspect git status and locked Trinkets source tag 2509961c1dcf5925dae02f8684156976295a2236."
+    - "apply_patch gradle.properties, build.gradle, and src/main/resources/fabric.mod.json to add only Trinkets Updated configuration."
+    - ".\\gradlew.bat dependencies --configuration runtimeClasspath --no-daemon --console=plain"
+    - ".\\gradlew.bat clean build --no-daemon --console=plain (initial two attempts blocked by a OneDrive build-directory lock)."
+    - "Verified build is Git-ignored and within the workspace; Remove-Item -LiteralPath <workspace>\\build -Recurse -Force; re-ran clean build successfully."
+    - "Run client and server development smoke tests; inspect run\\logs\\latest.log; stop only live project-scoped test processes identified by command line."
+    - "git commit -m 'build: add Trinkets Updated dependency' (0a06971a27c7f8641318156b75ac46a521327e1d)"
   tests_run:
-    - "Java runtime: Microsoft OpenJDK 25.0.4+7-LTS, 64-bit Server VM."
-    - "./gradlew.bat clean build --no-daemon --console=plain: BUILD SUCCESSFUL; compileJava, compileClientJava, jar, sourcesJar, check, and build completed."
-    - "Client smoke test: loaded Minecraft 26.1.2/Fabric Loader 0.19.3, loaded scout26 0.0.0-dev, initialized Scout26Mod on the render thread, and initialized rendering/audio/resource managers."
-    - "Server startup attempt: loaded Minecraft 26.1.2/Fabric Loader 0.19.3, loaded scout26 0.0.0-dev, and initialized Scout26Mod on the logical server. It then correctly required the unaccepted Minecraft EULA."
-    - "Dedicated-server smoke test after EULA acceptance: loaded scout26 0.0.0-dev, created the development world, bound *:25565, prepared spawn, and logged Done (2.239s)! For help, type help."
+    - "Dependency resolution: runtimeClasspath contains eu.pb4:trinkets:4.0.0-beta.3+26.1 and dev.yumi.mc.core:yumi-mc-foundation:1.0.1+26.1."
+    - "Clean build: BUILD SUCCESSFUL; compileJava, compileClientJava, jar, sourcesJar, check, and build completed."
+    - "Client smoke test: Fabric Loader listed trinkets_updated 4.0.0-beta.3+26.1, Yumi modules, and scout26 0.0.0-dev; Yumi and Scout26 initialized and client resource/audio rendering initialized."
+    - "Dedicated-server smoke test: Fabric Loader listed trinkets_updated 4.0.0-beta.3+26.1, Yumi modules, and scout26 0.0.0-dev; Trinkets data pack loaded and server logged Done (0.279s)! For help, type help."
   files_changed:
-    - ".gitignore"
-    - "README.md"
     - "build.gradle"
     - "gradle.properties"
-    - "gradle/wrapper/gradle-wrapper.jar"
-    - "gradle/wrapper/gradle-wrapper.properties"
-    - "gradlew"
-    - "gradlew.bat"
-    - "settings.gradle"
-    - "src/main/java/com/example/scout26/Scout26Mod.java"
-    - "src/client/java/com/example/scout26/client/Scout26Client.java"
-    - "src/client/resources/.gitkeep"
     - "src/main/resources/fabric.mod.json"
-    - "run/eula.txt (generated local development-server state; ignored by Git)"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "After human confirmation, begin P0-T03 by adding only the locked Trinkets Updated dependency and running clean/client/dedicated-server acceptance checks."
+  next_action: "After human confirmation, execute P0-T04: create/tag the reproducible empty baseline and record its SHA in repository_state.baseline_commit."
 
 agent_first_prompt:
   text: >
