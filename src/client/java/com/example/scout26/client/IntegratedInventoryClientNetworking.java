@@ -1,8 +1,10 @@
 package com.example.scout26.client;
 
 import com.example.scout26.IntegratedInventoryAckPayload;
+import com.example.scout26.IntegratedInventoryData;
 import com.example.scout26.IntegratedInventoryMenu;
 import com.example.scout26.TrinketsIntegration;
+import eu.pb4.trinkets.impl.client.TrinketScreen;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 
@@ -17,10 +19,18 @@ final class IntegratedInventoryClientNetworking {
 				&& context.client().screen instanceof InventoryScreen
 				&& !context.player().hasInfiniteMaterials()
 				&& context.player().inventoryMenu instanceof IntegratedInventoryMenu menu) {
-				menu.scout26$activateClient(TrinketsIntegration.findEquippedBags(context.player()), payload.data());
-				// Re-run vanilla recipe-book positioning now that the acknowledgement has activated left-pouch metadata.
+				IntegratedInventoryData data = payload.data();
+				menu.scout26$activateClient(TrinketsIntegration.findEquippedBags(context.player()), data);
 				InventoryScreen screen = (InventoryScreen)context.client().screen;
-				screen.resize(screen.width, screen.height);
+				// A full resize rebuilds both vanilla and Trinkets widgets. It is needed only when an already-open,
+				// wide recipe book must make room for an acknowledged left pouch; rebuilding an ordinary inventory
+				// here corrupts Trinkets' active screen state and can leave the vanilla inventory mostly invisible.
+				if (data.leftPouchCapacity() > 0
+					&& screen instanceof TrinketScreen trinketScreen
+					&& trinketScreen.trinkets$isRecipeBookOpen()
+					&& !trinketScreen.trinkets$isNarrow()) {
+					screen.resize(screen.width, screen.height);
+				}
 			} else if (context.player().inventoryMenu instanceof IntegratedInventoryMenu menu) {
 				menu.scout26$deactivateIntegratedInventory();
 			}
