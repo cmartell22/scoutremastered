@@ -128,6 +128,13 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 	}
 
 	@Override
+	public void scout26$finalizeClientBindings(TrinketsIntegration.EquippedBags bags, IntegratedInventoryData data) {
+		this.scout26$rebindClient(IntegratedInventoryRole.SATCHEL, bags.satchel(), data.satchelCapacity());
+		this.scout26$rebindClient(IntegratedInventoryRole.LEFT_POUCH, bags.leftPouch(), data.leftPouchCapacity());
+		this.scout26$rebindClient(IntegratedInventoryRole.RIGHT_POUCH, bags.rightPouch(), data.rightPouchCapacity());
+	}
+
+	@Override
 	public void scout26$deactivateIntegratedInventory() {
 		this.scout26$integratedContainers.values().forEach(IntegratedBagContainer::deactivate);
 	}
@@ -162,6 +169,15 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 	private void scout26$bindClient(IntegratedInventoryRole role, Optional<EquippedBagHandle> handle, int capacity) {
 		if (capacity > 0) {
 			handle.ifPresent(value -> this.scout26$container(role).bindClient(value, capacity, this::scout26$isSurvivalInventorySession));
+		}
+	}
+
+	@Unique
+	private void scout26$rebindClient(IntegratedInventoryRole role, Optional<EquippedBagHandle> handle, int capacity) {
+		IntegratedBagContainer container = this.scout26$container(role);
+		if (capacity <= 0 || handle.isEmpty()
+			|| !container.rebindClient(handle.get(), capacity, this::scout26$isSurvivalInventorySession)) {
+			container.deactivate();
 		}
 	}
 

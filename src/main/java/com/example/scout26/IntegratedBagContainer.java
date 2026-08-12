@@ -42,14 +42,22 @@ public final class IntegratedBagContainer implements Container {
 
 	public boolean bindClient(EquippedBagHandle handle, int serverCapacity, BooleanSupplier sessionValid) {
 		this.deactivate();
+		return this.rebindClient(handle, serverCapacity, sessionValid);
+	}
+
+	/** Replaces only the stale exact handle after a full sync, retaining its synchronized slot mirror. */
+	public boolean rebindClient(EquippedBagHandle handle, int serverCapacity, BooleanSupplier sessionValid) {
 		if (!this.accepts(handle) || serverCapacity <= 0 || serverCapacity > this.role.maximumCapacity()) {
+			this.deactivate();
 			return false;
 		}
 		ItemStack stack = handle.resolve().orElse(ItemStack.EMPTY);
 		if (!(stack.getItem() instanceof BagItem bagItem) || bagItem.capacity() != serverCapacity) {
+			this.deactivate();
 			return false;
 		}
 		this.handle = handle;
+		this.serverContainer = null;
 		this.sessionValid = Objects.requireNonNull(sessionValid, "sessionValid");
 		this.activeCapacity = serverCapacity;
 		return this.isBindingValid();

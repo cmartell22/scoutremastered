@@ -13,6 +13,7 @@ public final class IntegratedInventoryNetworking {
 		PayloadTypeRegistry.serverboundPlay().register(OpenIntegratedInventoryPayload.TYPE, OpenIntegratedInventoryPayload.STREAM_CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(CloseIntegratedInventoryPayload.TYPE, CloseIntegratedInventoryPayload.STREAM_CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(IntegratedInventoryAckPayload.TYPE, IntegratedInventoryAckPayload.STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(IntegratedInventoryReadyPayload.TYPE, IntegratedInventoryReadyPayload.STREAM_CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(
 			OpenIntegratedInventoryPayload.TYPE,
 			(payload, context) -> open(context.player())
@@ -44,6 +45,9 @@ public final class IntegratedInventoryNetworking {
 		ServerPlayNetworking.send(player, new IntegratedInventoryAckPayload(data));
 		// Same connection ordering activates the client binding before vanilla slot contents arrive.
 		player.inventoryMenu.sendAllDataToRemote();
+		// The full sync replaces Trinkets' client-side ItemStack object. Rebind to that exact new
+		// object only after all vanilla slot contents have been applied, preserving the mirrors.
+		ServerPlayNetworking.send(player, new IntegratedInventoryReadyPayload(data));
 	}
 
 	static void close(ServerPlayer player) {

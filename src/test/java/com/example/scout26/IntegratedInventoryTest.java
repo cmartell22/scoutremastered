@@ -116,6 +116,21 @@ final class IntegratedInventoryTest {
 	}
 
 	@Test
+	void clientFinalizationRebindsExactReplacementWithoutDiscardingSyncedContents() {
+		ItemStack original = new ItemStack(ModItems.SATCHEL);
+		AtomicReference<ItemStack> live = new AtomicReference<>(original);
+		IntegratedBagContainer container = new IntegratedBagContainer(IntegratedInventoryRole.SATCHEL);
+		assertTrue(container.bindClient(capture(live, IntegratedInventoryRole.SATCHEL), 9, () -> true));
+		container.setItem(0, new ItemStack(Items.EMERALD, 7));
+
+		live.set(new ItemStack(ModItems.SATCHEL));
+		assertEquals(0, container.activeCapacity());
+		assertTrue(container.rebindClient(capture(live, IntegratedInventoryRole.SATCHEL), 9, () -> true));
+		assertEquals(9, container.activeCapacity());
+		assertEquals(7, container.getItem(0).getCount());
+	}
+
+	@Test
 	void sharedSlotPolicyRejectsEveryNestedBagCandidate() {
 		AtomicReference<ItemStack> live = new AtomicReference<>(new ItemStack(ModItems.UPGRADED_POUCH));
 		IntegratedBagContainer container = new IntegratedBagContainer(IntegratedInventoryRole.RIGHT_POUCH);
@@ -142,6 +157,9 @@ final class IntegratedInventoryTest {
 			IntegratedInventoryAckPayload payload = new IntegratedInventoryAckPayload(new IntegratedInventoryData(18, 3, 6));
 			IntegratedInventoryAckPayload.STREAM_CODEC.encode(buffer, payload);
 			assertEquals(payload, IntegratedInventoryAckPayload.STREAM_CODEC.decode(buffer));
+			IntegratedInventoryReadyPayload ready = new IntegratedInventoryReadyPayload(payload.data());
+			IntegratedInventoryReadyPayload.STREAM_CODEC.encode(buffer, ready);
+			assertEquals(ready, IntegratedInventoryReadyPayload.STREAM_CODEC.decode(buffer));
 			assertEquals(0, buffer.readableBytes());
 		} finally {
 			buffer.release();
