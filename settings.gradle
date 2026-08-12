@@ -9,5 +9,4 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'scout26'
-
+rootProject.name = 'scout-remastered'

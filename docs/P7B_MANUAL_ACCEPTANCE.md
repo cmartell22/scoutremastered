@@ -1,6 +1,9 @@
 # P7-B Integrated Inventory manual acceptance
 
-P7-B must remain active, not complete, until every item below is verified with no open P0/P1 issue. Use `integrated_inventory_enabled=true` in `config/scout26-client.properties` and restart the client for enabled checks. Restore `false` for the disabled fallback check.
+> Historical acceptance record. P7-B was completed on 2026-08-12 at source commit
+> `f9c92d56e7defedf99f3dc8b4965956e7971305f`, before the P8 release rename from the
+> temporary `scout26` namespace. Its observations remain valid behavioral evidence; the release
+> candidate uses `scoutremastered` and `config/scoutremastered-client.properties` instead.
 
 ## Accepted integrated UI baseline
 

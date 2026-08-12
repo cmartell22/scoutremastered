@@ -13,11 +13,15 @@ repositories {
 version = project.mod_version
 group = project.maven_group
 
+base {
+	archivesName = project.archives_base_name
+}
+
 loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"scout26" {
+		"scoutremastered" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
@@ -46,6 +50,12 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 25
+}
+
+tasks.withType(Jar).configureEach {
+	from(rootProject.file("LICENSE")) {
+		into("")
+	}
 }
 
 java {

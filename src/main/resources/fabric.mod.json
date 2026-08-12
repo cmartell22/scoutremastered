@@ -1,26 +1,27 @@
 {
   "schemaVersion": 1,
-  "id": "scout26",
+  "id": "scoutremastered",
   "version": "${version}",
-  "name": "Scout26 (Temporary)",
-  "description": "Temporary Fabric 26.1.x wearable bag mod under staged development.",
+  "name": "Scout Remastered",
+  "description": "Wearable satchels and pouches with server-authoritative per-item storage.",
+  "license": "MIT",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.example.scout26.Scout26Mod"
+      "io.github.cmartell22.scoutremastered.ScoutRemasteredMod"
     ],
     "client": [
-      "com.example.scout26.client.Scout26Client"
+      "io.github.cmartell22.scoutremastered.client.ScoutRemasteredClient"
     ]
   },
   "mixins": [
-    "scout26.mixins.json"
+    "scoutremastered.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",
     "minecraft": "~26.1.2",
     "java": ">=25",
-    "fabric-api": "*",
+    "fabric-api": ">=0.155.2+26.1.2",
     "trinkets_updated": ">=4.0.0-beta.3+26.1"
   }
 }

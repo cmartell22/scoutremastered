@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_transmute",
+  "category": "equipment",
+  "input": "scoutremastered:pouch",
+  "material": "minecraft:gold_ingot",
+  "material_count": {
+    "min": 2,
+    "max": 2
+  },
+  "result": {
+    "id": "scoutremastered:upgraded_pouch"
+  }
+}
