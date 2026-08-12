@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 46
-last_updated_utc: "2026-08-12T03:34:48Z"
+state_revision: 65
+last_updated_utc: "2026-08-12T05:46:44Z"
 state_owner: "AI coding agent"
-project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
+project_status: "P7_COMPLETE_AWAITING_P8_AUTHORIZATION"
 current_phase: "P7-B"
-current_task: "P7B_MANUAL_ACCEPTANCE"
+current_task: "P7B_COMPLETE"
 
 project:
   working_name: "Scout26"
@@ -718,7 +718,7 @@ phase_plan:
 
   P7:
     name: "Optional classic Integrated Inventory"
-    status: "BLOCKED"
+    status: "DONE"
     objective: "Explore classic Scout-like slots around vanilla inventory without compromising the core."
     decision_gate: >
       Human must explicitly approve starting P7 after P0-P6 release-candidate baseline.
@@ -745,7 +745,7 @@ phase_plan:
           - "A documented go/no-go recommendation gates P7-B."
       P7-B:
         name: "Integrated Inventory prototype implementation"
-        status: "ACTIVE"
+        status: "DONE"
         decision_gate: "Do not implement until P7-A architecture is accepted and the human explicitly authorizes P7-B."
 
   P8:
@@ -880,8 +880,9 @@ repository_state:
   p7b_first_layout_fix_commit: "d41673497d1bd17640e295cc9832084bc128cc50"
   p7b_recipe_tab_alignment_fix_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
   p7b_accepted_ui_baseline_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
-  last_known_good_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
-  last_tested_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
+  p7b_manual_acceptance_tested_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
+  last_known_good_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
+  last_tested_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1622,8 +1623,8 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7b-acceptance-021"
-  date: "2026-08-11"
+  session_id: "p7b-completion-022"
+  date: "2026-08-12"
   agent: "GPT-5.6"
   summary:
     - "The human explicitly authorized P6; activation was committed as d9f9dd5c3f0affe617b1ed4287ea853694b325c2."
@@ -1702,6 +1703,30 @@ latest_session:
     - "The clean production build passes 39/39 tests and the rebuilt client logged Player366 into P7B-test without a Scout26 or Mixin startup error. BUG-P7B-012 awaits focused visual confirmation; P8 remains blocked."
     - "The human performed extensive item interactions, repeated inventory open/close cycles with and without the recipe book, and exchanged populated pouches and satchels for upgraded versions without any observed breakage."
     - "The human accepted source commit 797422cb707de27bfda4f704ffaf58579970ac90 as the successful P7-B enabled-survival UI and interaction baseline, closing BUG-P7B-012. P7-B remains active only for the explicit untested acceptance rows; P8 remains blocked."
+    - "Disabled-fallback Batch 1 ran commit f9c92d56e7defedf99f3dc8b4965956e7971305f with integrated_inventory_enabled=false in the P7B-test integrated-server world as Player303. The human explicitly reported every focused check passed perfectly: no integrated panels or bag-directed survival shift-click routing, unchanged ordinary survival and creative inventory behavior, and correct B-key Pack Menu marker persistence/counts. All three disabled-fallback rows are accepted."
+    - "Enabled Creative-exclusion Batch 2 ran the same commit in P7B-test as Player168. The human explicitly reported all checks passed: creative tabs/inventory/trash kept integrated slots dormant, creative equipment changes did not activate or desynchronize them, the B-key Pack Menu stayed synchronized, and a populated middle-click clone preserved copy-time contents while later original/clone mutations diverged independently with correct counts. All three Creative exclusion rows are accepted."
+    - "Enabled single-role capacity Batch 3 continued as Player168. The human explicitly passed base/upgraded satchel, base/upgraded left pouch, and base/upgraded right pouch individually under repeated E/E, E/Esc, and recipe-book open/closed inventory lifecycles. The final concrete slot retained its marker, no slot beyond 9/18 or 3/6 activated, B exposed matching capacity/content, and B gave the expected equip-a-bag message with no bags. Four equipment/capacity rows are accepted; wide/narrow recipe mode remains separately gated."
+    - "Enabled two-pouch Batch 4 continued as Player168 and explicitly passed base/base, base/upgraded, upgraded/base, and upgraded/upgraded combinations. Correct 3/6 capacities remained on the intended sides; distinct markers stayed with their physical pouches across close/reopen and tier changes; no contents crossed roles; and B matched integrated order, contents, and counts. The both-pouches equipment row is accepted."
+    - "Enabled satchel-plus-one-pouch Batch 5 continued as Player168 and explicitly passed both satchel tiers paired separately with every left/right pouch tier (eight configurations). Intended panels/capacities, distinct physical-stack markers, close/reopen persistence, tier/side isolation, and B-menu agreement all passed. This is recorded as supporting evidence; the satchel-plus-pouch checklist row remains open until the all-three-bags matrix passes."
+    - "Enabled all-three-bags Batch 6 continued as Player168 and explicitly passed all eight satchel/left/right tier combinations, including 18/6/6, with exact capacities, physical-stack ownership, close/reopen persistence, B-menu agreement, and no clipping/loss/duplication/role crossover. The equipment/capacity matrix is complete."
+    - "The human noted a minor one-time bag-item paint delay can sometimes be visible immediately after opening, most noticeably at 18/6/6, probably present throughout; all behavior remains correct. Scout26 and exact Minecraft 26.1.2 source trace confirmed pre-init seeds dimensions only, while authoritative item mirrors arrive through the ordered open-intent, ACK, sendAllDataToRemote/full container-ID-0 state, and READY sequence. The human did not consider this a failure; it is recorded as synchronization timing, no BUG-P7B-013 is assigned, and no code change is warranted unless it persists/repeats or shows incorrect contents/input."
+    - "Enabled direct-interaction Batch 7 continued as Player168 and explicitly passed ordinary left-click moves, bidirectional right-click splitting/single placement, even and one-per-slot quick-craft across mixed bag/player slots, double-click collection spanning both areas, close/reopen persistence, and matching B-menu totals. Three inventory-interaction rows are accepted."
+    - "Enabled shift/swap/drop Batch 8 continued as Player168 and explicitly passed merge-before-empty player shift-click routing in satchel/left/right order, bag-to-player shift-click from every role, number-key swaps, offhand swaps, Q/Ctrl+Q single/full-stack drops, collectible dropped entities, and matching final E/B counts. Three more interaction rows are accepted."
+    - "Enabled nested-bag Batch 9 continued as Player168 and explicitly passed left-click, right-click/split, quick-craft/drag, shift-click, number-key, offhand, and double-click rejection paths. No bag entered integrated storage after E/B reopen; ordinary contents and every bag's own contents remained unchanged; and no bag disappeared or duplicated. The inventory-interaction section is complete."
+    - "Enabled open-screen identity Batch 10 continued as Player168 and explicitly passed equip/unequip plus physically distinct same-kind A-to-B replacement for satchel, left pouch, and right pouch. Panels activated/deactivated correctly, stale presentation never mutated replacements, and all six A/B bags retained distinct contents/counts through E reopen and B verification. Two exact-identity rows are accepted."
+    - "Enabled pouch-order/rebuild Batch 11 continued as Player168 and explicitly passed both directions of open-screen left/right pouch exchange plus an in-screen F3+T resource/Trinkets inventory rebuild with all roles populated. Stale actions failed closed or occurred only after the correct refreshed binding; E/B retained exact contents with no loss/duplication/crossover. The remaining three exact-identity rows are accepted and that section is complete."
+    - "Enabled wide-layout/boundary Batch 12 continued as Player168 and explicitly passed recipe-book closed/open/reopen/toggle behavior for base and upgraded left pouches alongside upgraded satchel/right-pouch panels. First-frame layout and all recipe controls remained correct. Carried-stack clicks on pouch joins/edges and satchel borders/corners never became outside throws, while real slots worked and counts persisted. Two layout rows are accepted."
+    - "Enabled narrow-overlay Batch 13 continued as Player168 below Minecraft's 379-logical-pixel threshold and explicitly passed overlay presentation, left/right/shift/drag/carried-stack suppression at underlying integrated locations, recipe controls, restored input after closing, and exact E/B contents. Both vanilla and bag item renders disappeared beneath the overlay while the separate HUD hotbar remained populated; exact 26.1.2 AbstractRecipeBookScreen source proves this is intentional vanilla extractRenderState behavior. No regression was assigned."
+    - "Enabled active-effects Batch 14 continued as Player168 and explicitly passed multiple simultaneous effect entries beyond base and upgraded right-pouch panels. There was no overlap/clipping/input loss or first-frame correction; hover, pouch actions, close/reopen, and recipe toggle stayed correct. The Layout compatibility section is complete."
+    - "Enabled death/respawn Batch 15 continued as Player168 and explicitly passed keepInventory=false physical drops/recovery and keepInventory=true equipped retention. Exactly one copy of each populated role bag remained, contents stayed attached to the correct physical stacks in E/B, no duplicate drops appeared, and no loss/role crossover occurred. Both death rows are accepted and the game rule was restored to false."
+    - "Enabled logout/restart Batch 16 passed normal Save-and-Quit/rejoin as Player168, then Alt+F4 while integrated inventory was open with an empty cursor. The log showed orderly disconnect plus player/world/all-dimension saves. Codex relaunched P7B-test as Player540 and the human explicitly passed equipped physical-bag roles/markers/counts in E/B, absence of duplicates, and a persisted post-restart mutation. The logout/rejoin row and client-restart half pass; dedicated-server restart remains pending."
+    - "Dedicated multiplayer Batch 17 ran on Minecraft 26.1.2 at 127.0.0.1:25565 in temporary offline development mode with fixed separate-config identities ScoutAlice (d7d5a6bd-6768-3034-baba-ff917b32ea6a) and ScoutBob (e169c006-2bde-3797-bf2c-7ee781a5e59d). Server logs confirm simultaneous connections. Alice's upgraded bags held 11 diamonds/12 emeralds/13 gold; Bob's held 21 redstone/22 lapis/23 iron. The human explicitly passed overlapping normal/shift-click actions, visibility and bidirectional mutation isolation, E/B reopen, and exact restored counts with no loss/duplication/crossover/desync. The first three multiplayer rows pass; restart/rejoin remains."
+    - "Dedicated restart/rejoin Batch 18 stopped the loopback server cleanly through /stop, verified both fixed playerdata files shared the shutdown timestamp, restarted the same world, and relaunched both fixed separate-config clients. Server logs confirmed both rejoined. The human explicitly passed Alice 11/12/13 and Bob 21/22/23 contents, exact one-satchel/two-pouch physical counts, no duplicate drops, E/B agreement, persisted post-restart slot moves, and continued isolation. A second /stop again saved both playerdata files and all dimensions. All manual acceptance rows now have explicit passing evidence."
+    - "Post-matrix cleanup restored online-mode=true, enforce-secure-profile=true, the normal unbound server-ip, spawn-protection=16, and ops.json=[]; both temporary client directories were verified within the workspace and removed. Dedicated test playerdata remains in the ignored world as persistence evidence. P7-B is not yet complete until final automated/build/mixin/source/server audits and completion bookkeeping pass."
+    - "Final P7-B gates passed against source/test commit f9c92d56e7defedf99f3dc8b4965956e7971305f: 39/39 JUnit tests with zero failures/errors/skips, a separate clean build with all 10 tasks executed, zero unchecked manual rows, and no open P0/P1 issue."
+    - "Final structural audits found exactly the four ADR-012 targets InventoryMenu, AbstractContainerScreen, RecipeBookComponent, and EffectsInInventory; no @Overwrite, forbidden target, common-source client reference, or packaged test class exists. The jar contains the required integrated-inventory classes and configuration."
+    - "A secure online-mode dedicated server loaded Scout26 and reached Done; the known non-fatal Trinkets client-Mixin warning was unchanged. A default-disabled client loaded Scout26/resources to title screen; only expected unauthenticated development-service errors appeared. The server smoke ignored delayed Gradle stdin and was stopped by its exact empty-server PID after successful startup. Final runtime state has no project Java process and TCP 25565 is free."
+    - "P7-B and P7 are complete. Integrated Inventory remains default-disabled, the B-key Pack Menu remains independent, BUG-P7B-001 through BUG-P7B-012 are fixed, no BUG-P7B-013 was assigned, and P8 remains blocked pending separate human authorization."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1746,6 +1771,8 @@ latest_session:
     - "Run offline test/build, then a clean offline no-daemon build; audit the four authorized Mixin targets, absence of @Overwrite, and git diff whitespace before committing d41673497d1bd17640e295cc9832084bc128cc50."
     - "Launch runClient offline with --quickPlaySingleplayer P7B-test using the cached Gradle distribution and verify the integrated-server login sequence in run/logs/latest.log."
     - "Inspect exact Minecraft 26.1.2 RecipeBookComponent.updateTabs and RecipeBookTabButton sources; correct the independent tab coordinates at updateTabs TAIL; stop only the prior 22:24 test client; clean build, audit, commit, and relaunch."
+    - "Execute 18 focused P7-B acceptance batches with explicit human observations, including disabled fallback, every capacity/equipment/interaction/identity/lifecycle/creative/layout row, and fixed-identity two-client dedicated-server concurrency plus restart/rejoin isolation."
+    - "Restore secure server/client configuration, remove only the verified temporary client directories, run offline Gradle test and clean build, extract JUnit totals, audit mixin/source/jar boundaries, run secure server and default-disabled client smokes, and verify runtime/port cleanliness."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1794,6 +1821,27 @@ latest_session:
     - "BUG-P7B-011 runtime startup: Player155 logged into P7B-test with no Scout26 or Mixin startup error; expected unauthenticated development-session service errors remain unrelated."
     - "BUG-P7B-012 recipe-tab alignment: focused compile/test and final clean build passed all 39 tests with zero failures, errors, or skips; four Mixin targets and no @Overwrite remain."
     - "BUG-P7B-012 runtime startup: Player366 logged into P7B-test with no Scout26 or Mixin startup error; expected unauthenticated development-session service errors remain unrelated."
+    - "P7-B final automated gate: 39 tests, zero failures/errors/skips; clean build executed all 10 tasks successfully with only known third-party Gradle/JOML warnings."
+    - "P7-B final structural gate: exactly four authorized Mixin targets; no @Overwrite, forbidden target, common-source client reference, or packaged test class; required integrated-inventory jar entries present."
+    - "P7-B final runtime gate: secure dedicated server reached Done with Scout26; default-disabled client reached title-screen resource completion; no project runtime remained and TCP 25565 was free after cleanup."
+    - "P7-B disabled fallback: commit f9c92d56e7defedf99f3dc8b4965956e7971305f, Minecraft 26.1.2, Fabric Loader 0.19.3, Fabric API 0.155.2+26.1.2, Trinkets Updated 4.0.0-beta.3+26.1, integrated server, Player303; all three manual rows passed by explicit human observation."
+    - "P7-B enabled Creative exclusion: same commit and versions, integrated server, Player168; creative UI dormancy, equipment changes, B-menu synchronization, and independent post-clone divergence all passed by explicit human observation."
+    - "P7-B enabled single-role capacity prefixes: same commit/versions/session/identity; all six role-tier cases, exact capacity prefixes, repeated close paths, matching B-menu contents, and no-bag B message passed by explicit human observation."
+    - "P7-B enabled two-pouch matrix: same commit/versions/session/identity; all four tier combinations, side isolation, physical ownership, and B-menu agreement passed by explicit human observation."
+    - "P7-B enabled satchel-plus-one-pouch matrix: same commit/versions/session/identity; all eight tier/side combinations and physical-role isolation passed by explicit human observation."
+    - "P7-B enabled all-three-bags matrix: same commit/versions/session/identity; all eight tier combinations including 18/6/6 passed by explicit human observation. Exact 26.1.2 ClientPacketListener and AbstractContainerMenu source plus Scout26 session code were reviewed to classify the brief one-time item paint as expected authoritative synchronization timing rather than a failed behavior or regression."
+    - "P7-B enabled direct interactions: same commit/versions/session/identity; normal click, bidirectional split/single placement, mixed quick-craft, double-click collection, and exact final E/B counts passed by explicit human observation."
+    - "P7-B enabled shift/swap/drop interactions: same commit/versions/session/identity; deterministic routing/merge, reverse shift-click, number/offhand swaps, Q/Ctrl+Q, collectible drops, and exact totals passed by explicit human observation."
+    - "P7-B enabled nested-bag rejection: same commit/versions/session/identity; every listed vanilla interaction path rejected nesting with exact final bag/marker counts by explicit human observation."
+    - "P7-B enabled open-screen equipment identity: same commit/versions/session/identity; all three roles passed equip/unequip and distinct same-kind A/B replacement with fail-closed stale presentation and exact physical-stack contents by explicit human observation."
+    - "P7-B enabled pouch ordering and resource rebuild: same commit/versions/session/identity; bidirectional order swaps, F3+T rebuild, stale-role fail-closed behavior, correct reopen binding, and exact E/B contents passed by explicit human observation."
+    - "P7-B enabled wide layout and outside-click boundary: same commit/versions/session/identity; both left-pouch tiers, recipe controls/lifecycle, first-frame geometry, external panel protection, and exact counts passed by explicit human observation."
+    - "P7-B enabled narrow overlay: same commit/versions/session/identity; true narrow mode, underlying input suppression, recipe controls, restored input, and exact final contents passed by explicit human observation; exact vanilla source reviewed for the expected hidden slot-item rendering."
+    - "P7-B enabled active effects: same commit/versions/session/identity; base/upgraded right-pouch offsets, full effect visibility, input, first frame, and recipe toggle passed by explicit human observation."
+    - "P7-B enabled death/respawn: same commit/versions/session/identity; keepInventory false and true, exact physical bag copy counts, drops/retention, rebind, and E/B contents passed by explicit human observation."
+    - "P7-B enabled logout/client restart: same commit/versions/integrated-server world; Player168 normal rejoin and open-inventory termination, clean logged saves, then Player540 post-restart E/B physical-bag contents and mutation persistence passed by explicit human observation."
+    - "P7-B dedicated multiplayer concurrency/isolation: same commit and locked versions; loopback-only temporary offline development server, fixed clients ScoutAlice/ScoutBob with separate game/config dirs; simultaneous connection, unrelated physical bags, overlapping normal/shift actions, bidirectional isolation, and exact E/B counts passed by explicit human observation plus server connection logs."
+    - "P7-B dedicated restart/rejoin: same commit/versions/world/fixed identities; two clean /stop saves, matching playerdata timestamps, same-world restart, both-client logged rejoin, exact physical bag/content persistence, post-restart mutation, continued isolation, and final secure-setting restoration passed by human observation and logged/file evidence."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1833,9 +1881,8 @@ latest_session:
     - "SCOUT26_AGENT_STATE.yaml"
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
-  blockers:
-    - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "Continue the remaining P7-B acceptance matrix from docs/P7B_MANUAL_ACCEPTANCE.md, beginning with creative exclusion or the disabled fallback, without entering P8."
+  blockers: []
+  next_action: "Await separate explicit human authorization before beginning P8; do not start release-candidate or packaging work automatically."
 
 agent_first_prompt:
   text: >
