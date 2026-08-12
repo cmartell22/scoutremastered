@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 43
-last_updated_utc: "2026-08-12T03:22:15Z"
+state_revision: 44
+last_updated_utc: "2026-08-12T03:25:22Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -1671,6 +1671,7 @@ latest_session:
     - "Exact RecipeBookComponent source showed the prior wide layout moved only InventoryScreen.leftPos by the full left-panel width while leaving the recipe book origin unchanged; it also showed all book children derive from getXOrigin, including the pre-visible toggle initialization path."
     - "d41673497d1bd17640e295cc9832084bc128cc50 reserves only exposed pouch width, applies one bounded overflow shift to book and inventory, previews synchronized bag dimensions before InventoryScreen.init without activating containers, and limits READY resize to real horizontal-capacity corrections."
     - "The clean production build passes 39/39 tests with layout regressions for upgraded and base pouch widths. BUG-P7B-011 awaits focused human visual/first-frame retest; P8 remains blocked."
+    - "The rebuilt enabled client launched into P7B-test and logged Player155 into the integrated server without a Scout26 or Mixin startup error; it remains open for the focused human retest."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1713,6 +1714,7 @@ latest_session:
     - "Inspect exact Minecraft 26.1.2 RecipeBookComponent and AbstractRecipeBookScreen sources for init, getXOrigin, updateScreenPosition, toggle, and render ordering."
     - "Stop only the verified 22:06 pre-fix client processes; run the cached Gradle 9.5.1 distribution offline after the sandbox denied wrapper network and Gradle loopback access."
     - "Run offline test/build, then a clean offline no-daemon build; audit the four authorized Mixin targets, absence of @Overwrite, and git diff whitespace before committing d41673497d1bd17640e295cc9832084bc128cc50."
+    - "Launch runClient offline with --quickPlaySingleplayer P7B-test using the cached Gradle distribution and verify the integrated-server login sequence in run/logs/latest.log."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1758,6 +1760,7 @@ latest_session:
     - "BUG-P7B-009 toggle refinement: all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
     - "BUG-P7B-010 resize-callback refinement: exact Fabric ScreenMixin bytecode inspected; all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
     - "BUG-P7B-011 first-frame/wide-composition refinement: the clean build executed all 10 tasks and all 39 tests passed with zero failures, errors, or skips; a final incremental test/build passed after correcting the toggle-time recipe origin."
+    - "BUG-P7B-011 runtime startup: Player155 logged into P7B-test with no Scout26 or Mixin startup error; expected unauthenticated development-session service errors remain unrelated."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1800,7 +1803,7 @@ latest_session:
   blockers:
     - "BUG-P7B-011 requires a focused upgraded-pouch wide-book clipping and seamless first-frame retest."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "Launch the normal enabled client with all upgraded bags equipped; have the human repeatedly open inventory with the recipe book both closed and persisted open, confirming the right pouch fits and no first-frame movement or delayed panel appearance remains; then continue P7-B without entering P8."
+  next_action: "Have the human use the open enabled client to repeatedly open inventory with the recipe book both closed and persisted open, confirming the upgraded right pouch fits and no first-frame movement or delayed panel appearance remains; then continue P7-B without entering P8."
 
 agent_first_prompt:
   text: >
