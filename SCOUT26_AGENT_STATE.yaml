@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 35
-last_updated_utc: "2026-08-11T17:30:21Z"
+state_revision: 36
+last_updated_utc: "2026-08-12T01:33:37Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -870,8 +870,9 @@ repository_state:
   p7b_spawn_order_fix_commit: "6464284e531c7357d83e7923c769db31c1c3dc76"
   p7b_inventory_rebuild_fix_commit: "43050ca2143a5eb22d433e01b605334a4a978756"
   p7b_inventory_dimension_fix_commit: "b09f01f1277ed2b5ebd96ba2be11dc4b422aae20"
-  last_known_good_commit: "b09f01f1277ed2b5ebd96ba2be11dc4b422aae20"
-  last_tested_commit: "b09f01f1277ed2b5ebd96ba2be11dc4b422aae20"
+  p7b_binding_finalize_fix_commit: "2e9ac7456c57d0b169e0ba34583c5a887fbb047d"
+  last_known_good_commit: "2e9ac7456c57d0b169e0ba34583c5a887fbb047d"
+  last_tested_commit: "2e9ac7456c57d0b169e0ba34583c5a887fbb047d"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1187,14 +1188,15 @@ bug_regressions:
     - id: "BUG-P7B-004"
       phase: "P7-B"
       severity: "P2"
-      status: "OPEN"
+      status: "FIXED_PENDING_MANUAL_RETEST"
       summary: "Equipped base and upgraded satchels do not display their 9/18-slot Integrated Inventory expansion, although the independent B-key Pack Menu exposes the bags correctly."
       impact: "Integrated Inventory storage remains inaccessible from the vanilla survival inventory for equipped satchels; the proven B-key Pack Menu is an unaffected workaround."
       root_cause: >
-        Not yet isolated. Targeted runtime diagnostics proved that the server discovers the equipped base satchel
-        and activates capacity 9, the acknowledgement carries capacity 9, and the client independently discovers
-        the same satchel and reports an active capacity-9 binding. The failure is therefore after client activation,
-        within the per-screen panel-render entry/preconditions or its Fabric render-event registration/layer.
+        The acknowledgement correctly activated the client against the exact equipped satchel ItemStack before
+        InventoryMenu.sendAllDataToRemote delivered the integrated slot contents. That same full vanilla state then
+        replaced the client-side Trinkets equipment ItemStack object. EquippedBagHandle correctly rejected its now-stale
+        exact identity, so active capacity fell from 9 to 0 before the next rendered frame even though a fresh Trinkets
+        lookup still found a capacity-9 satchel. The renderer and every layout/menu/event precondition were healthy.
       rejected_hypothesis: >
         Minecraft does not reuse one InventoryScreen instance across E-key openings in 26.1.2; exact bytecode shows
         a new InventoryScreen(player) allocation on every normal inventory keypress. The diagnostic opening also
@@ -1206,11 +1208,19 @@ bug_regressions:
         - "Diagnostic client log: server capacity 9, discovered=[true,false,false], and active client capacity 9."
         - "The active-render diagnostic placed after IntegratedInventoryPanels' layout/menu/data preconditions did not log, narrowing the next probe to those entry conditions or event invocation rather than networking or bag discovery."
         - "Exact Fabric Screen API bytecode confirms per-screen events are recreated on init/resize and afterBackground is injected immediately after Screen.extractBackground; no second init occurred in the captured reproduction."
-      next_probe: >
-        Instrument IntegratedInventoryPanels.render at method entry and log each individual layout-interface,
-        screen-menu-interface, menu-identity, and active-data precondition for a bounded number of frames. If the
-        callback does not enter, compare afterBackground with afterExtract registration on the same screen; if it
-        enters but a precondition fails, correct only that proven boundary. Remove instrumentation before committing.
+        - "Bounded method-entry diagnostics proved afterBackground and afterExtract both execute with the expected layout interface, menu interface, and player inventory-menu identity."
+        - "Deterministic base-satchel trace: ACK server=9, active=9, fresh=9; the next tick active=0 while fresh=9, proving full-sync exact-handle invalidation."
+        - "Post-fix deterministic trace: ready server=9, active=9, fresh=9 after the full vanilla sync."
+        - "The final clean build passed all 38 tests with zero failures, errors, or skips; the built jar contains IntegratedInventoryReadyPayload and all temporary diagnostic code was removed."
+      fix: >
+        Add an ordered IntegratedInventoryReadyPayload after sendAllDataToRemote. The existing acknowledgement still
+        activates dormant slots before vanilla applies their contents; the ready phase then captures the replacement
+        Trinkets ItemStack and rebinds only the exact client handle without clearing the synchronized client slot mirror.
+        Capacity and role checks remain server-derived and fail closed, and the authoritative server binding is unchanged.
+      fixed_in_commit: "2e9ac7456c57d0b169e0ba34583c5a887fbb047d"
+      regression_tests:
+        - "IntegratedInventoryTest.clientFinalizationRebindsExactReplacementWithoutDiscardingSyncedContents"
+        - "IntegratedInventoryTest.sessionPayloadsCarryOnlyIntentAndServerDerivedCapacities"
 
 session_handoff_protocol:
   startup_steps:
@@ -1392,7 +1402,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7b-acceptance-019"
+  session_id: "p7b-acceptance-020"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1436,6 +1446,11 @@ latest_session:
     - "Two targeted diagnostic launches proved the base-satchel server session, acknowledgement, client discovery, and client binding all carry capacity 9; the failure occurs after activation in the panel render-event entry or preconditions."
     - "Exact Minecraft bytecode disproved the initial screen-reuse hypothesis by showing a new InventoryScreen allocation per E keypress. Fabric Screen API bytecode showed per-screen events are recreated on init/resize, but the captured failing opening had one first init and no reinit."
     - "All temporary diagnostic code was removed, the diagnostic client process tree was stopped, and the source tree returned to its pre-probe state before this safe pause."
+    - "Resumed BUG-P7B-004 at the saved method-entry probe boundary. Fabric afterBackground and afterExtract callbacks both ran with the correct InventoryScreen layout/menu/player-menu identity."
+    - "A deterministic diagnostic player equipped by a property-gated temporary harness proved the ACK initially binds capacity 9, then the full vanilla inventory state replaces the Trinkets ItemStack: active capacity fell to 0 while a fresh equipment lookup remained 9."
+    - "2e9ac7456c57d0b169e0ba34583c5a887fbb047d adds a distinct ordered ready payload after sendAllDataToRemote and a client-only exact-handle finalization path that preserves the contents already synchronized into the fixed mirror slots."
+    - "The post-fix deterministic run logged ready server=9, active=9, fresh=9. All property-gated auto-equip/open hooks and bounded logs were removed before the production build."
+    - "The clean production build passed 38/38 tests and jar inspection found the new ready payload. BUG-P7B-004 is fixed pending a normal human base/upgraded-satchel visual retest; P7-B and P8 gates are unchanged."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1466,6 +1481,11 @@ latest_session:
     - "For BUG-P7B-004, add temporary bounded server/client logs around discovery, acknowledgement, activation, screen initialization, and the active panel-render branch; compile and perform two controlled quick-play reproductions."
     - "Inspect exact Minecraft 26.1.2 inventory-key bytecode and Fabric Screen API 5.1.0 Mixin bytecode for InventoryScreen construction, per-init event recreation, and afterBackground injection ordering."
     - "Remove all temporary diagnostic code, stop the verified runClient process tree, and confirm the source worktree returns clean before recording the pause."
+    - "Resume at the saved BUG-P7B-004 method-entry probe; compare afterBackground and afterExtract callbacks and log individual layout/menu/data preconditions."
+    - "Create a deterministic temporary test identity and property-gated join hook that equips a base satchel before a property-gated client inventory opener; compile and capture the ACK plus ten post-ACK ticks."
+    - "Trace ACK active=9 to next-tick active=0/fresh=9, implement ordered IntegratedInventoryReadyPayload finalization that preserves the already-synchronized client slot mirror, and add a focused identity-replacement regression."
+    - ".\\gradlew.bat test --no-daemon --console=plain; run the deterministic post-fix client; verify ready server=9, active=9, fresh=9; remove every diagnostic hook; run .\\gradlew.bat clean build --no-daemon --console=plain."
+    - "Audit the final jar for IntegratedInventoryReadyPayload, run git diff --check and git fsck, and commit the source fix as 2e9ac7456c57d0b169e0ba34583c5a887fbb047d."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1496,6 +1516,10 @@ latest_session:
     - "BUG-P7B-003 transformed-class verification: imageWidth/imageHeight retain only their constructor-parameter assignments, and generated accessors contain read-only getfield instructions."
     - "BUG-P7B-003 runtime startup verification: the corrected client started the integrated server and logged Player135 into P7B-test; the human then confirmed the complete centered no-bag inventory from a screenshot."
     - "BUG-P7B-004 diagnostic runtime: base satchel discovery and active capacity were 9 on both server and client, with no crash or Mixin error; panel presentation still failed."
+    - "BUG-P7B-004 baseline before edits: 37/37 tests passed."
+    - "BUG-P7B-004 focused regression checkpoint: 38/38 tests passed after adding exact replacement rebinding and ready-payload codec coverage."
+    - "BUG-P7B-004 deterministic post-fix runtime: ready server=9, active=9, fresh=9 after the full vanilla state sync."
+    - "BUG-P7B-004 final production clean build: all 10 actionable tasks executed and 38 tests passed with zero failures, errors, or skips; only known Gradle/JOML warnings remain."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1518,6 +1542,7 @@ latest_session:
     - "src/main/java/com/example/scout26/OpenIntegratedInventoryPayload.java"
     - "src/main/java/com/example/scout26/CloseIntegratedInventoryPayload.java"
     - "src/main/java/com/example/scout26/IntegratedInventoryAckPayload.java"
+    - "src/main/java/com/example/scout26/IntegratedInventoryReadyPayload.java"
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryConfig.java"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java"
@@ -1534,9 +1559,8 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
-    - "BUG-P7B-004 blocks the satchel Integrated Inventory acceptance rows; networking and exact client binding are proven good, but the panel render entry/precondition failure remains open."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "Resume BUG-P7B-004 by adding a bounded method-entry probe to IntegratedInventoryPanels.render that reports each layout/menu/data precondition, then reproduce one base-satchel inventory opening before selecting a fix."
+  next_action: "Launch the normal enabled client and have the human visually retest the base and upgraded satchel Integrated Inventory rows; if both render, continue the remaining P7-B manual acceptance matrix without entering P8."
 
 agent_first_prompt:
   text: >
