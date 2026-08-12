@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 42
-last_updated_utc: "2026-08-12T03:05:08Z"
+state_revision: 43
+last_updated_utc: "2026-08-12T03:22:15Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -877,8 +877,9 @@ repository_state:
   p7b_panel_join_polish_commit: "703234822d121c4e515e97d29b09e8953486d7b2"
   p7b_recipe_toggle_fix_commit: "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee"
   p7b_resize_callback_fix_commit: "eba01156b95d8e13e44bc92fc34757c45e6eecca"
-  last_known_good_commit: "eba01156b95d8e13e44bc92fc34757c45e6eecca"
-  last_tested_commit: "eba01156b95d8e13e44bc92fc34757c45e6eecca"
+  p7b_first_layout_fix_commit: "d41673497d1bd17640e295cc9832084bc128cc50"
+  last_known_good_commit: "d41673497d1bd17640e295cc9832084bc128cc50"
+  last_tested_commit: "d41673497d1bd17640e295cc9832084bc128cc50"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1336,7 +1337,7 @@ bug_regressions:
     - id: "BUG-P7B-009"
       phase: "P7-B"
       severity: "P2"
-      status: "FIXED_PENDING_MANUAL_RETEST"
+      status: "FIXED"
       summary: "Vertically centering the combined satchel surface left the recipe-book button at its old screen Y, overlapping the player inventory."
       impact: "The recipe-book control covered an ordinary inventory slot whenever an equipped satchel shifted the inventory upward."
       root_cause: >
@@ -1360,10 +1361,11 @@ bug_regressions:
         - "The final clean build executed all 10 tasks and passed 39 tests with zero failures, errors, or skips."
         - "Human retest confirmed initial placement but reproduced the lower reset on every recipe-book open and close click."
         - "The toggle refinement changes no accepted panel geometry and the clean build again passed all 39 tests."
+        - "The combined lifecycle retest confirmed the recipe-book button now remains at the correct Y; the human reported that behavior fixed."
     - id: "BUG-P7B-010"
       phase: "P7-B"
       severity: "P2"
-      status: "FIXED_PENDING_MANUAL_RETEST"
+      status: "FIXED"
       summary: "Reopening inventory while the recipe book persisted open removed all integrated panel rendering for that screen session."
       impact: >
         With all bags equipped, the wide recipe book and vanilla inventory reopened normally but every bag panel and
@@ -1385,6 +1387,35 @@ bug_regressions:
         - "The human supplied a deterministic five-step reproduction: persist the wide book open, close/reopen inventory, observe all bag panels missing, close the book, and observe the button correction missing until a book-closed inventory reopen."
         - "Exact Fabric Screen API 5.1.0+981dd9b24c ScreenMixin bytecode shows beforeInit is invoked for both init and resize and replaces removeEvent, afterBackgroundEvent, and every other per-screen event object before AFTER_INIT fires."
         - "The clean build executed all 10 tasks and passed 39 tests with zero failures, errors, or skips."
+        - "The combined lifecycle retest confirmed persisted-open recipe-book reopen no longer loses panels; the human reported that behavior fixed."
+    - id: "BUG-P7B-011"
+      phase: "P7-B"
+      severity: "P2"
+      status: "FIXED_PENDING_MANUAL_RETEST"
+      summary: "The wide recipe-book composition clipped an upgraded right pouch and visibly corrected its layout after the inventory first appeared."
+      impact: >
+        With both upgraded pouches equipped, the right panel extended beyond the viewport while unused space remained
+        between the recipe book and left pouch. On every inventory open, vanilla first rendered unseeded coordinates;
+        the late server acknowledgement then moved the inventory and revealed its bag panels a split second later.
+      root_cause: >
+        RecipeBookComponentMixin added the complete left-panel width only to vanilla's inventory leftPos, even though
+        seven units overlap the inventory and the recipe book retained its original origin. Separately, client layout
+        metadata began empty and the normal READY phase unconditionally resized an already-open wide screen after the
+        acknowledgement, despite equipped Trinkets dimensions already being synchronized before InventoryScreen.init.
+      fix: >
+        Reserve only the left pouch's exposed width and compute right-edge overflow for the complete book, inventory,
+        and pouch composition. Apply the same bounded overflow translation to RecipeBookComponent.getXOrigin and the
+        inventory position, retaining room for vanilla's left tabs. Before InventoryScreen.init, seed presentation-only
+        dimensions from synchronized equipped bags while leaving all dormant containers inactive until the server ACK.
+        Resize at READY only when the ACK actually changes horizontal capacity, including deliberate in-screen pouch
+        equipment changes; a normal open now retains its correct first-frame layout.
+      fixed_in_commit: "d41673497d1bd17640e295cc9832084bc128cc50"
+      regression_tests:
+        - "IntegratedInventoryTest.classicLayoutUsesCapacityPrefixesAndExternalPanels"
+      evidence:
+        - "At logical width 427, the layout regression locks both upgraded pouches to a 21-unit shared left translation and locks base pouches to zero overflow translation."
+        - "Exact Minecraft 26.1.2 RecipeBookComponent source confirms getXOrigin controls the background and every child origin, while updateScreenPosition independently controls InventoryScreen.leftPos."
+        - "The final clean build executed all 10 tasks and passed all 39 tests; exactly four ADR-012 Mixin targets remain and no @Overwrite exists."
 
 session_handoff_protocol:
   startup_steps:
@@ -1636,6 +1667,10 @@ latest_session:
     - "Focused follow-up exposed BUG-P7B-010: reopening inventory with the recipe book persisted open triggered the intentional wide-book resize, after which all integrated panels and the per-frame button correction vanished for that screen."
     - "Exact Fabric ScreenMixin bytecode confirmed resize recreates every per-screen event object; the weak identity guard was incorrectly skipping callback registration as well as the duplicate open intent."
     - "eba01156b95d8e13e44bc92fc34757c45e6eecca re-registers render/removal callbacks on every init/resize while retaining one session-open intent per screen identity. The clean production build passes 39/39 tests; BUG-P7B-009/010 await the combined human lifecycle retest and P8 remains blocked."
+    - "The human confirmed the combined recipe-button and persisted-open lifecycle behavior fixed, closing BUG-P7B-009 and BUG-P7B-010, then identified BUG-P7B-011: upgraded right-pouch clipping in wide-book mode plus a visible first-frame layout correction."
+    - "Exact RecipeBookComponent source showed the prior wide layout moved only InventoryScreen.leftPos by the full left-panel width while leaving the recipe book origin unchanged; it also showed all book children derive from getXOrigin, including the pre-visible toggle initialization path."
+    - "d41673497d1bd17640e295cc9832084bc128cc50 reserves only exposed pouch width, applies one bounded overflow shift to book and inventory, previews synchronized bag dimensions before InventoryScreen.init without activating containers, and limits READY resize to real horizontal-capacity corrections."
+    - "The clean production build passes 39/39 tests with layout regressions for upgraded and base pouch widths. BUG-P7B-011 awaits focused human visual/first-frame retest; P8 remains blocked."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1675,6 +1710,9 @@ latest_session:
     - "Add server-derived client layout state plus IntegratedInventoryRefreshTracker; switch all client panel/outside-click/recipe/effect layout consumers to that stable metadata; reverse the custom bevel to recessed bottom/right highlighting."
     - "Run the 39-test checkpoint, then use property-gated auto-equip/open/click hooks to pick up integrated slot 46 and capture one mismatch refresh plus restored ready state."
     - "Remove every diagnostic hook, verify the exact four Mixin targets and no @Overwrite, run .\\gradlew.bat clean build --no-daemon --console=plain, git diff --check, and git fsck."
+    - "Inspect exact Minecraft 26.1.2 RecipeBookComponent and AbstractRecipeBookScreen sources for init, getXOrigin, updateScreenPosition, toggle, and render ordering."
+    - "Stop only the verified 22:06 pre-fix client processes; run the cached Gradle 9.5.1 distribution offline after the sandbox denied wrapper network and Gradle loopback access."
+    - "Run offline test/build, then a clean offline no-daemon build; audit the four authorized Mixin targets, absence of @Overwrite, and git diff whitespace before committing d41673497d1bd17640e295cc9832084bc128cc50."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1719,6 +1757,7 @@ latest_session:
     - "BUG-P7B-007/008/009 polish checkpoint: all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
     - "BUG-P7B-009 toggle refinement: all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
     - "BUG-P7B-010 resize-callback refinement: exact Fabric ScreenMixin bytecode inspected; all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
+    - "BUG-P7B-011 first-frame/wide-composition refinement: the clean build executed all 10 tasks and all 39 tests passed with zero failures, errors, or skips; a final incremental test/build passed after correcting the toggle-time recipe origin."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1759,9 +1798,9 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
-    - "BUG-P7B-009 and BUG-P7B-010 require the focused recipe-book toggle plus close/reopen lifecycle retest."
+    - "BUG-P7B-011 requires a focused upgraded-pouch wide-book clipping and seamless first-frame retest."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "Launch the normal enabled client with all bags equipped; have the human open the recipe book, close/reopen inventory while it persists open, close the book, and repeat the cycle while confirming panels and button placement remain stable; then continue P7-B without entering P8."
+  next_action: "Launch the normal enabled client with all upgraded bags equipped; have the human repeatedly open inventory with the recipe book both closed and persisted open, confirming the right pouch fits and no first-frame movement or delayed panel appearance remains; then continue P7-B without entering P8."
 
 agent_first_prompt:
   text: >
