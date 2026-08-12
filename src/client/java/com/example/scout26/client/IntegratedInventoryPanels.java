@@ -4,6 +4,7 @@ import com.example.scout26.IntegratedInventoryData;
 import com.example.scout26.IntegratedInventoryLayout;
 import com.example.scout26.IntegratedInventoryMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.world.inventory.Slot;
 
@@ -28,6 +29,15 @@ final class IntegratedInventoryPanels {
 			menu.scout26$clientLayoutData().satchelCapacity()
 		);
 		layout.scout26$setTopPos(centeredVanillaTop - offset);
+		int recipeButtonY = IntegratedInventoryLayout.recipeBookButtonY(
+			screen.height,
+			menu.scout26$clientLayoutData().satchelCapacity()
+		);
+		for (var child : screen.children()) {
+			if (child instanceof ImageButton button && button.getWidth() == 20 && button.getHeight() == 18) {
+				button.setY(recipeButtonY);
+			}
+		}
 	}
 
 	static void render(InventoryScreen screen, GuiGraphicsExtractor graphics) {
@@ -45,21 +55,23 @@ final class IntegratedInventoryPanels {
 		int rightWidth = IntegratedInventoryLayout.rightPanelWidth(data.rightPouchCapacity());
 		int satchelHeight = IntegratedInventoryLayout.satchelPanelHeight(data.satchelCapacity());
 		if (leftWidth > 0) {
-			drawPanel(
+			drawSidePanel(
 				graphics,
 				left - leftWidth + IntegratedInventoryLayout.SIDE_PANEL_OVERLAP,
 				top + IntegratedInventoryLayout.POUCH_PANEL_Y,
 				leftWidth,
-				IntegratedInventoryLayout.POUCH_PANEL_HEIGHT
+				IntegratedInventoryLayout.POUCH_PANEL_HEIGHT,
+				true
 			);
 		}
 		if (rightWidth > 0) {
-			drawPanel(
+			drawSidePanel(
 				graphics,
 				left + IntegratedInventoryLayout.RIGHT_POUCH_PANEL_X,
 				top + IntegratedInventoryLayout.POUCH_PANEL_Y,
 				rightWidth,
-				IntegratedInventoryLayout.POUCH_PANEL_HEIGHT
+				IntegratedInventoryLayout.POUCH_PANEL_HEIGHT,
+				false
 			);
 		}
 		if (satchelHeight > 0) {
@@ -91,6 +103,43 @@ final class IntegratedInventoryPanels {
 		graphics.fill(x + 2, y + 1, x + width - 2, y + 2, PANEL_COLOR);
 		graphics.fill(x + 1, y + 2, x + width - 1, y + height - 2, PANEL_COLOR);
 		graphics.fill(x + 2, y + height - 2, x + width - 2, y + height - 1, PANEL_COLOR);
+	}
+
+	private static void drawSidePanel(
+		GuiGraphicsExtractor graphics,
+		int x,
+		int y,
+		int width,
+		int height,
+		boolean joinsVanillaOnRight
+	) {
+		int join = IntegratedInventoryLayout.SIDE_PANEL_OVERLAP;
+		for (int row = 0; row < height; row++) {
+			int distanceFromEnd = Math.min(row, height - 1 - row);
+			int joinInset = Math.max(0, join - distanceFromEnd);
+			int outerInset = distanceFromEnd == 0 ? 2 : distanceFromEnd == 1 ? 1 : 0;
+			int rowLeft = x + (joinsVanillaOnRight ? outerInset : joinInset);
+			int rowRight = x + width - (joinsVanillaOnRight ? joinInset : outerInset);
+			graphics.fill(rowLeft, y + row, rowRight, y + row + 1, PANEL_COLOR);
+		}
+
+		// Border only the exposed outer body. The seven-unit join over vanilla remains brown,
+		// including its diagonal, so it cannot shadow either outer vanilla inventory slot.
+		if (joinsVanillaOnRight) {
+			int joinStart = x + width - join;
+			graphics.fill(x + 2, y, joinStart, y + 1, PANEL_BORDER);
+			graphics.fill(x + 1, y + 1, x + 2, y + 2, PANEL_BORDER);
+			graphics.fill(x, y + 2, x + 1, y + height - 2, PANEL_BORDER);
+			graphics.fill(x + 1, y + height - 2, x + 2, y + height - 1, PANEL_BORDER);
+			graphics.fill(x + 2, y + height - 1, joinStart, y + height, PANEL_BORDER);
+		} else {
+			int joinEnd = x + join;
+			graphics.fill(joinEnd, y, x + width - 2, y + 1, PANEL_BORDER);
+			graphics.fill(x + width - 2, y + 1, x + width - 1, y + 2, PANEL_BORDER);
+			graphics.fill(x + width - 1, y + 2, x + width, y + height - 2, PANEL_BORDER);
+			graphics.fill(x + width - 2, y + height - 2, x + width - 1, y + height - 1, PANEL_BORDER);
+			graphics.fill(joinEnd, y + height - 1, x + width - 2, y + height, PANEL_BORDER);
+		}
 	}
 
 	private static void drawSlot(GuiGraphicsExtractor graphics, int x, int y) {

@@ -22,7 +22,7 @@ public final class IntegratedInventoryLayout {
 	public static final int POUCH_Y = 84;
 	public static final int POUCH_PANEL_Y = 77;
 	public static final int POUCH_PANEL_HEIGHT = 66;
-	public static final int SIDE_PANEL_OVERLAP = 8;
+	public static final int SIDE_PANEL_OVERLAP = 7;
 	public static final int RIGHT_POUCH_PANEL_X = VANILLA_IMAGE_WIDTH - SIDE_PANEL_OVERLAP;
 
 	private IntegratedInventoryLayout() {
@@ -64,12 +64,16 @@ public final class IntegratedInventoryLayout {
 	}
 
 	public static int satchelPanelHeight(int capacity) {
-		return capacity <= 0 ? 0 : capacity <= 9 ? 24 : 42;
+		return capacity <= 0 ? 0 : capacity <= 9 ? 28 : 46;
 	}
 
 	/** Centers the vanilla inventory and its attached satchel panel as one combined surface. */
 	public static int satchelCenteringOffset(int capacity) {
 		return satchelPanelHeight(capacity) / 2;
+	}
+
+	public static int recipeBookButtonY(int screenHeight, int satchelCapacity) {
+		return screenHeight / 2 - 22 - satchelCenteringOffset(satchelCapacity);
 	}
 
 	public static boolean isActiveMenuSlot(int menuSlot, IntegratedInventoryData data) {
