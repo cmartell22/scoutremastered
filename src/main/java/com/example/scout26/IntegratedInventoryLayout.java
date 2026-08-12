@@ -12,7 +12,7 @@ public final class IntegratedInventoryLayout {
 	public static final int TOTAL_SLOT_COUNT = 76;
 	public static final int SLOT_SPACING = 18;
 	public static final int SATCHEL_X = 8;
-	public static final int SATCHEL_Y = 174;
+	public static final int SATCHEL_Y = 172;
 	public static final int LEFT_INNER_X = -20;
 	public static final int RIGHT_INNER_X = 180;
 	public static final int POUCH_Y = 17;
@@ -82,7 +82,7 @@ public final class IntegratedInventoryLayout {
 		return satchelHeight > 0
 			&& relativeX >= 2
 			&& relativeX < 174
-			&& relativeY >= 168
-			&& relativeY < 168 + satchelHeight;
+			&& relativeY >= 166
+			&& relativeY < 166 + satchelHeight;
 	}
 }

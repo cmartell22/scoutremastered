@@ -43,7 +43,14 @@ final class IntegratedInventoryClientNetworking {
 				&& !context.player().hasInfiniteMaterials()
 				&& context.player().inventoryMenu instanceof IntegratedInventoryMenu menu) {
 				IntegratedInventoryData data = payload.data();
-				menu.scout26$activateClient(TrinketsIntegration.findEquippedBags(context.player()), data);
+				TrinketsIntegration.EquippedBags equippedBags = TrinketsIntegration.findEquippedBags(context.player());
+				if (menu.scout26$clientLayoutData().hasAnyBag()) {
+					// A refresh ACK precedes the full-state packet. Rebind without clearing the existing
+					// mirror so the already-rendered bag cannot blink out for that intervening frame.
+					menu.scout26$finalizeClientBindings(equippedBags, data);
+				} else {
+					menu.scout26$activateClient(equippedBags, data);
+				}
 			} else {
 				if (context.player().inventoryMenu instanceof IntegratedInventoryMenu menu) {
 					menu.scout26$deactivateIntegratedInventory();

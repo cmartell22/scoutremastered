@@ -76,7 +76,7 @@ public final class IntegratedBagContainer implements Container {
 	}
 
 	public boolean isSlotActive(int slot) {
-		return this.isBindingValid() && slot >= 0 && slot < this.activeCapacity;
+		return this.isPresentationBindingUsable() && slot >= 0 && slot < this.activeCapacity;
 	}
 
 	public boolean isBindingValid() {
@@ -90,7 +90,7 @@ public final class IntegratedBagContainer implements Container {
 
 	@Override
 	public boolean isEmpty() {
-		if (!this.isBindingValid()) {
+		if (!this.isPresentationBindingUsable()) {
 			return true;
 		}
 		for (int slot = 0; slot < this.activeCapacity; slot++) {
@@ -156,7 +156,8 @@ public final class IntegratedBagContainer implements Container {
 
 	@Override
 	public boolean stillValid(Player player) {
-		return this.isBindingValid() && (this.serverContainer == null || this.serverContainer.stillValid(player));
+		return this.isPresentationBindingUsable()
+			&& (this.serverContainer == null || this.serverContainer.stillValid(player));
 	}
 
 	@Override
@@ -168,7 +169,7 @@ public final class IntegratedBagContainer implements Container {
 
 	@Override
 	public void clearContent() {
-		if (!this.isBindingValid()) {
+		if (!this.isPresentationBindingUsable()) {
 			return;
 		}
 		if (this.serverContainer != null) {
@@ -176,6 +177,17 @@ public final class IntegratedBagContainer implements Container {
 		} else {
 			this.clientItems.clear();
 		}
+	}
+
+	/**
+	 * Keeps a client prediction mirror visible while an equipment-component update invalidates its
+	 * captured handle and the server refreshes it. Authoritative containers still require the exact
+	 * captured stack identity and therefore continue to fail closed.
+	 */
+	private boolean isPresentationBindingUsable() {
+		return this.handle != null
+			&& this.sessionValid.getAsBoolean()
+			&& (this.serverContainer == null || this.handle.isValid());
 	}
 
 	private boolean accepts(EquippedBagHandle candidate) {

@@ -9,11 +9,11 @@ import net.minecraft.world.inventory.Slot;
 
 /** ScreenEvents background renderer for the three classic external panels. */
 final class IntegratedInventoryPanels {
-	private static final int PANEL_COLOR = 0xFFC6C6C6;
-	private static final int PANEL_BORDER = 0xFF303030;
-	private static final int SLOT_BORDER = 0xFF373737;
-	private static final int SLOT_COLOR = 0xFF8B8B8B;
-	private static final int SLOT_HIGHLIGHT = 0xFFFFFFFF;
+	private static final int PANEL_COLOR = 0xFF9A6847;
+	private static final int PANEL_BORDER = 0xFF3A2418;
+	private static final int SLOT_BORDER = 0xFF4A2D1E;
+	private static final int SLOT_COLOR = 0xFF70452E;
+	private static final int SLOT_HIGHLIGHT = 0xFFC99A73;
 
 	private IntegratedInventoryPanels() {
 	}
@@ -39,7 +39,7 @@ final class IntegratedInventoryPanels {
 			drawPanel(graphics, left + 176, top + 11, rightWidth, 66);
 		}
 		if (satchelHeight > 0) {
-			drawPanel(graphics, left + 2, top + 168, 172, satchelHeight);
+			drawPanel(graphics, left + 2, top + 166, 172, satchelHeight);
 		}
 		for (int index = IntegratedInventoryLayout.SATCHEL_START;
 			index < IntegratedInventoryLayout.TOTAL_SLOT_COUNT;

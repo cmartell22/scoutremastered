@@ -40,8 +40,8 @@ final class IntegratedInventoryTest {
 	void classicLayoutUsesCapacityPrefixesAndExternalPanels() {
 		assertEquals(8, IntegratedInventoryLayout.slotX(IntegratedInventoryRole.SATCHEL, 0));
 		assertEquals(152, IntegratedInventoryLayout.slotX(IntegratedInventoryRole.SATCHEL, 17));
-		assertEquals(174, IntegratedInventoryLayout.slotY(IntegratedInventoryRole.SATCHEL, 0));
-		assertEquals(192, IntegratedInventoryLayout.slotY(IntegratedInventoryRole.SATCHEL, 17));
+		assertEquals(172, IntegratedInventoryLayout.slotY(IntegratedInventoryRole.SATCHEL, 0));
+		assertEquals(190, IntegratedInventoryLayout.slotY(IntegratedInventoryRole.SATCHEL, 17));
 		assertEquals(-20, IntegratedInventoryLayout.slotX(IntegratedInventoryRole.LEFT_POUCH, 0));
 		assertEquals(-38, IntegratedInventoryLayout.slotX(IntegratedInventoryRole.LEFT_POUCH, 5));
 		assertEquals(180, IntegratedInventoryLayout.slotX(IntegratedInventoryRole.RIGHT_POUCH, 0));
@@ -52,7 +52,9 @@ final class IntegratedInventoryTest {
 		IntegratedInventoryData all = new IntegratedInventoryData(18, 6, 6);
 		assertTrue(IntegratedInventoryLayout.isInsideActivePanel(-21, 17, all));
 		assertTrue(IntegratedInventoryLayout.isInsideActivePanel(181, 17, all));
-		assertTrue(IntegratedInventoryLayout.isInsideActivePanel(8, 175, all));
+		assertFalse(IntegratedInventoryLayout.isInsideActivePanel(8, 165, all));
+		assertTrue(IntegratedInventoryLayout.isInsideActivePanel(8, 166, all));
+		assertFalse(IntegratedInventoryLayout.isInsideActivePanel(8, 208, all));
 		assertFalse(IntegratedInventoryLayout.isInsideActivePanel(80, 80, all));
 		assertFalse(IntegratedInventoryLayout.isInsideActivePanel(-21, 17, IntegratedInventoryData.EMPTY));
 		assertTrue(IntegratedInventoryLayout.isActiveMenuSlot(46, new IntegratedInventoryData(9, 0, 0)));
@@ -150,6 +152,8 @@ final class IntegratedInventoryTest {
 
 		live.set(new ItemStack(ModItems.SATCHEL));
 		assertEquals(0, container.activeCapacity());
+		assertTrue(container.isSlotActive(0));
+		assertEquals(7, container.getItem(0).getCount());
 		assertTrue(container.rebindClient(capture(live, IntegratedInventoryRole.SATCHEL), 9, () -> true));
 		assertEquals(9, container.activeCapacity());
 		assertEquals(7, container.getItem(0).getCount());
