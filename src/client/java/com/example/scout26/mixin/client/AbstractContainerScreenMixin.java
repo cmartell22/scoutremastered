@@ -68,6 +68,10 @@ abstract class AbstractContainerScreenMixin implements IntegratedScreenLayoutAcc
 	@Override
 	public abstract int scout26$topPos();
 
+	@Accessor("topPos")
+	@Override
+	public abstract void scout26$setTopPos(int topPos);
+
 	@Accessor("imageWidth")
 	@Override
 	public abstract int scout26$imageWidth();

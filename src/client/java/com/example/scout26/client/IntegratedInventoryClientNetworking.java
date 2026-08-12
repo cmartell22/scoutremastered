@@ -51,6 +51,7 @@ final class IntegratedInventoryClientNetworking {
 				} else {
 					menu.scout26$activateClient(equippedBags, data);
 				}
+				IntegratedInventoryPanels.reposition((InventoryScreen)context.client().screen);
 			} else {
 				if (context.player().inventoryMenu instanceof IntegratedInventoryMenu menu) {
 					menu.scout26$deactivateIntegratedInventory();

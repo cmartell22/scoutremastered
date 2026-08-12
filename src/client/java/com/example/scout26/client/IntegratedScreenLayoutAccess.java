@@ -6,6 +6,8 @@ public interface IntegratedScreenLayoutAccess {
 
 	int scout26$topPos();
 
+	void scout26$setTopPos(int topPos);
+
 	int scout26$imageWidth();
 
 	int scout26$imageHeight();

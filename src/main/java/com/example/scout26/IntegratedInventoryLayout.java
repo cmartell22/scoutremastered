@@ -11,11 +11,19 @@ public final class IntegratedInventoryLayout {
 	public static final int RIGHT_POUCH_END = 76;
 	public static final int TOTAL_SLOT_COUNT = 76;
 	public static final int SLOT_SPACING = 18;
+	public static final int VANILLA_IMAGE_WIDTH = 176;
+	public static final int VANILLA_IMAGE_HEIGHT = 166;
 	public static final int SATCHEL_X = 8;
 	public static final int SATCHEL_Y = 172;
-	public static final int LEFT_INNER_X = -20;
-	public static final int RIGHT_INNER_X = 180;
-	public static final int POUCH_Y = 17;
+	public static final int SATCHEL_PANEL_X = 0;
+	public static final int SATCHEL_PANEL_Y = VANILLA_IMAGE_HEIGHT;
+	public static final int LEFT_INNER_X = -10;
+	public static final int RIGHT_INNER_X = 170;
+	public static final int POUCH_Y = 84;
+	public static final int POUCH_PANEL_Y = 77;
+	public static final int POUCH_PANEL_HEIGHT = 66;
+	public static final int SIDE_PANEL_OVERLAP = 8;
+	public static final int RIGHT_POUCH_PANEL_X = VANILLA_IMAGE_WIDTH - SIDE_PANEL_OVERLAP;
 
 	private IntegratedInventoryLayout() {
 	}
@@ -59,6 +67,11 @@ public final class IntegratedInventoryLayout {
 		return capacity <= 0 ? 0 : capacity <= 9 ? 24 : 42;
 	}
 
+	/** Centers the vanilla inventory and its attached satchel panel as one combined surface. */
+	public static int satchelCenteringOffset(int capacity) {
+		return satchelPanelHeight(capacity) / 2;
+	}
+
 	public static boolean isActiveMenuSlot(int menuSlot, IntegratedInventoryData data) {
 		for (IntegratedInventoryRole role : IntegratedInventoryRole.values()) {
 			int start = menuStart(role);
@@ -71,18 +84,26 @@ public final class IntegratedInventoryLayout {
 
 	public static boolean isInsideActivePanel(double relativeX, double relativeY, IntegratedInventoryData data) {
 		int leftWidth = leftPanelWidth(data.leftPouchCapacity());
-		if (leftWidth > 0 && relativeX >= -leftWidth && relativeX < 0 && relativeY >= 11 && relativeY < 77) {
+		if (leftWidth > 0
+			&& relativeX >= -leftWidth + SIDE_PANEL_OVERLAP
+			&& relativeX < SIDE_PANEL_OVERLAP
+			&& relativeY >= POUCH_PANEL_Y
+			&& relativeY < POUCH_PANEL_Y + POUCH_PANEL_HEIGHT) {
 			return true;
 		}
 		int rightWidth = rightPanelWidth(data.rightPouchCapacity());
-		if (rightWidth > 0 && relativeX >= 176 && relativeX < 176 + rightWidth && relativeY >= 11 && relativeY < 77) {
+		if (rightWidth > 0
+			&& relativeX >= RIGHT_POUCH_PANEL_X
+			&& relativeX < RIGHT_POUCH_PANEL_X + rightWidth
+			&& relativeY >= POUCH_PANEL_Y
+			&& relativeY < POUCH_PANEL_Y + POUCH_PANEL_HEIGHT) {
 			return true;
 		}
 		int satchelHeight = satchelPanelHeight(data.satchelCapacity());
 		return satchelHeight > 0
-			&& relativeX >= 2
-			&& relativeX < 174
-			&& relativeY >= 166
-			&& relativeY < 166 + satchelHeight;
+			&& relativeX >= SATCHEL_PANEL_X
+			&& relativeX < SATCHEL_PANEL_X + VANILLA_IMAGE_WIDTH
+			&& relativeY >= SATCHEL_PANEL_Y
+			&& relativeY < SATCHEL_PANEL_Y + satchelHeight;
 	}
 }

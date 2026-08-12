@@ -23,8 +23,12 @@ final class IntegratedInventoryScreenEvents {
 			if (!(screen instanceof InventoryScreen inventoryScreen)
 				|| !IntegratedInventoryConfig.enabled()
 				|| client.player == null
-				|| client.player.hasInfiniteMaterials()
-				|| !INITIALIZED.add(screen)) {
+				|| client.player.hasInfiniteMaterials()) {
+				return;
+			}
+			// Reapply combined-surface centering after a window or GUI-scale resize.
+			IntegratedInventoryPanels.reposition(inventoryScreen);
+			if (!INITIALIZED.add(screen)) {
 				return;
 			}
 			ScreenEvents.afterBackground(screen).register((ignored, graphics, mouseX, mouseY, tickDelta) ->

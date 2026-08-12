@@ -18,6 +18,18 @@ final class IntegratedInventoryPanels {
 	private IntegratedInventoryPanels() {
 	}
 
+	static void reposition(InventoryScreen screen) {
+		if (!(screen instanceof IntegratedScreenLayoutAccess layout)
+			|| !(screen.getMenu() instanceof IntegratedInventoryMenu menu)) {
+			return;
+		}
+		int centeredVanillaTop = (screen.height - layout.scout26$imageHeight()) / 2;
+		int offset = IntegratedInventoryLayout.satchelCenteringOffset(
+			menu.scout26$clientLayoutData().satchelCapacity()
+		);
+		layout.scout26$setTopPos(centeredVanillaTop - offset);
+	}
+
 	static void render(InventoryScreen screen, GuiGraphicsExtractor graphics) {
 		if (!(screen instanceof IntegratedScreenLayoutAccess layout)
 			|| !(screen.getMenu() instanceof IntegratedInventoryMenu menu)) {
@@ -33,13 +45,31 @@ final class IntegratedInventoryPanels {
 		int rightWidth = IntegratedInventoryLayout.rightPanelWidth(data.rightPouchCapacity());
 		int satchelHeight = IntegratedInventoryLayout.satchelPanelHeight(data.satchelCapacity());
 		if (leftWidth > 0) {
-			drawPanel(graphics, left - leftWidth, top + 11, leftWidth, 66);
+			drawPanel(
+				graphics,
+				left - leftWidth + IntegratedInventoryLayout.SIDE_PANEL_OVERLAP,
+				top + IntegratedInventoryLayout.POUCH_PANEL_Y,
+				leftWidth,
+				IntegratedInventoryLayout.POUCH_PANEL_HEIGHT
+			);
 		}
 		if (rightWidth > 0) {
-			drawPanel(graphics, left + 176, top + 11, rightWidth, 66);
+			drawPanel(
+				graphics,
+				left + IntegratedInventoryLayout.RIGHT_POUCH_PANEL_X,
+				top + IntegratedInventoryLayout.POUCH_PANEL_Y,
+				rightWidth,
+				IntegratedInventoryLayout.POUCH_PANEL_HEIGHT
+			);
 		}
 		if (satchelHeight > 0) {
-			drawPanel(graphics, left + 2, top + 166, 172, satchelHeight);
+			drawPanel(
+				graphics,
+				left + IntegratedInventoryLayout.SATCHEL_PANEL_X,
+				top + IntegratedInventoryLayout.SATCHEL_PANEL_Y,
+				IntegratedInventoryLayout.VANILLA_IMAGE_WIDTH,
+				satchelHeight
+			);
 		}
 		for (int index = IntegratedInventoryLayout.SATCHEL_START;
 			index < IntegratedInventoryLayout.TOTAL_SLOT_COUNT;
@@ -52,8 +82,15 @@ final class IntegratedInventoryPanels {
 	}
 
 	private static void drawPanel(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
-		graphics.fill(x, y, x + width, y + height, PANEL_COLOR);
-		graphics.outline(x, y, width, height, PANEL_BORDER);
+		// Two-unit cut corners reproduce Scout's diagonal joins without a texture dependency.
+		graphics.fill(x + 2, y, x + width - 2, y + 1, PANEL_BORDER);
+		graphics.fill(x + 1, y + 1, x + width - 1, y + 2, PANEL_BORDER);
+		graphics.fill(x, y + 2, x + width, y + height - 2, PANEL_BORDER);
+		graphics.fill(x + 1, y + height - 2, x + width - 1, y + height - 1, PANEL_BORDER);
+		graphics.fill(x + 2, y + height - 1, x + width - 2, y + height, PANEL_BORDER);
+		graphics.fill(x + 2, y + 1, x + width - 2, y + 2, PANEL_COLOR);
+		graphics.fill(x + 1, y + 2, x + width - 1, y + height - 2, PANEL_COLOR);
+		graphics.fill(x + 2, y + height - 2, x + width - 2, y + height - 1, PANEL_COLOR);
 	}
 
 	private static void drawSlot(GuiGraphicsExtractor graphics, int x, int y) {
