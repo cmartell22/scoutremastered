@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 65
-last_updated_utc: "2026-08-12T05:46:44Z"
+state_revision: 66
+last_updated_utc: "2026-08-12T05:49:58Z"
 state_owner: "AI coding agent"
 project_status: "P7_COMPLETE_AWAITING_P8_AUTHORIZATION"
 current_phase: "P7-B"
@@ -881,6 +881,7 @@ repository_state:
   p7b_recipe_tab_alignment_fix_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
   p7b_accepted_ui_baseline_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
   p7b_manual_acceptance_tested_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
+  p7b_completion_commit: "89be4f4f62bb3d2480de2d32603639890f5730f5"
   last_known_good_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
   last_tested_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
   working_tree_expected_clean: true
@@ -1727,6 +1728,7 @@ latest_session:
     - "Final structural audits found exactly the four ADR-012 targets InventoryMenu, AbstractContainerScreen, RecipeBookComponent, and EffectsInInventory; no @Overwrite, forbidden target, common-source client reference, or packaged test class exists. The jar contains the required integrated-inventory classes and configuration."
     - "A secure online-mode dedicated server loaded Scout26 and reached Done; the known non-fatal Trinkets client-Mixin warning was unchanged. A default-disabled client loaded Scout26/resources to title screen; only expected unauthenticated development-service errors appeared. The server smoke ignored delayed Gradle stdin and was stopped by its exact empty-server PID after successful startup. Final runtime state has no project Java process and TCP 25565 is free."
     - "P7-B and P7 are complete. Integrated Inventory remains default-disabled, the B-key Pack Menu remains independent, BUG-P7B-001 through BUG-P7B-012 are fixed, no BUG-P7B-013 was assigned, and P8 remains blocked pending separate human authorization."
+    - "The completed acceptance document and revision-65 completion state were committed on main as 89be4f4f62bb3d2480de2d32603639890f5730f5 (`docs: complete P7-B acceptance`). This revision records that exact completion commit SHA."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
