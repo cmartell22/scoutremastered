@@ -2,6 +2,18 @@
 
 P7-B must remain active, not complete, until every item below is verified with no open P0/P1 issue. Use `integrated_inventory_enabled=true` in `config/scout26-client.properties` and restart the client for enabled checks. Restore `false` for the disabled fallback check.
 
+## Accepted integrated UI baseline
+
+Human acceptance on 2026-08-11 established source commit `797422cb707de27bfda4f704ffaf58579970ac90`
+as the successful enabled-survival UI and interaction baseline. The accepted session covered extensive item movement,
+repeated inventory open/close cycles with the recipe book both open and closed, and exchanging populated pouches and
+satchels for upgraded versions. All panels, recipe-book controls/tabs, and bag interactions remained functional with
+no observed loss, duplication, disappearance, clipping, flicker, or layout correction.
+
+This checkpoint does not implicitly check unrelated rows below. In particular, disabled fallback, destructive player
+lifecycle cases, creative exclusion, narrow-overlay/effects compatibility, and two-client dedicated-server isolation
+still require their explicit acceptance passes before P7-B can be completed.
+
 ## Disabled fallback
 
 - [ ] No integrated panels are visible and all appended slots remain dormant.

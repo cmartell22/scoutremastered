@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 45
-last_updated_utc: "2026-08-12T03:29:59Z"
+state_revision: 46
+last_updated_utc: "2026-08-12T03:34:48Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -879,6 +879,7 @@ repository_state:
   p7b_resize_callback_fix_commit: "eba01156b95d8e13e44bc92fc34757c45e6eecca"
   p7b_first_layout_fix_commit: "d41673497d1bd17640e295cc9832084bc128cc50"
   p7b_recipe_tab_alignment_fix_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
+  p7b_accepted_ui_baseline_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
   last_known_good_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
   last_tested_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
   working_tree_expected_clean: true
@@ -1421,7 +1422,7 @@ bug_regressions:
     - id: "BUG-P7B-012"
       phase: "P7-B"
       severity: "P2"
-      status: "FIXED_PENDING_MANUAL_RETEST"
+      status: "FIXED"
       summary: "Recipe-book category tabs remained at vanilla X after the book body moved left with the upgraded-pouch composition."
       impact: "The selected and visible recipe category tabs were drawn over the shifted recipe-book background instead of adjoining its left edge."
       root_cause: >
@@ -1439,6 +1440,7 @@ bug_regressions:
         - "Exact Minecraft 26.1.2 RecipeBookComponent.updateTabs source confirms the independent hard-coded X calculation and absolute setPosition call."
         - "The clean build executed all 10 tasks and passed all 39 tests; exactly four ADR-012 Mixin targets remain and no @Overwrite exists."
         - "The rebuilt client logged Player366 into P7B-test with no Scout26 or Mixin startup error and remains open for focused visual confirmation."
+        - "The human performed extensive item interactions and repeated inventory cycles with the recipe book open and closed, then accepted all UI elements including the corrected tabs as functional."
 
 session_handoff_protocol:
   startup_steps:
@@ -1698,6 +1700,8 @@ latest_session:
     - "The human accepted BUG-P7B-011's inventory geometry and seamless behavior, then exposed BUG-P7B-012: recipe category tabs remained at vanilla X and overlapped the shifted book body."
     - "Exact RecipeBookComponent.updateTabs source confirmed it bypasses getXOrigin and caches its own hard-coded tab X. 797422cb707de27bfda4f704ffaf58579970ac90 applies the same bounded shift after every vanilla tab layout pass."
     - "The clean production build passes 39/39 tests and the rebuilt client logged Player366 into P7B-test without a Scout26 or Mixin startup error. BUG-P7B-012 awaits focused visual confirmation; P8 remains blocked."
+    - "The human performed extensive item interactions, repeated inventory open/close cycles with and without the recipe book, and exchanged populated pouches and satchels for upgraded versions without any observed breakage."
+    - "The human accepted source commit 797422cb707de27bfda4f704ffaf58579970ac90 as the successful P7-B enabled-survival UI and interaction baseline, closing BUG-P7B-012. P7-B remains active only for the explicit untested acceptance rows; P8 remains blocked."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1830,9 +1834,8 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
-    - "BUG-P7B-012 requires a focused recipe-book tab alignment retest."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "Have the human open the recipe book in the running enabled client and confirm every category tab remains attached to the shifted book's left edge across close/reopen and filtering; then continue P7-B without entering P8."
+  next_action: "Continue the remaining P7-B acceptance matrix from docs/P7B_MANUAL_ACCEPTANCE.md, beginning with creative exclusion or the disabled fallback, without entering P8."
 
 agent_first_prompt:
   text: >
