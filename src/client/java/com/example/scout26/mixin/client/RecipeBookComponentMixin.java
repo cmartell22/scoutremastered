@@ -2,13 +2,16 @@ package com.example.scout26.mixin.client;
 
 import com.example.scout26.IntegratedInventoryLayout;
 import com.example.scout26.IntegratedInventoryMenu;
+import java.util.List;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookTabButton;
 import net.minecraft.world.inventory.RecipeBookMenu;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -21,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(RecipeBookComponent.class)
 abstract class RecipeBookComponentMixin {
 	@Shadow @Final protected RecipeBookMenu menu;
+	@Shadow @Final private List<RecipeBookTabButton> tabButtons;
 	@Shadow private int width;
 	@Shadow private boolean widthTooNarrow;
 	@Shadow public abstract boolean isVisible();
@@ -35,6 +39,21 @@ abstract class RecipeBookComponentMixin {
 				integrated.scout26$clientLayoutData()
 			);
 			callback.setReturnValue(callback.getReturnValue() - shift);
+		}
+	}
+
+	@Inject(method = "updateTabs(Z)V", at = @At("TAIL"), require = 1)
+	private void scout26$shiftRecipeBookTabs(boolean isFiltering, CallbackInfo callback) {
+		if (!this.widthTooNarrow && this.menu instanceof IntegratedInventoryMenu integrated) {
+			int shift = IntegratedInventoryLayout.wideRecipeBookShift(
+				this.width,
+				integrated.scout26$clientLayoutData()
+			);
+			if (shift > 0) {
+				for (RecipeBookTabButton tab : this.tabButtons) {
+					tab.setPosition(tab.getX() - shift, tab.getY());
+				}
+			}
 		}
 	}
 
