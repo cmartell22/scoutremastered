@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 40
-last_updated_utc: "2026-08-12T02:47:10Z"
+state_revision: 41
+last_updated_utc: "2026-08-12T02:53:39Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -875,8 +875,9 @@ repository_state:
   p7b_panel_refinement_commit: "7e6703618def7e801fb4719f01086b0a787f17e9"
   p7b_classic_panel_alignment_commit: "eaa6078c36e70e54862d80154c64885405a84b13"
   p7b_panel_join_polish_commit: "703234822d121c4e515e97d29b09e8953486d7b2"
-  last_known_good_commit: "703234822d121c4e515e97d29b09e8953486d7b2"
-  last_tested_commit: "703234822d121c4e515e97d29b09e8953486d7b2"
+  p7b_recipe_toggle_fix_commit: "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee"
+  last_known_good_commit: "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee"
+  last_tested_commit: "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1246,7 +1247,7 @@ bug_regressions:
     - id: "BUG-P7B-006"
       phase: "P7-B"
       severity: "P2"
-      status: "FIXED_PENDING_MANUAL_RETEST"
+      status: "FIXED"
       summary: "Any integrated bag mutation or equipped-satchel replacement made the panel disappear until the inventory screen was reopened."
       impact: "Normal pickup, placement, removal, double-click collection, and satchel swaps interrupted Integrated Inventory use, although reopening E restored it and the B-key Pack Menu remained available."
       root_cause: >
@@ -1276,10 +1277,11 @@ bug_regressions:
         - "The final clean build passed 39 tests with zero failures, errors, or skips and retained exactly the four ADR-012 Mixin targets with no @Overwrite."
         - "Human retest confirmed the panel persists after interactions but exposed one residual bag-only frame flicker."
         - "The stale-client regression now proves the mirror remains visible with its synchronized contents while exact active capacity is zero; the authoritative stale-handle regression remains fail-closed."
+        - "After the mirror-preserving refinement, the human described the recipe-book toggle as the only remaining issue; no residual bag-panel flicker was reported."
     - id: "BUG-P7B-007"
       phase: "P7-B"
       severity: "P2"
-      status: "FIXED_PENDING_MANUAL_RETEST"
+      status: "FIXED"
       summary: "The satchel panel had a two-unit gap below the vanilla inventory, clipped the upgraded panel at the acceptance resolution, and used undifferentiated vanilla gray styling."
       impact: "The gap consumed four physical pixels at GUI scale 2, enough to cut off the upgraded satchel panel at 854x480, and the gray panel did not visually distinguish bag storage."
       root_cause: >
@@ -1305,10 +1307,11 @@ bug_regressions:
         - "The next human screenshot confirmed the brown panel and removed gap but still showed the second upgraded row clipped because the vanilla-only surface remained vertically centered."
         - "The initial combined-surface correction passed the 39-test clean build before the lower-border refinement."
         - "The following human screenshot confirmed full clearance but exposed the one-unit lower inset versus vanilla's five-unit border; the final geometry locks symmetric five-unit insets and offsets 14/23."
+        - "The human accepted the final graphics as perfect after the symmetric-border refinement."
     - id: "BUG-P7B-008"
       phase: "P7-B"
       severity: "P2"
-      status: "FIXED_PENDING_MANUAL_RETEST"
+      status: "FIXED"
       summary: "Pouch panels sat beside the equipment area instead of forming a continuous chamfered grid with the three-row player inventory."
       impact: "Both pouches appeared too high, a ten-unit horizontal gap broke the inventory-grid rhythm, and the upgraded left pouch looked uneven or reversed despite its inner-first slot ordering."
       root_cause: >
@@ -1328,6 +1331,7 @@ bug_regressions:
         - "The human comparison screenshot shows classic pouch slots on the exact same three horizontal grid lines as vanilla and the inner columns directly adjoining its outer columns."
         - "The final clean build executed all 10 tasks and passed 39 tests with zero failures, errors, or skips."
         - "Human refinement feedback identified dark pixels on the diagonal joins and a right-side background pixel shadowing the last vanilla slot; the join now contains brown only inside the vanilla surface."
+        - "The human accepted the final graphics as perfect after the brown-only join refinement."
     - id: "BUG-P7B-009"
       phase: "P7-B"
       severity: "P2"
@@ -1337,18 +1341,24 @@ bug_regressions:
       root_cause: >
         InventoryScreen derives the recipe button from screen height rather than topPos and creates it before the
         server-derived satchel capacity arrives. Scout26 shifted topPos after acknowledgement but did not apply the
-        identical offset to the already-created 20x18 ImageButton.
+        identical offset to the already-created 20x18 ImageButton. The first correction positioned it on open, but
+        AbstractRecipeBookScreen recalculates and writes the original height-based button position on every open/close
+        click, so the button dropped back down after either toggle.
       fix: >
         During the same reposition pass, identify the InventoryScreen recipe ImageButton by its vanilla dimensions
         and set its Y to height/2-22 minus the server-derived satchel centering offset. This runs on acknowledgement,
-        capacity refresh, and ScreenEvents reinitialization/resizing together with topPos.
-      fixed_in_commit: "703234822d121c4e515e97d29b09e8953486d7b2"
+        capacity refresh, ScreenEvents reinitialization/resizing, and immediately before every inventory-frame widget
+        extraction so a vanilla click-driven reset is corrected before it can render.
+      initial_fix_commit: "703234822d121c4e515e97d29b09e8953486d7b2"
+      fixed_in_commit: "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee"
       regression_tests:
         - "IntegratedInventoryTest.classicLayoutUsesCapacityPrefixesAndExternalPanels"
       evidence:
         - "The human screenshot shows the recipe-book control shifted into the first player-inventory row after combined-surface centering."
         - "The layout regression locks the 248-unit-screen upgraded-satchel recipe-button Y to 79, preserving vanilla relative y=61."
         - "The final clean build executed all 10 tasks and passed 39 tests with zero failures, errors, or skips."
+        - "Human retest confirmed initial placement but reproduced the lower reset on every recipe-book open and close click."
+        - "The toggle refinement changes no accepted panel geometry and the clean build again passed all 39 tests."
 
 session_handoff_protocol:
   startup_steps:
@@ -1594,6 +1604,9 @@ latest_session:
     - "Human refinement feedback approved the overall alignment but found the satchel's lower inset one unit thick, dark side-join pixels shadowing vanilla, and BUG-P7B-009's recipe-book button left behind by vertical recentering."
     - "703234822d121c4e515e97d29b09e8953486d7b2 makes satchel insets symmetrically five units, replaces side joins with seven-unit brown-only diagonals whose dark borders remain outside vanilla, and applies the satchel offset to the recipe button during every reposition pass."
     - "The clean production build passes 39/39 tests. BUG-P7B-006/007/008/009 remain pending human visual/interaction retest; P8 remains blocked."
+    - "The human accepted all final panel graphics and reported the recipe-book button as the only remaining issue, closing BUG-P7B-006/007/008; opening or closing the book still reset the button to vanilla's unshifted Y."
+    - "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee reapplies the accepted positioning immediately before every inventory-frame widget extraction, after click handling and before the reset button can render."
+    - "The clean production build passes 39/39 tests. Only BUG-P7B-009 remains pending this focused human toggle retest; P8 remains blocked."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1675,6 +1688,7 @@ latest_session:
     - "BUG-P7B-007/008 classic-alignment baseline: all 39 tests were up to date before edits."
     - "BUG-P7B-007/008 final production clean build: all 10 actionable tasks executed and 39 tests passed with zero failures, errors, or skips; exactly four Mixin targets remain and no @Overwrite exists."
     - "BUG-P7B-007/008/009 polish checkpoint: all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
+    - "BUG-P7B-009 toggle refinement: all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1715,9 +1729,9 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
-    - "BUG-P7B-006, BUG-P7B-007, BUG-P7B-008, and BUG-P7B-009 refinements require human visual and interaction retest."
+    - "BUG-P7B-009 requires one focused human recipe-book open/close toggle retest."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "Launch the normal enabled client and have the human confirm symmetric satchel borders, brown-only side joins with no vanilla-slot shadow, and restored recipe-book button placement; then retest bag interactions for residual flicker before continuing P7-B without entering P8."
+  next_action: "Launch the normal enabled client and have the human repeatedly open and close the recipe book while an upgraded satchel is equipped, confirming the button never leaves its accepted Y; then continue the remaining P7-B matrix without entering P8."
 
 agent_first_prompt:
   text: >
