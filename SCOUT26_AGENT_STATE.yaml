@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 41
-last_updated_utc: "2026-08-12T02:53:39Z"
+state_revision: 42
+last_updated_utc: "2026-08-12T03:05:08Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -876,8 +876,9 @@ repository_state:
   p7b_classic_panel_alignment_commit: "eaa6078c36e70e54862d80154c64885405a84b13"
   p7b_panel_join_polish_commit: "703234822d121c4e515e97d29b09e8953486d7b2"
   p7b_recipe_toggle_fix_commit: "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee"
-  last_known_good_commit: "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee"
-  last_tested_commit: "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee"
+  p7b_resize_callback_fix_commit: "eba01156b95d8e13e44bc92fc34757c45e6eecca"
+  last_known_good_commit: "eba01156b95d8e13e44bc92fc34757c45e6eecca"
+  last_tested_commit: "eba01156b95d8e13e44bc92fc34757c45e6eecca"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1359,6 +1360,31 @@ bug_regressions:
         - "The final clean build executed all 10 tasks and passed 39 tests with zero failures, errors, or skips."
         - "Human retest confirmed initial placement but reproduced the lower reset on every recipe-book open and close click."
         - "The toggle refinement changes no accepted panel geometry and the clean build again passed all 39 tests."
+    - id: "BUG-P7B-010"
+      phase: "P7-B"
+      severity: "P2"
+      status: "FIXED_PENDING_MANUAL_RETEST"
+      summary: "Reopening inventory while the recipe book persisted open removed all integrated panel rendering for that screen session."
+      impact: >
+        With all bags equipped, the wide recipe book and vanilla inventory reopened normally but every bag panel and
+        slot presentation disappeared. Repeated inventory reopenings while the book remained open did not recover it;
+        the per-frame recipe-button correction disappeared at the same time.
+      root_cause: >
+        A server acknowledgement with an already-open wide recipe book and left pouch deliberately calls Screen.resize
+        to recompute horizontal placement. Fabric Screen API recreates remove, after-background, and all other per-screen
+        event objects before both init and resize. Scout26's weak identity guard correctly prevented a duplicate session
+        open intent, but it returned before registering callbacks on the new event objects. Rendering and removal
+        lifecycle hooks were therefore lost for the rest of that resized screen instance.
+      fix: >
+        On every AFTER_INIT invocation, reapply positioning and register render/removal callbacks against the current
+        Fabric event objects. Only then consult the weak per-screen identity set to gate beginSession and the C2S open
+        intent. A resize now refreshes callbacks without opening a second server session, while a new screen still sends
+        exactly one open intent and its current remove callback closes the session normally.
+      fixed_in_commit: "eba01156b95d8e13e44bc92fc34757c45e6eecca"
+      evidence:
+        - "The human supplied a deterministic five-step reproduction: persist the wide book open, close/reopen inventory, observe all bag panels missing, close the book, and observe the button correction missing until a book-closed inventory reopen."
+        - "Exact Fabric Screen API 5.1.0+981dd9b24c ScreenMixin bytecode shows beforeInit is invoked for both init and resize and replaces removeEvent, afterBackgroundEvent, and every other per-screen event object before AFTER_INIT fires."
+        - "The clean build executed all 10 tasks and passed 39 tests with zero failures, errors, or skips."
 
 session_handoff_protocol:
   startup_steps:
@@ -1607,6 +1633,9 @@ latest_session:
     - "The human accepted all final panel graphics and reported the recipe-book button as the only remaining issue, closing BUG-P7B-006/007/008; opening or closing the book still reset the button to vanilla's unshifted Y."
     - "a323575a1a1abec9c9cb18aa040d4bc60eb4e4ee reapplies the accepted positioning immediately before every inventory-frame widget extraction, after click handling and before the reset button can render."
     - "The clean production build passes 39/39 tests. Only BUG-P7B-009 remains pending this focused human toggle retest; P8 remains blocked."
+    - "Focused follow-up exposed BUG-P7B-010: reopening inventory with the recipe book persisted open triggered the intentional wide-book resize, after which all integrated panels and the per-frame button correction vanished for that screen."
+    - "Exact Fabric ScreenMixin bytecode confirmed resize recreates every per-screen event object; the weak identity guard was incorrectly skipping callback registration as well as the duplicate open intent."
+    - "eba01156b95d8e13e44bc92fc34757c45e6eecca re-registers render/removal callbacks on every init/resize while retaining one session-open intent per screen identity. The clean production build passes 39/39 tests; BUG-P7B-009/010 await the combined human lifecycle retest and P8 remains blocked."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1689,6 +1718,7 @@ latest_session:
     - "BUG-P7B-007/008 final production clean build: all 10 actionable tasks executed and 39 tests passed with zero failures, errors, or skips; exactly four Mixin targets remain and no @Overwrite exists."
     - "BUG-P7B-007/008/009 polish checkpoint: all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
     - "BUG-P7B-009 toggle refinement: all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
+    - "BUG-P7B-010 resize-callback refinement: exact Fabric ScreenMixin bytecode inspected; all 10 clean-build tasks executed and 39 tests passed with zero failures, errors, or skips."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1729,9 +1759,9 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
-    - "BUG-P7B-009 requires one focused human recipe-book open/close toggle retest."
+    - "BUG-P7B-009 and BUG-P7B-010 require the focused recipe-book toggle plus close/reopen lifecycle retest."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "Launch the normal enabled client and have the human repeatedly open and close the recipe book while an upgraded satchel is equipped, confirming the button never leaves its accepted Y; then continue the remaining P7-B matrix without entering P8."
+  next_action: "Launch the normal enabled client with all bags equipped; have the human open the recipe book, close/reopen inventory while it persists open, close the book, and repeat the cycle while confirming panels and button placement remain stable; then continue P7-B without entering P8."
 
 agent_first_prompt:
   text: >
