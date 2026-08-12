@@ -41,7 +41,7 @@ abstract class EffectsInInventoryMixin {
 		int vanillaWidth = ((IntegratedScreenLayoutAccess)screen).scout26$imageWidth();
 		if (screen instanceof InventoryScreen && screen.getMenu() instanceof IntegratedInventoryMenu menu) {
 			return vanillaWidth + IntegratedInventoryLayout.rightPanelWidth(
-				menu.scout26$integratedInventoryData().rightPouchCapacity()
+				menu.scout26$clientLayoutData().rightPouchCapacity()
 			);
 		}
 		return vanillaWidth;

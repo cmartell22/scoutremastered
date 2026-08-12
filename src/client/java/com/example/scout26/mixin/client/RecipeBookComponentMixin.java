@@ -27,7 +27,7 @@ abstract class RecipeBookComponentMixin {
 	@Inject(method = "updateScreenPosition(II)I", at = @At("RETURN"), cancellable = true, require = 1)
 	private void scout26$reserveLeftPouchWidth(int width, int imageWidth, CallbackInfoReturnable<Integer> callback) {
 		if (this.isVisible() && !this.widthTooNarrow && this.menu instanceof IntegratedInventoryMenu integrated) {
-			int offset = IntegratedInventoryLayout.leftPanelWidth(integrated.scout26$integratedInventoryData().leftPouchCapacity());
+			int offset = IntegratedInventoryLayout.leftPanelWidth(integrated.scout26$clientLayoutData().leftPouchCapacity());
 			if (offset > 0) {
 				callback.setReturnValue(callback.getReturnValue() + offset);
 			}

@@ -59,6 +59,16 @@ public final class IntegratedInventoryLayout {
 		return capacity <= 0 ? 0 : capacity <= 9 ? 24 : 42;
 	}
 
+	public static boolean isActiveMenuSlot(int menuSlot, IntegratedInventoryData data) {
+		for (IntegratedInventoryRole role : IntegratedInventoryRole.values()) {
+			int start = menuStart(role);
+			if (menuSlot >= start && menuSlot < start + data.capacity(role)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static boolean isInsideActivePanel(double relativeX, double relativeY, IntegratedInventoryData data) {
 		int leftWidth = leftPanelWidth(data.leftPouchCapacity());
 		if (leftWidth > 0 && relativeX >= -leftWidth && relativeX < 0 && relativeY >= 11 && relativeY < 77) {

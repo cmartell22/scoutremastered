@@ -23,7 +23,7 @@ final class IntegratedInventoryPanels {
 			|| !(screen.getMenu() instanceof IntegratedInventoryMenu menu)) {
 			return;
 		}
-		IntegratedInventoryData data = menu.scout26$integratedInventoryData();
+		IntegratedInventoryData data = menu.scout26$clientLayoutData();
 		if (!data.hasAnyBag()) {
 			return;
 		}
@@ -45,7 +45,7 @@ final class IntegratedInventoryPanels {
 			index < IntegratedInventoryLayout.TOTAL_SLOT_COUNT;
 			index++) {
 			Slot slot = screen.getMenu().getSlot(index);
-			if (slot.isActive()) {
+			if (IntegratedInventoryLayout.isActiveMenuSlot(index, data)) {
 				drawSlot(graphics, left + slot.x - 1, top + slot.y - 1);
 			}
 		}
@@ -57,9 +57,8 @@ final class IntegratedInventoryPanels {
 	}
 
 	private static void drawSlot(GuiGraphicsExtractor graphics, int x, int y) {
-		graphics.fill(x, y, x + 18, y + 18, SLOT_BORDER);
+		graphics.fill(x, y, x + 18, y + 18, SLOT_HIGHLIGHT);
+		graphics.fill(x, y, x + 17, y + 17, SLOT_BORDER);
 		graphics.fill(x + 1, y + 1, x + 17, y + 17, SLOT_COLOR);
-		graphics.fill(x + 1, y + 1, x + 17, y + 2, SLOT_HIGHLIGHT);
-		graphics.fill(x + 1, y + 1, x + 2, y + 17, SLOT_HIGHLIGHT);
 	}
 }

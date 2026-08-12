@@ -55,6 +55,31 @@ final class IntegratedInventoryTest {
 		assertTrue(IntegratedInventoryLayout.isInsideActivePanel(8, 175, all));
 		assertFalse(IntegratedInventoryLayout.isInsideActivePanel(80, 80, all));
 		assertFalse(IntegratedInventoryLayout.isInsideActivePanel(-21, 17, IntegratedInventoryData.EMPTY));
+		assertTrue(IntegratedInventoryLayout.isActiveMenuSlot(46, new IntegratedInventoryData(9, 0, 0)));
+		assertTrue(IntegratedInventoryLayout.isActiveMenuSlot(54, new IntegratedInventoryData(9, 0, 0)));
+		assertFalse(IntegratedInventoryLayout.isActiveMenuSlot(55, new IntegratedInventoryData(9, 0, 0)));
+		assertTrue(IntegratedInventoryLayout.isActiveMenuSlot(69, new IntegratedInventoryData(0, 6, 0)));
+		assertFalse(IntegratedInventoryLayout.isActiveMenuSlot(70, new IntegratedInventoryData(0, 6, 0)));
+	}
+
+	@Test
+	void refreshTrackerDebouncesEachAuthoritativeSessionMismatch() {
+		IntegratedInventoryData satchel = new IntegratedInventoryData(9, 0, 0);
+		IntegratedInventoryRefreshTracker tracker = new IntegratedInventoryRefreshTracker();
+		tracker.beginSession();
+		assertFalse(tracker.shouldRequest(satchel, IntegratedInventoryData.EMPTY, satchel));
+		tracker.completeRequest(true);
+		assertFalse(tracker.shouldRequest(satchel, satchel, satchel));
+
+		assertTrue(tracker.shouldRequest(satchel, IntegratedInventoryData.EMPTY, satchel));
+		assertFalse(tracker.shouldRequest(satchel, IntegratedInventoryData.EMPTY, satchel));
+		tracker.completeRequest(false);
+		assertFalse(tracker.shouldRequest(satchel, IntegratedInventoryData.EMPTY, satchel));
+		assertFalse(tracker.shouldRequest(satchel, satchel, satchel));
+
+		assertTrue(tracker.shouldRequest(satchel, IntegratedInventoryData.EMPTY, IntegratedInventoryData.EMPTY));
+		tracker.endSession();
+		assertFalse(tracker.shouldRequest(satchel, IntegratedInventoryData.EMPTY, IntegratedInventoryData.EMPTY));
 	}
 
 	@Test

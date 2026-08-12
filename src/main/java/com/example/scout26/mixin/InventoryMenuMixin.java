@@ -50,6 +50,9 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 	@Unique
 	private Player scout26$owner;
 
+	@Unique
+	private IntegratedInventoryData scout26$clientLayoutData = IntegratedInventoryData.EMPTY;
+
 	@Inject(
 		method = "<init>(Lnet/minecraft/world/entity/player/Inventory;ZLnet/minecraft/world/entity/player/Player;)V",
 		at = @At("RETURN"),
@@ -122,6 +125,7 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 	@Override
 	public void scout26$activateClient(TrinketsIntegration.EquippedBags bags, IntegratedInventoryData data) {
 		this.scout26$deactivateIntegratedInventory();
+		this.scout26$clientLayoutData = data;
 		this.scout26$bindClient(IntegratedInventoryRole.SATCHEL, bags.satchel(), data.satchelCapacity());
 		this.scout26$bindClient(IntegratedInventoryRole.LEFT_POUCH, bags.leftPouch(), data.leftPouchCapacity());
 		this.scout26$bindClient(IntegratedInventoryRole.RIGHT_POUCH, bags.rightPouch(), data.rightPouchCapacity());
@@ -129,6 +133,7 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 
 	@Override
 	public void scout26$finalizeClientBindings(TrinketsIntegration.EquippedBags bags, IntegratedInventoryData data) {
+		this.scout26$clientLayoutData = data;
 		this.scout26$rebindClient(IntegratedInventoryRole.SATCHEL, bags.satchel(), data.satchelCapacity());
 		this.scout26$rebindClient(IntegratedInventoryRole.LEFT_POUCH, bags.leftPouch(), data.leftPouchCapacity());
 		this.scout26$rebindClient(IntegratedInventoryRole.RIGHT_POUCH, bags.rightPouch(), data.rightPouchCapacity());
@@ -137,6 +142,7 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 	@Override
 	public void scout26$deactivateIntegratedInventory() {
 		this.scout26$integratedContainers.values().forEach(IntegratedBagContainer::deactivate);
+		this.scout26$clientLayoutData = IntegratedInventoryData.EMPTY;
 	}
 
 	@Override
@@ -146,6 +152,11 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 			this.scout26$capacity(IntegratedInventoryRole.LEFT_POUCH),
 			this.scout26$capacity(IntegratedInventoryRole.RIGHT_POUCH)
 		);
+	}
+
+	@Override
+	public IntegratedInventoryData scout26$clientLayoutData() {
+		return this.scout26$clientLayoutData;
 	}
 
 	@Override

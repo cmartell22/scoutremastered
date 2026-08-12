@@ -52,7 +52,7 @@ abstract class AbstractContainerScreenMixin implements IntegratedScreenLayoutAcc
 			|| !(inventoryScreen.getMenu() instanceof IntegratedInventoryMenu menu)) {
 			return original;
 		}
-		IntegratedInventoryData data = menu.scout26$integratedInventoryData();
+		IntegratedInventoryData data = menu.scout26$clientLayoutData();
 		return !IntegratedInventoryLayout.isInsideActivePanel(
 			mouseX - this.scout26$leftPos(),
 			mouseY - this.scout26$topPos(),

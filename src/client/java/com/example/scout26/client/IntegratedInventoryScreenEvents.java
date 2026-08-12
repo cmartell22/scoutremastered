@@ -31,6 +31,7 @@ final class IntegratedInventoryScreenEvents {
 				IntegratedInventoryPanels.render(inventoryScreen, graphics)
 			);
 			ScreenEvents.remove(screen).register(ignored -> {
+				IntegratedInventoryClientNetworking.endSession();
 				if (client.player != null && client.player.inventoryMenu instanceof IntegratedInventoryMenu menu) {
 					menu.scout26$deactivateIntegratedInventory();
 				}
@@ -39,6 +40,7 @@ final class IntegratedInventoryScreenEvents {
 				}
 			});
 			if (ClientPlayNetworking.canSend(OpenIntegratedInventoryPayload.TYPE)) {
+				IntegratedInventoryClientNetworking.beginSession();
 				ClientPlayNetworking.send(OpenIntegratedInventoryPayload.INSTANCE);
 			}
 		});

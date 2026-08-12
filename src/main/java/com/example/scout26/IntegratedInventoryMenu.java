@@ -14,6 +14,8 @@ public interface IntegratedInventoryMenu {
 
 	IntegratedInventoryData scout26$integratedInventoryData();
 
+	IntegratedInventoryData scout26$clientLayoutData();
+
 	boolean scout26$hasActiveIntegratedInventory();
 
 	boolean scout26$isIntegratedSessionValid(Player player);
