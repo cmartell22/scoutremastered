@@ -5,18 +5,18 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 66
-last_updated_utc: "2026-08-12T05:49:58Z"
+state_revision: 67
+last_updated_utc: "2026-08-12T06:28:57Z"
 state_owner: "AI coding agent"
-project_status: "P7_COMPLETE_AWAITING_P8_AUTHORIZATION"
-current_phase: "P7-B"
-current_task: "P7B_COMPLETE"
+project_status: "P8_RELEASE_CANDIDATE_COMPLETE_LOCAL_TAGGED"
+current_phase: "P8"
+current_task: "P8_COMPLETE"
 
 project:
-  working_name: "Scout26"
-  public_name: null
-  mod_id: null
-  java_package: null
+  working_name: "Scout Remastered"
+  public_name: "Scout Remastered"
+  mod_id: "scoutremastered"
+  java_package: "io.github.cmartell22.scoutremastered"
   repository: null
   target_platform: "Fabric"
   target_minecraft_line: "26.1.x"
@@ -24,11 +24,12 @@ project:
   java_version: 25
   inspiration_repo: "https://github.com/danieelkx/Scout-Recrafted"
   inspiration_license: "LGPL-2.1"
-  new_project_license: null
+  new_project_license: "MIT"
   release_goal: "A stable, modern, Scout-inspired wearable bag mod for Minecraft 26.1.x."
   naming_note: >
-    Scout26 is only a working codename. Do not publish artifacts under this name until the human
-    chooses the final project name, mod_id, Java package, and license.
+    The temporary Scout26 identifiers were replaced in P8 with the human-approved Scout Remastered,
+    scoutremastered, io.github.cmartell22.scoutremastered, and MIT identity. The temporary namespace
+    is not a supported data-migration target.
 
 north_star:
   player_experience:
@@ -750,7 +751,7 @@ phase_plan:
 
   P8:
     name: "Release candidate and packaging"
-    status: "BLOCKED"
+    status: "DONE"
     objective: "Produce a clean, documented release artifact."
     tasks:
       - "Run all release gates."
@@ -763,6 +764,40 @@ phase_plan:
       - "Release gates all green."
       - "State file points to tested commit and artifact."
       - "No temporary project identifiers remain unless explicitly approved."
+
+release_candidate:
+  status: "COMPLETE_LOCAL_ONLY"
+  version: "1.0.0-rc.1"
+  tag: "v1.0.0-rc.1"
+  producing_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
+  artifacts:
+    binary:
+      filename: "scoutremastered-1.0.0-rc.1.jar"
+      path: "build/libs/scoutremastered-1.0.0-rc.1.jar"
+      bytes: 104896
+      sha256: "E09E5FE25EA9CDB33E0BC788DD359A26F3823F732C71C4F012981A9B4AED53D1"
+    sources:
+      filename: "scoutremastered-1.0.0-rc.1-sources.jar"
+      path: "build/libs/scoutremastered-1.0.0-rc.1-sources.jar"
+      bytes: 57283
+      sha256: "7C25A9FD4F737D8F7586A5E383B934E0D5DDFDF34FC2D2C70692F40129B9F61E"
+  locked_versions:
+    minecraft: "26.1.2"
+    fabric_loader: "0.19.3"
+    fabric_api: "0.155.2+26.1.2"
+    trinkets_updated: "4.0.0-beta.3+26.1"
+    java: "25 (Microsoft OpenJDK 25.0.4+7)"
+    gradle: "9.5.1"
+    fabric_loom: "1.17.19"
+  verification:
+    automated: "Clean build passed with all 10 actionable tasks; 39 tests, zero failures, errors, or skips."
+    metadata: "fabric.mod.json embeds the approved name, ID, package entrypoints, MIT license, and locked dependency minima."
+    artifact: "Binary and source JARs contain LICENSE; binary JAR contains required metadata/mixin/classes and no test, Java-source, .gitkeep, state, or temporary-mixin entries."
+    structural: "Exactly four Scout Remastered Mixin targets remain (InventoryMenu, AbstractContainerScreen, RecipeBookComponent, EffectsInInventory); no @Overwrite or common-source client reference exists."
+    dedicated_server: "Isolated secure-default server loaded Scout Remastered and reached Done; only the known non-fatal Trinkets client-target warning appeared."
+    default_disabled_client: "Isolated client loaded Scout Remastered, completed resource-atlas initialization, and had no Scout Remastered/Mixin or missing-client-resource warning; expected unauthenticated development-session service errors were unrelated."
+    manual_rename_regression: "Human pass on isolated Creative world: default-disabled E inventory remained vanilla, B-key Pack Inventory opened, diamonds persisted through close/reopen, and nested-bag insertion was rejected."
+  publication: "Not pushed, uploaded, published, or released externally; local tag only."
 
 dependency_lock:
   status: "LOCKED"
@@ -882,8 +917,11 @@ repository_state:
   p7b_accepted_ui_baseline_commit: "797422cb707de27bfda4f704ffaf58579970ac90"
   p7b_manual_acceptance_tested_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
   p7b_completion_commit: "89be4f4f62bb3d2480de2d32603639890f5730f5"
-  last_known_good_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
-  last_tested_commit: "f9c92d56e7defedf99f3dc8b4965956e7971305f"
+  p8_release_identity_commit: "f2bd0ad594dbaf42693dda5ab8d90dce76c7b19e"
+  p8_client_resource_packaging_fix_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
+  p8_release_candidate_tag: "v1.0.0-rc.1"
+  last_known_good_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
+  last_tested_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1031,16 +1069,19 @@ open_questions:
   blocking_before_release:
     - id: "Q-001"
       question: "Final public project name?"
-      status: "OPEN"
+      status: "RESOLVED"
       blocking_phase: "P8"
+      answer: "Scout Remastered"
     - id: "Q-002"
       question: "Final mod_id and Java package?"
-      status: "OPEN"
+      status: "RESOLVED"
       blocking_phase: "P8"
+      answer: "scoutremastered; io.github.cmartell22.scoutremastered"
     - id: "Q-003"
       question: "New project's license?"
-      status: "OPEN"
+      status: "RESOLVED"
       blocking_phase: "P8"
+      answer: "MIT"
   nonblocking_now:
     - id: "Q-010"
       question: "Should base/upgraded capacities remain 9/18 and 3/6?"
@@ -1624,10 +1665,19 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7b-completion-022"
+  session_id: "p8-release-candidate-023"
   date: "2026-08-12"
   agent: "GPT-5.6"
   summary:
+    - "P8 was explicitly authorized and all three release-identity decisions were resolved: Scout Remastered, scoutremastered, io.github.cmartell22.scoutremastered, and MIT."
+    - "f2bd0ad594dbaf42693dda5ab8d90dce76c7b19e consistently renamed source packages/classes, resources/data IDs, payload/component IDs, tests, Gradle coordinates, metadata, client config, documentation, and release artifact identity; it added README, CHANGELOG.md, and MIT LICENSE."
+    - "The metadata dependency baseline remains Minecraft 26.1.2, Fabric Loader >=0.19.3, Fabric API >=0.155.2+26.1.2, Trinkets Updated >=4.0.0-beta.3+26.1, and Java >=25. No dependency was upgraded."
+    - "ddcdb89662e954fe3a177a6fab58528ea46fe42d keeps the required client-resource directory for development runs while excluding .gitkeep from both distributable JARs."
+    - "The final clean build at ddcdb89662e954fe3a177a6fab58528ea46fe42d executed all 10 tasks and passed all 39 tests with zero failures/errors/skips. The production JAR is scoutremastered-1.0.0-rc.1.jar (104896 bytes, SHA-256 E09E5FE25EA9CDB33E0BC788DD359A26F3823F732C71C4F012981A9B4AED53D1)."
+    - "Jar/static audits passed: embedded MIT LICENSE and metadata/mixin config are present; no development-only artifacts, @Overwrite, forbidden Mixin target, or common-source client reference exists."
+    - "Isolated dedicated-server and default-disabled development-client smokes passed. The server reached Done; the client completed resource-atlas initialization without Scout Remastered/Mixin or missing-client-resource warnings. Expected unauthenticated development-session errors and the known Trinkets server warning were unrelated."
+    - "The human passed focused post-rename manual acceptance in an isolated Creative world: default-disabled E inventory stayed vanilla, B opened Pack Inventory, diamonds persisted through close/reopen, and nested-bag insertion was rejected."
+    - "Temporary P8 runtime directories/logs were removed, TCP 25565 was free, and no project Java process remained. Annotated local tag v1.0.0-rc.1 points to ddcdb89662e954fe3a177a6fab58528ea46fe42d. No external publication occurred."
     - "The human explicitly authorized P6; activation was committed as d9f9dd5c3f0affe617b1ed4287ea853694b325c2."
     - "Added immutable compact bag tooltips with a five-entry detail limit and remainder line in 73658d7c6ecd69e3e5067c265f52f1fb541864d1."
     - "Added client-only index-aware third-person bag rendering, four recipes, component-preserving gold upgrades, PackScreen layout narration, and documentation in 0c3c1074527d1d1a3c771514c602ac1eb3175d4b."
@@ -1884,7 +1934,7 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers: []
-  next_action: "Await separate explicit human authorization before beginning P8; do not start release-candidate or packaging work automatically."
+  next_action: "P8 is complete. Preserve v1.0.0-rc.1 as the local release candidate; await separate explicit authorization before any push, upload, publication, or post-P8 work."
 
 agent_first_prompt:
   text: >
