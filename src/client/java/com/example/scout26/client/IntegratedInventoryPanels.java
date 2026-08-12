@@ -45,6 +45,9 @@ final class IntegratedInventoryPanels {
 			|| !(screen.getMenu() instanceof IntegratedInventoryMenu menu)) {
 			return;
 		}
+		// Vanilla resets the recipe button to its unshifted Y whenever the book is toggled.
+		// Normalize after input handling and before this frame extracts its widgets.
+		reposition(screen);
 		IntegratedInventoryData data = menu.scout26$clientLayoutData();
 		if (!data.hasAnyBag()) {
 			return;
