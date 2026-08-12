@@ -13,7 +13,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 
 /** Fabric ScreenEvents lifecycle and panel rendering required by ADR-012. */
 final class IntegratedInventoryScreenEvents {
-	private static final Set<Screen> INITIALIZED = Collections.newSetFromMap(new WeakHashMap<>());
+	private static final Set<Screen> SESSIONS_STARTED = Collections.newSetFromMap(new WeakHashMap<>());
 
 	private IntegratedInventoryScreenEvents() {
 	}
@@ -28,9 +28,8 @@ final class IntegratedInventoryScreenEvents {
 			}
 			// Reapply combined-surface centering after a window or GUI-scale resize.
 			IntegratedInventoryPanels.reposition(inventoryScreen);
-			if (!INITIALIZED.add(screen)) {
-				return;
-			}
+			// Fabric recreates every per-screen event object before both init and resize. Always
+			// register against the current objects, while sending the session-open intent only once.
 			ScreenEvents.afterBackground(screen).register((ignored, graphics, mouseX, mouseY, tickDelta) ->
 				IntegratedInventoryPanels.render(inventoryScreen, graphics)
 			);
@@ -43,6 +42,9 @@ final class IntegratedInventoryScreenEvents {
 					ClientPlayNetworking.send(CloseIntegratedInventoryPayload.INSTANCE);
 				}
 			});
+			if (!SESSIONS_STARTED.add(screen)) {
+				return;
+			}
 			if (ClientPlayNetworking.canSend(OpenIntegratedInventoryPayload.TYPE)) {
 				IntegratedInventoryClientNetworking.beginSession();
 				ClientPlayNetworking.send(OpenIntegratedInventoryPayload.INSTANCE);
