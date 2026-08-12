@@ -15,6 +15,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 /** Activates only the client prediction mirrors that match server-derived capacities. */
 final class IntegratedInventoryClientNetworking {
 	private static final IntegratedInventoryRefreshTracker REFRESH_TRACKER = new IntegratedInventoryRefreshTracker();
+	private static boolean horizontalResizePending;
 
 	private IntegratedInventoryClientNetworking() {
 	}
@@ -43,8 +44,11 @@ final class IntegratedInventoryClientNetworking {
 				&& !context.player().hasInfiniteMaterials()
 				&& context.player().inventoryMenu instanceof IntegratedInventoryMenu menu) {
 				IntegratedInventoryData data = payload.data();
+				IntegratedInventoryData previousLayout = menu.scout26$clientLayoutData();
+				horizontalResizePending = previousLayout.leftPouchCapacity() != data.leftPouchCapacity()
+					|| previousLayout.rightPouchCapacity() != data.rightPouchCapacity();
 				TrinketsIntegration.EquippedBags equippedBags = TrinketsIntegration.findEquippedBags(context.player());
-				if (menu.scout26$clientLayoutData().hasAnyBag()) {
+				if (menu.scout26$hasActiveIntegratedInventory()) {
 					// A refresh ACK precedes the full-state packet. Rebind without clearing the existing
 					// mirror so the already-rendered bag cannot blink out for that intervening frame.
 					menu.scout26$finalizeClientBindings(equippedBags, data);
@@ -72,14 +76,15 @@ final class IntegratedInventoryClientNetworking {
 						&& data.equals(IntegratedInventoryData.from(equippedBags))
 				);
 				InventoryScreen screen = (InventoryScreen)context.client().screen;
-				// Rebuild only for the late-acknowledgement case that changes horizontal placement: an
-				// already-open wide recipe book plus an active left pouch. Other layouts are already positioned.
-				if (data.leftPouchCapacity() > 0
+				// A normal open was seeded before init and needs no second layout pass. Rebuild only when
+				// the acknowledgement corrected that seed or an in-screen equipment change altered width.
+				if (horizontalResizePending
 					&& screen instanceof TrinketScreen trinketScreen
 					&& trinketScreen.trinkets$isRecipeBookOpen()
 					&& !trinketScreen.trinkets$isNarrow()) {
 					screen.resize(screen.width, screen.height);
 				}
+				horizontalResizePending = false;
 			} else {
 				if (context.player().inventoryMenu instanceof IntegratedInventoryMenu menu) {
 					menu.scout26$deactivateIntegratedInventory();
@@ -90,10 +95,12 @@ final class IntegratedInventoryClientNetworking {
 	}
 
 	static void beginSession() {
+		horizontalResizePending = false;
 		REFRESH_TRACKER.beginSession();
 	}
 
 	static void endSession() {
+		horizontalResizePending = false;
 		REFRESH_TRACKER.endSession();
 	}
 }

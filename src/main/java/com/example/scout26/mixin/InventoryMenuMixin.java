@@ -132,6 +132,13 @@ abstract class InventoryMenuMixin extends AbstractCraftingMenu implements Integr
 	}
 
 	@Override
+	public void scout26$previewClientLayout(IntegratedInventoryData data) {
+		// Presentation-only seed used before InventoryScreen.init. The dormant containers remain
+		// inactive until the server acknowledgement authorizes and binds the mirrored slots.
+		this.scout26$clientLayoutData = data;
+	}
+
+	@Override
 	public void scout26$finalizeClientBindings(TrinketsIntegration.EquippedBags bags, IntegratedInventoryData data) {
 		this.scout26$clientLayoutData = data;
 		this.scout26$rebindClient(IntegratedInventoryRole.SATCHEL, bags.satchel(), data.satchelCapacity());

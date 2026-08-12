@@ -50,6 +50,12 @@ final class IntegratedInventoryTest {
 		assertEquals(120, IntegratedInventoryLayout.slotY(IntegratedInventoryRole.RIGHT_POUCH, 2));
 		assertEquals(24, IntegratedInventoryLayout.leftPanelWidth(3));
 		assertEquals(42, IntegratedInventoryLayout.rightPanelWidth(6));
+		assertEquals(17, IntegratedInventoryLayout.leftPanelExtension(3));
+		assertEquals(35, IntegratedInventoryLayout.leftPanelExtension(6));
+		assertEquals(193, IntegratedInventoryLayout.combinedRightEdge(3));
+		assertEquals(211, IntegratedInventoryLayout.combinedRightEdge(6));
+		assertEquals(21, IntegratedInventoryLayout.wideRecipeBookShift(427, new IntegratedInventoryData(18, 6, 6)));
+		assertEquals(0, IntegratedInventoryLayout.wideRecipeBookShift(427, new IntegratedInventoryData(18, 3, 3)));
 		assertEquals(28, IntegratedInventoryLayout.satchelPanelHeight(9));
 		assertEquals(46, IntegratedInventoryLayout.satchelPanelHeight(18));
 		assertEquals(0, IntegratedInventoryLayout.satchelCenteringOffset(0));

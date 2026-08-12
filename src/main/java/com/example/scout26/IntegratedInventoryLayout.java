@@ -24,6 +24,9 @@ public final class IntegratedInventoryLayout {
 	public static final int POUCH_PANEL_HEIGHT = 66;
 	public static final int SIDE_PANEL_OVERLAP = 7;
 	public static final int RIGHT_POUCH_PANEL_X = VANILLA_IMAGE_WIDTH - SIDE_PANEL_OVERLAP;
+	private static final int RECIPE_BOOK_WIDTH = 147;
+	private static final int RECIPE_BOOK_X_OFFSET = 86;
+	private static final int RECIPE_BOOK_TAB_OVERHANG = 30;
 
 	private IntegratedInventoryLayout() {
 	}
@@ -61,6 +64,32 @@ public final class IntegratedInventoryLayout {
 
 	public static int rightPanelWidth(int capacity) {
 		return leftPanelWidth(capacity);
+	}
+
+	/** Width by which a left pouch extends beyond the vanilla inventory after its chamfered join. */
+	public static int leftPanelExtension(int capacity) {
+		return Math.max(0, leftPanelWidth(capacity) - SIDE_PANEL_OVERLAP);
+	}
+
+	/** Right edge of the combined inventory and right-pouch surface, relative to vanilla leftPos. */
+	public static int combinedRightEdge(int rightPouchCapacity) {
+		int rightWidth = rightPanelWidth(rightPouchCapacity);
+		return rightWidth == 0
+			? VANILLA_IMAGE_WIDTH
+			: Math.max(VANILLA_IMAGE_WIDTH, RIGHT_POUCH_PANEL_X + rightWidth);
+	}
+
+	/**
+	 * Moves the complete wide recipe-book composition left just enough to keep its right pouch on
+	 * screen. The shift is capped before the recipe tabs themselves would cross the left edge.
+	 */
+	public static int wideRecipeBookShift(int screenWidth, IntegratedInventoryData data) {
+		int vanillaInventoryLeft = 177 + (screenWidth - VANILLA_IMAGE_WIDTH - 200) / 2;
+		int desiredInventoryLeft = vanillaInventoryLeft + leftPanelExtension(data.leftPouchCapacity());
+		int overflow = Math.max(0, desiredInventoryLeft + combinedRightEdge(data.rightPouchCapacity()) - screenWidth);
+		int vanillaBookLeft = (screenWidth - RECIPE_BOOK_WIDTH) / 2 - RECIPE_BOOK_X_OFFSET;
+		int tabSafeShift = Math.max(0, vanillaBookLeft - RECIPE_BOOK_TAB_OVERHANG);
+		return Math.min(overflow, tabSafeShift);
 	}
 
 	public static int satchelPanelHeight(int capacity) {

@@ -1,8 +1,10 @@
 package com.example.scout26.client;
 
 import com.example.scout26.CloseIntegratedInventoryPayload;
+import com.example.scout26.IntegratedInventoryData;
 import com.example.scout26.IntegratedInventoryMenu;
 import com.example.scout26.OpenIntegratedInventoryPayload;
+import com.example.scout26.TrinketsIntegration;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import java.util.Collections;
@@ -19,6 +21,22 @@ final class IntegratedInventoryScreenEvents {
 	}
 
 	static void initialize() {
+		ScreenEvents.BEFORE_INIT.register((client, screen, width, height) -> {
+			if (!(screen instanceof InventoryScreen inventoryScreen)
+				|| !IntegratedInventoryConfig.enabled()
+				|| client.player == null
+				|| client.player.hasInfiniteMaterials()
+				|| !(inventoryScreen.getMenu() instanceof IntegratedInventoryMenu menu)
+				|| menu.scout26$hasActiveIntegratedInventory()) {
+				return;
+			}
+			// Equipped Trinkets are already synchronized before the screen opens. Seed only their
+			// dimensions so vanilla lays out its first frame correctly; the server still exclusively
+			// authorizes activation and sends every bag stack.
+			menu.scout26$previewClientLayout(IntegratedInventoryData.from(
+				TrinketsIntegration.findEquippedBags(client.player)
+			));
+		});
 		ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
 			if (!(screen instanceof InventoryScreen inventoryScreen)
 				|| !IntegratedInventoryConfig.enabled()

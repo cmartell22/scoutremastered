@@ -8,6 +8,8 @@ public interface IntegratedInventoryMenu {
 
 	void scout26$activateClient(TrinketsIntegration.EquippedBags bags, IntegratedInventoryData data);
 
+	void scout26$previewClientLayout(IntegratedInventoryData data);
+
 	void scout26$finalizeClientBindings(TrinketsIntegration.EquippedBags bags, IntegratedInventoryData data);
 
 	void scout26$deactivateIntegratedInventory();
