@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 36
-last_updated_utc: "2026-08-12T01:33:37Z"
+state_revision: 37
+last_updated_utc: "2026-08-12T01:55:44Z"
 state_owner: "AI coding agent"
 project_status: "P7B_IMPLEMENTED_AWAITING_MANUAL_ACCEPTANCE"
 current_phase: "P7-B"
@@ -871,8 +871,9 @@ repository_state:
   p7b_inventory_rebuild_fix_commit: "43050ca2143a5eb22d433e01b605334a4a978756"
   p7b_inventory_dimension_fix_commit: "b09f01f1277ed2b5ebd96ba2be11dc4b422aae20"
   p7b_binding_finalize_fix_commit: "2e9ac7456c57d0b169e0ba34583c5a887fbb047d"
-  last_known_good_commit: "2e9ac7456c57d0b169e0ba34583c5a887fbb047d"
-  last_tested_commit: "2e9ac7456c57d0b169e0ba34583c5a887fbb047d"
+  p7b_interaction_refresh_fix_commit: "a7ab309acf3e1ad143f75a221c651ff340d9a9b5"
+  last_known_good_commit: "a7ab309acf3e1ad143f75a221c651ff340d9a9b5"
+  last_tested_commit: "a7ab309acf3e1ad143f75a221c651ff340d9a9b5"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -1188,7 +1189,7 @@ bug_regressions:
     - id: "BUG-P7B-004"
       phase: "P7-B"
       severity: "P2"
-      status: "FIXED_PENDING_MANUAL_RETEST"
+      status: "FIXED"
       summary: "Equipped base and upgraded satchels do not display their 9/18-slot Integrated Inventory expansion, although the independent B-key Pack Menu exposes the bags correctly."
       impact: "Integrated Inventory storage remains inaccessible from the vanilla survival inventory for equipped satchels; the proven B-key Pack Menu is an unaffected workaround."
       root_cause: >
@@ -1212,6 +1213,7 @@ bug_regressions:
         - "Deterministic base-satchel trace: ACK server=9, active=9, fresh=9; the next tick active=0 while fresh=9, proving full-sync exact-handle invalidation."
         - "Post-fix deterministic trace: ready server=9, active=9, fresh=9 after the full vanilla sync."
         - "The final clean build passed all 38 tests with zero failures, errors, or skips; the built jar contains IntegratedInventoryReadyPayload and all temporary diagnostic code was removed."
+        - "Human retest confirmed both base and upgraded satchel expansions now render; the follow-up inverted-bevel and post-interaction invalidation defects are tracked separately as BUG-P7B-005 and BUG-P7B-006."
       fix: >
         Add an ordered IntegratedInventoryReadyPayload after sendAllDataToRemote. The existing acknowledgement still
         activates dormant slots before vanilla applies their contents; the ready phase then captures the replacement
@@ -1221,6 +1223,48 @@ bug_regressions:
       regression_tests:
         - "IntegratedInventoryTest.clientFinalizationRebindsExactReplacementWithoutDiscardingSyncedContents"
         - "IntegratedInventoryTest.sessionPayloadsCarryOnlyIntentAndServerDerivedCapacities"
+    - id: "BUG-P7B-005"
+      phase: "P7-B"
+      severity: "P2"
+      status: "FIXED_PENDING_MANUAL_RETEST"
+      summary: "Integrated satchel slots used an inverted raised bevel instead of vanilla's recessed slot appearance."
+      impact: "Base and upgraded satchel panels were readable but looked vertically inverted relative to every vanilla inventory slot."
+      root_cause: >
+        IntegratedInventoryPanels drew the white highlight on the top and left edges inside a dark outer rectangle.
+        Vanilla recessed slots use dark top/left edges and light bottom/right edges, so the custom bevel read as raised.
+      fix: >
+        Draw a white 18-pixel square first, overlay a dark 17-pixel top/left square, then fill the 16-pixel slot
+        interior. This leaves the light edge only on the bottom/right and matches vanilla's recessed direction.
+      fixed_in_commit: "a7ab309acf3e1ad143f75a221c651ff340d9a9b5"
+      evidence:
+        - "The human screenshot shows light top/left edges on the Scout26 row opposite the recessed vanilla slots immediately above it."
+        - "Client compilation and the final 39-test clean build pass; visual direction remains pending human retest."
+    - id: "BUG-P7B-006"
+      phase: "P7-B"
+      severity: "P2"
+      status: "FIXED_PENDING_MANUAL_RETEST"
+      summary: "Any integrated bag mutation or equipped-satchel replacement made the panel disappear until the inventory screen was reopened."
+      impact: "Normal pickup, placement, removal, double-click collection, and satchel swaps interrupted Integrated Inventory use, although reopening E restored it and the B-key Pack Menu remained available."
+      root_cause: >
+        The ready payload repaired the exact client handle only after the initial full state. Every later server
+        broadcast sends changed integrated slots before the changed Trinkets equipment ItemStack. Applying that last
+        equipment-slot packet replaces the client ItemStack object, correctly invalidating the exact handle again;
+        no subsequent ready phase existed until the screen was manually reopened.
+      fix: >
+        Retain separate server-derived client layout data so presentation remains stable during revalidation. An
+        end-client-tick tracker compares expected capacity, exact active binding, and freshly equipped capacity; one
+        mismatch transition sends the existing empty open intent. The server rediscovers and binds the current physical
+        bag, then ACK/full-state/ready restores the exact client handle. Persistent mismatches are debounced and cannot
+        spam requests, while server exact-identity mutation guards remain unchanged.
+      fixed_in_commit: "a7ab309acf3e1ad143f75a221c651ff340d9a9b5"
+      regression_tests:
+        - "IntegratedInventoryTest.refreshTrackerDebouncesEachAuthoritativeSessionMismatch"
+        - "IntegratedInventoryTest.classicLayoutUsesCapacityPrefixesAndExternalPanels"
+      evidence:
+        - "Exact Minecraft 26.1.2 source confirms AbstractContainerMenu.broadcastChanges walks slots in index order and ClientPacketListener replaces each synchronized client slot ItemStack."
+        - "Deterministic live pickup trace: initial ready expected=9/active=9/equipped=9; slot 46 click; one refresh at expected=9/active=0/equipped=9; final ready restored 9/9/9 in the same second."
+        - "All property-gated auto-equip/open/click hooks and diagnostic logs were removed before the clean production build."
+        - "The final clean build passed 39 tests with zero failures, errors, or skips and retained exactly the four ADR-012 Mixin targets with no @Overwrite."
 
 session_handoff_protocol:
   startup_steps:
@@ -1402,7 +1446,7 @@ session_history:
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
 latest_session:
-  session_id: "p7b-acceptance-020"
+  session_id: "p7b-acceptance-021"
   date: "2026-08-11"
   agent: "GPT-5.6"
   summary:
@@ -1451,6 +1495,12 @@ latest_session:
     - "2e9ac7456c57d0b169e0ba34583c5a887fbb047d adds a distinct ordered ready payload after sendAllDataToRemote and a client-only exact-handle finalization path that preserves the contents already synchronized into the fixed mirror slots."
     - "The post-fix deterministic run logged ready server=9, active=9, fresh=9. All property-gated auto-equip/open hooks and bounded logs were removed before the production build."
     - "The clean production build passed 38/38 tests and jar inspection found the new ready payload. BUG-P7B-004 is fixed pending a normal human base/upgraded-satchel visual retest; P7-B and P8 gates are unchanged."
+    - "Human retest confirmed both satchel capacities render, closing BUG-P7B-004, and exposed BUG-P7B-005's inverted custom-slot bevel plus BUG-P7B-006's panel invalidation after bag mutations, double-click collection, or satchel replacement."
+    - "Exact Minecraft broadcast/client packet source confirmed every changed bag component is followed by a replacement client Trinkets ItemStack, so the initial-only ready phase could not keep an exact client handle valid across later interactions."
+    - "a7ab309acf3e1ad143f75a221c651ff340d9a9b5 adds stable server-derived client layout metadata, a transition-debounced refresh tracker, and reuse of the existing server-authoritative open/ACK/full-state/ready handshake without weakening server identity checks."
+    - "The custom slot bevel now leaves the light edge on bottom/right, matching vanilla recessed slots. No new Mixin target or @Overwrite was added."
+    - "A deterministic live pickup from integrated slot 46 produced exactly one refresh request and restored expected/active/equipped capacity from 9/0/9 to 9/9/9 in the same second; all harness code was then removed."
+    - "The clean production build passes 39/39 tests. BUG-P7B-005 and BUG-P7B-006 remain fixed pending human visual/interaction retest; P7-B and P8 gates are unchanged."
   commands_run:
     - "Read all 1284 lines of SCOUT26_AGENT_STATE.yaml in bounded chunks and verify clean main at a24b51dbf5d2e22525e722b119e7b168b93e79c6 before P6 activation."
     - "Inspect exact Minecraft 26.1.2 Item tooltip, TransmuteRecipe, SmithingTransformRecipe, narration, and vanilla recipe sources."
@@ -1486,6 +1536,10 @@ latest_session:
     - "Trace ACK active=9 to next-tick active=0/fresh=9, implement ordered IntegratedInventoryReadyPayload finalization that preserves the already-synchronized client slot mirror, and add a focused identity-replacement regression."
     - ".\\gradlew.bat test --no-daemon --console=plain; run the deterministic post-fix client; verify ready server=9, active=9, fresh=9; remove every diagnostic hook; run .\\gradlew.bat clean build --no-daemon --console=plain."
     - "Audit the final jar for IntegratedInventoryReadyPayload, run git diff --check and git fsck, and commit the source fix as 2e9ac7456c57d0b169e0ba34583c5a887fbb047d."
+    - "Inspect the human follow-up screenshot and exact AbstractContainerMenu.broadcastChanges, ServerGamePacketListenerImpl.handleContainerClick, and ClientPacketListener slot/content synchronization sources."
+    - "Add server-derived client layout state plus IntegratedInventoryRefreshTracker; switch all client panel/outside-click/recipe/effect layout consumers to that stable metadata; reverse the custom bevel to recessed bottom/right highlighting."
+    - "Run the 39-test checkpoint, then use property-gated auto-equip/open/click hooks to pick up integrated slot 46 and capture one mismatch refresh plus restored ready state."
+    - "Remove every diagnostic hook, verify the exact four Mixin targets and no @Overwrite, run .\\gradlew.bat clean build --no-daemon --console=plain, git diff --check, and git fsck."
   tests_run:
     - "Baseline before P6: 27/27 tests passed with Loom 1.17.19."
     - "Current automated result: 30/30 tests pass, including tooltip immutability/limit and vanilla transmute component preservation."
@@ -1520,6 +1574,9 @@ latest_session:
     - "BUG-P7B-004 focused regression checkpoint: 38/38 tests passed after adding exact replacement rebinding and ready-payload codec coverage."
     - "BUG-P7B-004 deterministic post-fix runtime: ready server=9, active=9, fresh=9 after the full vanilla state sync."
     - "BUG-P7B-004 final production clean build: all 10 actionable tasks executed and 38 tests passed with zero failures, errors, or skips; only known Gradle/JOML warnings remain."
+    - "BUG-P7B-005/006 baseline: all 38 tests were up to date before edits."
+    - "BUG-P7B-006 deterministic runtime: integrated slot 46 pickup caused one expected=9/active=0/equipped=9 refresh and a same-second final ready at 9/9/9."
+    - "BUG-P7B-005/006 final production clean build: all 10 actionable tasks executed and 39 tests passed with zero failures, errors, or skips; only known Gradle/JOML warnings remain."
   files_changed:
     - "README.md"
     - "docs/adr/ADR-012-p7a-integrated-inventory-architecture.md"
@@ -1543,6 +1600,7 @@ latest_session:
     - "src/main/java/com/example/scout26/CloseIntegratedInventoryPayload.java"
     - "src/main/java/com/example/scout26/IntegratedInventoryAckPayload.java"
     - "src/main/java/com/example/scout26/IntegratedInventoryReadyPayload.java"
+    - "src/main/java/com/example/scout26/IntegratedInventoryRefreshTracker.java"
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryConfig.java"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java"
@@ -1559,8 +1617,9 @@ latest_session:
     - "src/main/java/com/example/scout26/mixin/InventoryMenuMixin.java (BUG-P7B-002 priority fix)"
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers:
+    - "BUG-P7B-005 and BUG-P7B-006 fixes require human visual and interaction retest."
     - "P7-B completion still requires the remaining interactive manual and two-client acceptance matrix."
-  next_action: "Launch the normal enabled client and have the human visually retest the base and upgraded satchel Integrated Inventory rows; if both render, continue the remaining P7-B manual acceptance matrix without entering P8."
+  next_action: "Launch the normal enabled client and have the human retest recessed base/upgraded satchel slot rendering plus pickup, placement, removal, double-click collection, and same/different-capacity satchel swaps; if stable, continue the remaining P7-B matrix without entering P8."
 
 agent_first_prompt:
   text: >
