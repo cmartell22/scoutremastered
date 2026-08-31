@@ -1,0 +1,526 @@
+# SCOUT_READY_SLOTS_FEATURE.yaml
+# Companion plan for SCOUT26_AGENT_STATE.yaml.
+# RULE: Read the master YAML first.
+# RULE: Server owns all inventory mutation.
+# RULE: Never mark a phase complete until acceptance criteria pass.
+# RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
+
+schema_version: 1
+feature_revision: 1
+feature_id: READY_SLOTS
+feature_name: "Scout Ready Slots"
+status: PLANNED
+target_project: "Scout Remastered"
+target_minecraft: "26.1.2"
+target_platform: Fabric
+master_state_file: SCOUT26_AGENT_STATE.yaml
+
+feature_goal: >
+  Treat slot 0 of each equipped Scout bag as a ready-access position:
+  left pouch slot 0 renders on the left hip, right pouch slot 0 renders on the
+  right hip, and satchel slot 0 renders on the back. Each position has a
+  configurable keybind that requests a server-authoritative full-stack swap
+  between that Scout slot and the currently selected main-hand hotbar slot.
+
+player_experience:
+  - "Left pouch slot 0 is visibly worn on the left hip."
+  - "Right pouch slot 0 is visibly worn on the right hip."
+  - "Satchel slot 0 is visibly worn on the back."
+  - "Three configurable controls swap the corresponding ready stack with the selected main-hand stack."
+  - "Ready items remain ordinary Scout bag contents. No new equipment inventory exists."
+  - "Unsupported items can remain in and swap through ready slots even if not rendered."
+
+non_goals_v1:
+  - "No new persistent slots."
+  - "No client-authoritative inventory mutation."
+  - "No transform-editor GUI."
+  - "No per-item user GUI."
+  - "No jiggle/sway animation."
+  - "No enchantment particles."
+  - "No secondary decorative models."
+  - "No copied Combat Amenities implementation code."
+  - "No requirement that a ready slot contain a renderable item."
+
+architecture_snapshot:
+  BagContents:
+    role: "Immutable sparse storage value on each physical bag ItemStack."
+    important:
+      - "getStack(slot) returns a recreated ItemStack suitable for read-only rendering."
+  ModDataComponents.BAG_CONTENTS:
+    important:
+      - persistent
+      - network_synchronized
+  BagContainer:
+    role: "Authoritative logical-server mutation boundary over one live bag."
+    important:
+      - "Immediately persists mutations back to BAG_CONTENTS."
+      - "Rejects nested bags through BagStorageRules."
+      - "Fails closed when its live EquippedBagHandle becomes stale."
+  EquippedBagHandle:
+    role: "Exact live Trinkets ItemStack identity guard."
+  TrinketsIntegration:
+    ready_mapping:
+      SATCHEL:
+        trinket_slot: CHEST_BACK
+        trinket_index: 0
+        bag_slot: 0
+        visual: BACK
+      LEFT_POUCH:
+        trinket_slot: LEGS_BELT
+        trinket_index: 0
+        bag_slot: 0
+        visual: LEFT_HIP
+      RIGHT_POUCH:
+        trinket_slot: LEGS_BELT
+        trinket_index: 1
+        bag_slot: 0
+        visual: RIGHT_HIP
+  BagTrinketRenderer:
+    role: "Existing working 26.1.2 third-person renderer."
+    preferred_extension: >
+      Render BAG_CONTENTS slot 0 in the same existing Trinkets render callback.
+      Do not add an AvatarRenderer mixin unless empirical testing proves this path insufficient.
+  ScoutRemasteredClient:
+    role: "Existing Fabric keymapping/client-tick pattern."
+  PackNetworking:
+    role: "Existing typed intent-only serverbound networking pattern."
+
+architecture_decisions:
+  AD-RS-001:
+    decision: "Ready positions alias existing Scout bag slot 0."
+  AD-RS-002:
+    decision: "Client payload contains only LEFT_POUCH, RIGHT_POUCH, or SATCHEL."
+    rationale: "Server independently resolves the physical bag and fixed bag-local slot 0."
+  AD-RS-003:
+    decision: "Swap is full-stack, main-hand-selected-hotbar <-> bag slot 0."
+    semantics:
+      - "No merging."
+      - "No splitting."
+      - "No fallback slot."
+      - "Empty stacks participate normally."
+  AD-RS-004:
+    decision: "Rendering is read-only client presentation."
+  AD-RS-005:
+    decision: "Extend BagTrinketRenderer before considering a new player renderer mixin."
+  AD-RS-006:
+    decision: "Render whitelist affects visibility only, never storage or swapping."
+  AD-RS-007:
+    decision: "Combat Amenities is behavioral/API reference only."
+    provenance:
+      repo: "https://github.com/HollowedWanderer/Combat-Amenities"
+      observed_license: "All Rights Reserved"
+      rule: "Independently implement using Minecraft/Fabric/Trinkets APIs; copy no source."
+
+correctness_invariants:
+  - "Exactly one authoritative stored copy of each stack exists before and after a successful swap."
+  - "Client keypresses never directly mutate inventory."
+  - "Server re-discovers equipped bags for every swap request."
+  - "Stale EquippedBagHandle fails closed."
+  - "Ready bag slot is fixed at index 0 in v1."
+  - "If the current hand stack cannot be stored by BagStorageRules, change nothing."
+  - "Swap never merges, splits, grows, shrinks, or strips components."
+  - "Renderer never mutates bag contents."
+  - "Unsupported render items remain valid stored/swappable items."
+  - "Ready Slots never weakens nested-bag protection."
+  - "Dedicated server must never load client rendering/keymapping classes."
+
+proposed_types:
+  main:
+    ReadySlotRole:
+      kind: enum
+      values: [LEFT_POUCH, RIGHT_POUCH, SATCHEL]
+    SwapReadySlotPayload:
+      kind: "typed serverbound payload"
+      fields: ["ReadySlotRole role"]
+    ReadySlotSwapService:
+      kind: "server-side service"
+      responsibilities:
+        - "Validate player state."
+        - "Rediscover equipped bags."
+        - "Resolve exact target handle."
+        - "Validate incoming hand stack."
+        - "Execute transaction-style full-stack swap."
+        - "Leave normal Minecraft/Trinkets component synchronization to existing systems."
+  client:
+    ReadySlotKeyMappings:
+      responsibilities:
+        - "Register three configurable key mappings."
+        - "Send role-only intent payloads."
+    ReadySlotRenderPolicy:
+      responsibilities:
+        - "Visibility whitelist."
+        - "Render category selection."
+    ReadySlotTransforms:
+      responsibilities:
+        - "Hardcoded v1 base transforms and minimal category adjustments."
+
+swap_transaction:
+  design:
+    - "Receive role-only payload."
+    - "Reject invalid player states before mutation."
+    - "TrinketsIntegration.findEquippedBags(player)."
+    - "Map requested role to exact Optional<EquippedBagHandle>."
+    - "Resolve handle; fail if absent/stale."
+    - "Construct BagContainer from live handle."
+    - "Read/snapshot main hand and bag slot 0."
+    - "Prevalidate incoming main-hand stack via BagStorageRules/canPlaceItem."
+    - "Commit with rollback protection."
+    - "Synchronize/mark selected player inventory slot as required by verified 26.1.2 API."
+  recommended_BagContainer_change: >
+    Add one narrow whole-slot replacement primitive that persists once and returns
+    the previous stack. ReadySlotSwapService must not duplicate BAG_CONTENTS serialization.
+  failure_policy:
+    - "Any validation failure changes nothing."
+    - "Unexpected commit failure restores original snapshots and logs an error."
+    - "Never drop an item into the world as automatic recovery."
+    - "Never silently clear either side."
+
+rendering:
+  v1_path:
+    hook: "BagTrinketRenderer.submit(...)"
+    algorithm:
+      - "Render the bag exactly as today."
+      - "Read bag stack BAG_CONTENTS slot 0."
+      - "Stop if empty or not render-whitelisted."
+      - "Determine BACK/LEFT_HIP/RIGHT_HIP from bag role and TrinketSlotAccess.index()."
+      - "Push fresh pose and anchor through existing Trinkets humanoid translation."
+      - "Apply ready-position transform and small category transform."
+      - "Resolve normal item layers with ItemModelResolver, ItemDisplayContext.FIXED."
+      - "Submit ItemStackRenderState."
+      - "Pop pose."
+  benefits:
+    - "No additional AvatarRenderer mixin."
+    - "No new PlayerRenderState accessor."
+    - "Correct pouch side is already known."
+    - "BAG_CONTENTS already rides on the equipped bag's synchronized data component."
+  fallback: >
+    Only if RS1 proves this path cannot render correctly for remote players or
+    required body transforms, research a separate 26.1 player render layer.
+
+render_whitelist_v1:
+  philosophy: "Conservative visibility, permissive storage/swapping."
+  categories:
+    - swords
+    - axes
+    - pickaxes
+    - shovels
+    - hoes
+    - bows
+    - crossbows
+    - tridents
+    - shields
+  note: "Re-verify exact 26.1.2 item tags/constants before implementation."
+  unsupported_behavior: "Do not render; continue to store and swap."
+
+transforms:
+  v1:
+    storage: "Java constants"
+    levels:
+      - "Base transform per position."
+      - "Minimal category overrides only where visually required."
+  later:
+    storage: "External client config"
+    possible:
+      - "translation X/Y/Z"
+      - "rotation X/Y/Z"
+      - "scale"
+      - "per-position defaults"
+      - "per-tag/per-item overrides"
+      - "render whitelist/blacklist"
+      - "live preview GUI"
+    gate: "Do not start until core render+swap passes lifecycle hardening."
+
+keybinds:
+  - id: key.scoutremastered.swap_left_ready
+    role: LEFT_POUCH
+  - id: key.scoutremastered.swap_right_ready
+    role: RIGHT_POUCH
+  - id: key.scoutremastered.swap_back_ready
+    role: SATCHEL
+  default_policy: "Choose final defaults only after checking WAWI conflicts; development keys may be temporary/unbound."
+
+phases:
+  RS0:
+    name: "Architecture lock and API verification"
+    status: PLANNED
+    model: "GPT-5.6 Sol High"
+    scope:
+      - "Verify exact 26.1.2 selected-hotbar mutation/sync API."
+      - "Verify enum payload codec pattern."
+      - "Verify BAG_CONTENTS reaches remote players on equipped Trinkets stacks."
+      - "Verify initial whitelist tags."
+      - "Prove BagTrinketRenderer can submit an additional arbitrary ItemStack."
+      - "Document Combat Amenities clean-room boundary."
+    acceptance:
+      - "Exact server mutation API documented."
+      - "Synchronization assumptions verified."
+      - "No unresolved question can plausibly cause item loss/duplication."
+      - "Existing Trinkets renderer selected unless disproven."
+
+  RS1:
+    name: "Read-only ready-slot rendering proof"
+    status: BLOCKED_BY_RS0
+    model: "GPT-5.6 Terra High"
+    escalation_model: "GPT-5.6 Sol Medium"
+    scope:
+      - "Extend BagTrinketRenderer only."
+      - "Render bag-local slot 0."
+      - "Hardcoded transforms + conservative whitelist."
+    do_not:
+      - "No keybinds."
+      - "No swapping."
+      - "No new bag mutation."
+      - "No config GUI."
+    acceptance:
+      - "Left pouch slot 0 appears on left hip."
+      - "Right pouch slot 0 appears on right hip."
+      - "Satchel slot 0 appears on back."
+      - "Empty/unsupported stacks render nothing."
+      - "Existing bag models still render correctly."
+      - "Representative sword, tool, bow, crossbow, shield, trident do not crash."
+      - "Remote multiplayer player shows correct stacks."
+      - "Dedicated server starts cleanly."
+      - "Existing tests pass."
+
+  RS2:
+    name: "Swap primitive and automated correctness tests"
+    status: BLOCKED_BY_RS1
+    model: "GPT-5.6 Sol High"
+    scope:
+      - "Add narrow BagContainer whole-slot replacement primitive."
+      - "Add ReadySlotRole."
+      - "Add ReadySlotSwapService without networking."
+      - "Test service directly."
+    acceptance:
+      - "Nonempty<->nonempty exact full-stack swap."
+      - "Empty combinations work."
+      - "Nested bag in hand rejected with zero mutation."
+      - "Stale/missing/wrong-role bag rejected with zero mutation."
+      - "Damage, enchantments, names, counts, and components survive exactly."
+      - "Repeated swaps show no duplication/loss."
+      - "BagContents remains sole persisted storage representation."
+
+  RS3:
+    name: "Serverbound payload and configurable keybinds"
+    status: BLOCKED_BY_RS2
+    model: "GPT-5.6 Terra High"
+    escalation_model: "GPT-5.6 Sol High"
+    scope:
+      - "Register SwapReadySlotPayload."
+      - "Register three key mappings."
+      - "Client sends role-only intent."
+      - "Server invokes ReadySlotSwapService."
+    acceptance:
+      - "Each key targets only intended bag."
+      - "Client cannot choose arbitrary bag-local slot."
+      - "Payload contains no ItemStack."
+      - "Spam clicking causes no duplication/loss."
+      - "Behavior while another menu is open is explicitly decided/tested."
+      - "Dedicated server has no client-class load."
+      - "Existing B Pack Inventory key unchanged."
+
+  RS4:
+    name: "Lifecycle, desync, and adversarial hardening"
+    status: BLOCKED_BY_RS3
+    model: "GPT-5.6 Sol High"
+    acceptance:
+      - "Swap then immediate logout/login persists exactly."
+      - "Swap then dimension change persists exactly."
+      - "Death/respawn around swaps causes no duplication/loss."
+      - "Rapid equip/unequip/replace pouch while swapping fails closed."
+      - "Rapid equip/unequip/replace satchel while swapping fails closed."
+      - "Rapid hotbar selection changes remain server-authoritative."
+      - "Creative mode produces no duplication."
+      - "Two-player test shows correct owner inventory and remote visuals."
+      - "No ghost stacks or unresolved desync."
+
+  RS5:
+    name: "Transform and compatibility polish"
+    status: BLOCKED_BY_RS4
+    model: "GPT-5.6 Terra High"
+    escalation_model: "GPT-5.6 Sol Medium"
+    scope:
+      - "Tune representative item transforms."
+      - "Test armor/cape interactions."
+      - "Test relevant WAWI visual mods."
+    acceptance:
+      - "No severe clipping for core categories."
+      - "Left/right remain visually distinct."
+      - "Back item does not z-fight with satchel."
+      - "No new renderer mixin unless a documented blocker requires it."
+
+  RS6:
+    name: "External config foundation"
+    status: DEFERRED_POST_CORE
+    model: "GPT-5.6 Terra High"
+    scope:
+      - "Move transforms from Java constants to client config."
+      - "Move render whitelist/blacklist to client config."
+      - "Support deterministic category and optional per-item overrides."
+    acceptance:
+      - "Missing/corrupt config falls back safely."
+      - "Config cannot affect storage/swap correctness."
+      - "Override precedence documented."
+
+  RS7:
+    name: "Interactive positioning GUI"
+    status: FUTURE_OPTIONAL
+    model: "GPT-5.6 Terra High"
+    escalation_model: "GPT-5.6 Sol Medium"
+    prerequisite: "RS6 stable and demonstrated need."
+    scope:
+      - "Live player preview."
+      - "Position/rotation/scale sliders."
+      - "Per-position/category/item editing."
+      - "Whitelist/blacklist editing."
+      - "Reset/copy/mirror controls."
+    acceptance:
+      - "GUI writes client presentation config only."
+      - "No inventory mutation from config screen."
+      - "Cancel/revert predictable."
+
+automated_tests:
+  suggested_new_test: ReadySlotSwapServiceTest
+  cases:
+    - "nonempty hand <-> nonempty ready"
+    - "empty hand <-> nonempty ready"
+    - "nonempty hand <-> empty ready"
+    - "empty <-> empty"
+    - "damageable enchanted item preserves components"
+    - "custom-named item preserves components"
+    - "stack count preserved"
+    - "nested bag rejected"
+    - "stale handle rejected"
+    - "missing bag rejected"
+    - "left/right role isolation"
+    - "satchel isolation"
+    - "1000 alternating swaps preserve the exact multiset of items"
+    - "forced failure path restores exact before-state"
+
+manual_acceptance:
+  rendering:
+    - "local third person"
+    - "remote multiplayer observer"
+    - "each ready position alone"
+    - "all three together"
+    - "armor on/off"
+    - "cape on/off when available"
+    - "sword/axe/pickaxe/bow/crossbow/shield/trident/enchanted item"
+    - "unsupported item"
+  lifecycle:
+    - survival
+    - creative
+    - integrated_server
+    - dedicated_server
+    - rapid_keypress
+    - hotbar_change
+    - bag_equip_unequip
+    - immediate_logout
+    - dimension_change
+    - death_respawn
+  regression:
+    - "B opens Pack Inventory normally."
+    - "PackMenu persistence unchanged."
+    - "Integrated Inventory persistence unchanged."
+    - "Shift-click unchanged."
+    - "No nested-bag regression."
+    - "Existing wearable bag rendering unchanged."
+
+risk_register:
+  R1:
+    risk: "Loss/duplication during a two-owner swap."
+    severity: CRITICAL
+    mitigation:
+      - "Server-only transaction service."
+      - "Prevalidation + snapshots."
+      - "Narrow BagContainer replacement primitive."
+      - "Rollback on unexpected failure."
+      - "Adversarial repeated-swap tests."
+  R2:
+    risk: "Stale remote render data."
+    severity: MEDIUM
+    mitigation:
+      - "Use only synchronized BAG_CONTENTS."
+      - "Multiplayer gate in RS1."
+  R3:
+    risk: "Renderer conflicts."
+    severity: MEDIUM
+    mitigation:
+      - "Reuse existing Trinkets renderer; no new player mixin in v1."
+  R4:
+    risk: "Visual clipping/z-fighting."
+    severity: LOW
+    mitigation:
+      - "Independent transforms + RS5 tuning."
+  R5:
+    risk: "Oversized/weird modded items from broad tags."
+    severity: LOW
+    mitigation:
+      - "Conservative whitelist; later blacklist/config."
+  R6:
+    risk: "Packet spam."
+    severity: LOW_TO_MEDIUM
+    mitigation:
+      - "consumeClick + server validation; throttle only if testing proves needed."
+  R7:
+    risk: "Combat Amenities license contamination."
+    severity: HIGH
+    mitigation:
+      - "Reference behavior/APIs only; copy no source."
+
+likely_files:
+  modify:
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/BagTrinketRenderer.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ScoutRemasteredClient.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/BagContainer.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ScoutRemasteredMod.java"
+    - "src/main/resources/assets/scoutremastered/lang/en_us.json"
+    - "SCOUT26_AGENT_STATE.yaml"
+  add:
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotRole.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/SwapReadySlotPayload.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotSwapService.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotKeyMappings.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotRenderPolicy.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotTransforms.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotSwapServiceTest.java"
+  avoid_unless_proven_necessary:
+    - "AvatarRenderer mixin"
+    - "PlayerRenderState accessor"
+    - "new persistent data component"
+    - "new Trinkets equipment slot"
+    - "new custom inventory"
+
+master_yaml_integration:
+  recommendation:
+    next_project_phase: P9
+    name: "Ready Slots"
+    detailed_plan: SCOUT_READY_SLOTS_FEATURE.yaml
+    policy: >
+      Keep detailed task/acceptance state in this feature YAML. Add a concise P9
+      pointer/current-task summary to SCOUT26_AGENT_STATE.yaml and update both
+      at the end of implementation sessions.
+  completion_rule: >
+    P9 is complete only after RS4 passes with no item loss, duplication,
+    corruption, or unresolved desynchronization. RS5 is polish; RS6-RS7 are deferred.
+
+execution_order:
+  - RS0
+  - RS1
+  - RS2
+  - RS3
+  - RS4
+  - RS5
+  - "RS6 later"
+  - "RS7 optional later"
+
+go_no_go:
+  recommendation: GO
+  confidence: HIGH
+  reasons:
+    - "Reuses existing persistent bag storage."
+    - "Reuses fail-closed equipped-bag identity."
+    - "Reuses a working 26.1.2 Trinkets render path."
+    - "BAG_CONTENTS is already network synchronized."
+    - "Reuses the existing server-authoritative typed-payload/keybind pattern."
+    - "Correctness-critical mutation can be isolated into one small tested service."
