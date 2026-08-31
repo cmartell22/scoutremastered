@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 12
-last_updated_utc: "2026-08-31T20:42:31Z"
+feature_revision: 13
+last_updated_utc: "2026-08-31T21:15:15Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
-current_phase: RS1
+current_phase: RS2
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -272,7 +272,7 @@ phases:
 
   RS1:
     name: "Read-only ready-slot rendering proof"
-    status: ACTIVE
+    status: COMPLETE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     scope:
@@ -301,7 +301,7 @@ phases:
 
   RS2:
     name: "Swap primitive and automated correctness tests"
-    status: BLOCKED_BY_RS1
+    status: READY_PENDING_AUTHORIZATION
     model: "GPT-5.6 Sol High"
     scope:
       - "Add narrow BagContainer whole-slot replacement primitive."
@@ -479,7 +479,7 @@ rs0_architecture_lock:
   next_action: "Await explicit authorization, then begin RS1 read-only rendering proof."
 
 rs1_implementation:
-  status: ACTIVE
+  status: COMPLETE
   implementation_commit: "75ac7f0f13326af25e2cc8069884f70a926d0691"
   implementation:
     renderer: >
@@ -505,6 +505,11 @@ rs1_implementation:
       Two direct dedicated-server attempts loaded Fabric, Scout Remastered, Trinkets, 1519 recipes, and 1617
       advancements without a project classloading or Mixin error before the host failed to create Netty's Java
       selector. The second attempt also used the installed legacy WindowsSelectorProvider and failed identically.
+    - >
+      The original P6-P8 topology was reproduced through the logged-in Windows desktop session: one isolated
+      dedicated server reached Done on 127.0.0.1:25565, and separate muted ScoutAlice and ScoutBob clients loaded
+      Scout Remastered and Trinkets and joined concurrently. Exact process identities, port ownership, loader logs,
+      connection logs, and soundCategory_master:0.0 were verified before the human observer test.
   environment_limitations:
     - >
       Fresh ./gradlew.bat test first failed in the sandbox because distribution network access was denied, then
@@ -514,29 +519,38 @@ rs1_implementation:
       but returned success and produced the inspected class files. Treat Gradle tests/build/server smoke as pending,
       not passed.
     - >
-      BLOCKED_BY_HOST_LOOPBACK: Java 25 cannot create either WEPollSelectorImpl's or WindowsSelectorImpl's wakeup
-      pipe on this execution host (SocketException: Invalid argument: connect). Consequently the dedicated server
-      cannot bind/reach Done, and a dedicated two-client remote-observer topology cannot run here. Both failed
-      server processes exited, no project Java process remains, and TCP 25565 is confirmed free.
+      Tool-launched Java 25 processes cannot create either WEPollSelectorImpl's or WindowsSelectorImpl's wakeup
+      pipe in the current Codex execution context (SocketException: Invalid argument: connect). This is not a
+      physical-host limitation: launching the same isolated topology through the logged-in desktop session reached
+      Done and completed the two-client test successfully.
   user_visual_evidence:
-    status: "LOCAL_THIRD_PERSON_ACCEPTED"
+    status: "LOCAL_AND_REMOTE_MULTIPLAYER_ACCEPTED"
     observed_utc: "2026-08-31T20:22:53Z"
     accepted:
       - "Left pouch, right pouch, and satchel role rendering passed."
       - "Empty, unsupported, non-ready-slot, and unequipped states rendered nothing."
       - "Eligible ready items rendered without the old pouch/satchel model or duplicate model submission."
       - "Standing, walking, camera, and tested movement behavior passed without an RS1-blocking defect."
+      - >
+        In the muted two-client dedicated-server run, the human passed remote left/right/back position, live slot-0
+        updates, unsupported and empty suppression, unequip suppression, and absence of all old bag models.
+      - >
+        The remote crouch result matched singleplayer: hip-item leg occlusion remains expected RS5 transform/anchor
+        work and is not an RS1 functional failure.
     deferred_polish:
       - >
         During crouching/sneaking, a hip sword followed the body pose and became mostly occluded by the legs.
         The human classified this as positioning/anchoring polish rather than an RS1 functional bug. RS5 must
         evaluate a stable anchor or pose-aware transform before final transform acceptance.
-  remaining_acceptance:
-    - "Run a dedicated-server smoke to Done on a host where Java selector/loopback creation works."
-    - "Run the muted two-client remote model synchronization/observer acceptance on that network-capable host."
-  blockers:
-    - "This execution host cannot create the Java selector wakeup pipe required by Minecraft/Netty networking."
-  next_action: "Resume RS1 on a Java-network-capable host for dedicated-server Done and muted two-client remote-observer acceptance."
+  shutdown_evidence:
+    - >
+      After acceptance, ScoutBob issued /save-all flush and the server confirmed every dimension saved. Both client
+      windows then exited normally and their exact PIDs were confirmed absent. The exact verified dedicated-server
+      PID was terminated only after that save, TCP 25565 was confirmed free, and the temporary scheduled launch task
+      was removed.
+  remaining_acceptance: []
+  blockers: []
+  next_action: "Await explicit authorization before beginning RS2; do not implement swap mutation yet."
 
 test_execution_policy:
   automation_first:
@@ -569,6 +583,10 @@ test_execution_policy:
     - >
       Never infer that a process stopped because a stop command returned without error, and never proceed to a
       replacement launch until the prior target's exit is confirmed. Report only the state actually verified.
+    - >
+      Use direct exact-PID process control for routine teardown when graceful application shutdown is unnecessary.
+      If a graceful Minecraft disconnect/save is required, ask the user to perform the simple in-game action or
+      command, then verify logs, exact PID exit, and port state; do not add Windows UI automation solely for shutdown.
   evidence:
     - "Record automated commands, harnesses, client/server topology, identities, assertions, and results."
     - "For each manual check, record why automation was insufficient and the user's observed result."
