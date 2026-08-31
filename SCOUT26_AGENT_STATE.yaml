@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 68
-last_updated_utc: "2026-08-31T18:02:56Z"
+state_revision: 69
+last_updated_utc: "2026-08-31T18:10:51Z"
 state_owner: "AI coding agent"
 project_status: "P8_RELEASE_CANDIDATE_COMPLETE_LOCAL_TAGGED"
 current_phase: "P8"
@@ -63,6 +63,9 @@ success_definition:
   - "Core MVP requires zero vanilla inventory GUI mixins."
   - "A clean build succeeds from a fresh checkout using documented prerequisites."
   - "All release-gate manual tests and available automated tests pass."
+  - >
+    Abrupt client, integrated-server, or dedicated-server termination never produces item loss,
+    duplication, corruption, or a partially persisted two-owner inventory transaction after restart.
 
 non_goals_until_core_release_candidate:
   - "Do not port Scout-Recrafted line-by-line."
@@ -508,6 +511,9 @@ testing_strategy:
       - >
         Use user-driven real-world testing only for behavior that cannot be automated credibly,
         such as irreducibly visual, subjective, or physical-input observations.
+      - >
+        Prefer automated Minecraft client profiles with master sound muted or disabled whenever the
+        current client configuration supports it and the test is not specifically validating audio.
     user_driven_client_gate:
       - >
         When user-driven real-world testing is required, stop before launching the Minecraft client,
@@ -519,6 +525,22 @@ testing_strategy:
     evidence:
       - "Record which checks were automated and their exact commands/results."
       - "For every manual check, record why automation was insufficient and the user's observed result."
+  crash_consistency:
+    severity: "Release-blocking because item loss, duplication, or partial persistence is unacceptable."
+    requirements:
+      - >
+        Automate abrupt dedicated-client disconnect, abrupt integrated client/server JVM termination,
+        and abrupt dedicated-server termination with connected clients at multiple swap/save timings.
+      - >
+        Include a forced-termination case that does not use normal disconnect, Save and Quit, `/stop`,
+        shutdown hooks, or another graceful save path, then restart the same world and identities.
+      - >
+        Recovery may contain the complete pre-transaction state or the complete post-transaction state,
+        depending on the last durable save, but never a mixed/partial state, missing stack, duplicate stack,
+        changed count, or stripped component.
+      - >
+        Treat prior graceful logout/restart/death/server-stop evidence as useful baseline coverage, not as
+        proof of abrupt-process-termination safety.
   automated:
     discover_first:
       - "./gradlew tasks"

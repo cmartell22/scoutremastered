@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 2
-last_updated_utc: "2026-08-31T18:02:56Z"
+feature_revision: 3
+last_updated_utc: "2026-08-31T18:10:51Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: PLANNED
@@ -124,6 +124,10 @@ correctness_invariants:
   - "Unsupported render items remain valid stored/swappable items."
   - "Ready Slots never weakens nested-bag protection."
   - "Dedicated server must never load client rendering/keymapping classes."
+  - >
+    After abrupt process termination, durable recovery is either the complete pre-swap state or the
+    complete post-swap state; it is never a partial swap, item loss, duplication, component corruption,
+    or unexplained desynchronization.
 
 proposed_types:
   main:
@@ -253,11 +257,15 @@ phases:
       - "Verify initial whitelist tags."
       - "Prove BagTrinketRenderer can submit an additional arbitrary ItemStack."
       - "Document Combat Amenities clean-room boundary."
+      - >
+        Verify the persistence/save boundary for the selected hotbar stack and the equipped Trinkets bag,
+        and design an automated hard-termination/restart harness that bypasses graceful save paths.
     acceptance:
       - "Exact server mutation API documented."
       - "Synchronization assumptions verified."
       - "No unresolved question can plausibly cause item loss/duplication."
       - "Existing Trinkets renderer selected unless disproven."
+      - "Crash-consistency assumptions and the automated abrupt-termination test topology are documented."
 
   RS1:
     name: "Read-only ready-slot rendering proof"
@@ -335,6 +343,15 @@ phases:
       - "Creative mode produces no duplication."
       - "Two-player test shows correct owner inventory and remote visuals."
       - "No ghost stacks or unresolved desync."
+      - >
+        Abrupt dedicated-client termination and reconnect preserves the authoritative server state exactly.
+      - >
+        Hard-killing the integrated client/server JVM after swaps at multiple timing points, then restarting
+        the same world, recovers either the complete before-state or complete after-state with no loss,
+        duplication, partial swap, count change, or component change.
+      - >
+        Hard-killing a dedicated server with clients connected after swaps at multiple timing points, then
+        restarting the same world and identities, meets the same exact conservation rule.
 
   RS5:
     name: "Transform and compatibility polish"
@@ -394,6 +411,9 @@ test_execution_policy:
     - >
       Use user-driven real-world testing only for behavior that cannot be automated credibly, especially
       final visual placement, clipping, animation, and subjective presentation judgments.
+    - >
+      Prefer automated Minecraft client profiles with master sound muted or disabled whenever the verified
+      26.1.2 client configuration supports it and the test is not specifically validating audio.
   user_driven_client_gate:
     - >
       If a remaining acceptance check requires user-driven real-world testing, pause before launching the
@@ -423,6 +443,10 @@ automated_tests:
     - "satchel isolation"
     - "1000 alternating swaps preserve the exact multiset of items"
     - "forced failure path restores exact before-state"
+    - "abrupt dedicated-client termination and reconnect preserves authoritative state"
+    - "hard-killed integrated client/server JVM restart conserves exact pre-or-post state"
+    - "hard-killed dedicated-server restart conserves exact pre-or-post state for every player"
+    - "hard termination at multiple post-swap/pre-save timing offsets never yields partial persistence"
 
 manual_acceptance:
   policy: >
@@ -446,6 +470,9 @@ manual_acceptance:
     - hotbar_change
     - bag_equip_unequip
     - immediate_logout
+    - abrupt_client_disconnect
+    - integrated_process_force_kill_restart
+    - dedicated_server_force_kill_restart
     - dimension_change
     - death_respawn
   regression:
@@ -497,6 +524,15 @@ risk_register:
     severity: HIGH
     mitigation:
       - "Reference behavior/APIs only; copy no source."
+  R8:
+    risk: "Abrupt client/integrated-server/dedicated-server termination partially persists a swap or loses a stack."
+    severity: CRITICAL
+    mitigation:
+      - "Verify whether both owners serialize within one durable player-data boundary."
+      - "Automate hard process termination without graceful shutdown hooks or save commands."
+      - "Restart the same world/identities and compare exact stack multisets and components."
+      - "Test multiple timing windows around server commit, acknowledgement, and normal save cadence."
+      - "Block completion on any partial before/after state, loss, duplication, corruption, or unexplained desync."
 
 likely_files:
   modify:
