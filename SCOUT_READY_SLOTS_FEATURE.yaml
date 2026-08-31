@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 16
-last_updated_utc: "2026-08-31T22:08:50Z"
+feature_revision: 17
+last_updated_utc: "2026-08-31T23:42:03Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -319,7 +319,7 @@ phases:
 
   RS3:
     name: "Serverbound payload and configurable keybinds"
-    status: READY_PENDING_EXPLICIT_AUTHORIZATION
+    status: ACTIVE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol High"
     scope:
@@ -634,6 +634,35 @@ rs2_implementation:
   blockers: []
   remaining_acceptance: []
   next_action: "RS2 is complete. Await separate explicit authorization before beginning RS3 payload or key-mapping work."
+
+rs3_implementation:
+  status: ACTIVE
+  authorized_utc: "2026-08-31T23:42:03Z"
+  authorization: >
+    The human explicitly authorized RS3 only: the role-only serverbound payload, stable bounded role IDs,
+    three configurable client key mappings, server-thread receiver delegation to ReadySlotSwapService,
+    and comprehensive RS3 automated coverage. RS4 remains unauthorized and must not begin.
+  verified_start_state:
+    branch: main
+    head: "81bc82b618a1df2d9a5abc5c174d250bea0cd322"
+    subject: "docs: complete Ready Slots RS2"
+    working_tree: clean
+  inspected_before_design:
+    - "SCOUT26_AGENT_STATE.yaml (complete)"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml (complete)"
+    - "docs/adr/ADR-013-ready-slots-rs0-architecture.md (complete)"
+    - "ReadySlotRole, ReadySlotSwapService, PackNetworking, ScoutRemasteredMod, ScoutRemasteredClient, and existing typed payloads/tests"
+    - "Exact locally cached Fabric Networking API 6.3.1+554860db4c, key-mapping API, client tick API, and Minecraft 26.1.2 KeyMapping/FriendlyByteBuf sources"
+  baseline_test_attempt:
+    - >
+      Fresh sandboxed .\\gradlew.bat test --no-daemon --console=plain could not fetch Gradle 9.5.1 because
+      network access was denied. The approved unrestricted retry reached cached Gradle but failed before task
+      execution with java.io.IOException: Unable to establish loopback connection.
+    - "No Gradle test pass is claimed; the established direct Java 25 plus Fabric Loader JUnit fallback remains required."
+  implementation_decisions:
+    - "Pending implementation and verification."
+  blockers: []
+  next_action: "Implement the bounded role-only payload, server registration/receiver, unbound configurable key mappings, and RS3 tests without starting RS4."
 
 test_execution_policy:
   automation_first:

@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 82
-last_updated_utc: "2026-08-31T22:08:50Z"
+state_revision: 83
+last_updated_utc: "2026-08-31T23:42:03Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS2_COMPLETE_RS3_PENDING_AUTHORIZATION"
+project_status: "P9_READY_SLOTS_RS3_ACTIVE"
 current_phase: "P9"
-current_task: "RS3_AWAITING_EXPLICIT_AUTHORIZATION"
+current_task: "RS3_SERVERBOUND_PAYLOAD_AND_CONFIGURABLE_KEYBINDS"
 
 project:
   working_name: "Scout Remastered"
@@ -828,7 +828,7 @@ phase_plan:
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
     current_subphase: "RS3"
-    current_subphase_name: "RS2 complete; RS3 awaits explicit authorization"
+    current_subphase_name: "RS3 serverbound payload and configurable keybinds active"
     architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
@@ -2083,7 +2083,7 @@ rs1_ready_slots_session_archive:
   blockers: []
   next_action: "RS1 is complete. Await explicit authorization before beginning RS2 swap primitive work."
 
-latest_session:
+rs2_ready_slots_session_archive:
   session_id: "p9-ready-slots-rs2-026"
   date: "2026-08-31"
   agent: "GPT-5.6"
@@ -2137,6 +2137,34 @@ latest_session:
     - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotSwapServiceTest.java"
   blockers: []
   next_action: "RS2 is complete. Await separate explicit authorization before beginning RS3 networking or client-input work."
+
+latest_session:
+  session_id: "p9-ready-slots-rs3-027"
+  date: "2026-08-31"
+  agent: "GPT-5.6"
+  summary:
+    - "The human explicitly authorized RS3 only; RS4 remains unauthorized and unstarted."
+    - "Verified clean main at expected HEAD 81bc82b618a1df2d9a5abc5c174d250bea0cd322 (`docs: complete Ready Slots RS2`)."
+    - "Read SCOUT26_AGENT_STATE.yaml, SCOUT_READY_SLOTS_FEATURE.yaml, and ADR-013 completely before editing."
+    - >
+      Inspected the RS2 service, existing typed networking and B-key client pattern, and exact locally cached
+      Fabric Networking API 6.3.1+554860db4c, Fabric key-mapping/client-tick, and Minecraft 26.1.2 key/VarInt sources.
+    - >
+      The required fresh Gradle attempt failed first on sandboxed distribution access and then, with approved
+      unrestricted access, on the documented pre-task single-use-daemon loopback connection. No Gradle pass is claimed.
+    - "RS3 is active; no RS3 implementation code has been added at this activation checkpoint."
+  commands_run:
+    - "git status --short --branch; git rev-parse HEAD; git log -1 --oneline"
+    - "Read all three source-of-truth documents in bounded complete chunks and inspect relevant current sources/tests."
+    - ".\\gradlew.bat test --no-daemon --console=plain in sandbox and approved unrestricted contexts."
+    - "Inspect exact cached Fabric and Minecraft source JAR entries for receiver thread, registration, key mapping, client tick, and VarInt signatures."
+  tests_run:
+    - "GRADLE_NOT_EXECUTED: documented loopback failure occurred before task execution; no pass claimed."
+  files_changed:
+    - "SCOUT_READY_SLOTS_FEATURE.yaml"
+    - "SCOUT26_AGENT_STATE.yaml"
+  blockers: []
+  next_action: "Implement and test RS3 only; do not begin RS4."
 
 agent_first_prompt:
   text: >
