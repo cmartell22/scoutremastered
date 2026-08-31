@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 76
-last_updated_utc: "2026-08-31T19:30:07Z"
+state_revision: 77
+last_updated_utc: "2026-08-31T20:22:53Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS1_ACTIVE"
 current_phase: "P9"
-current_task: "RS1_RENDERER_IMPLEMENTED_AWAITING_VISUAL_TEST_READINESS"
+current_task: "RS1_LOCAL_VISUAL_ACCEPTED_REMOTE_AND_AUTOMATED_GATES_PENDING"
 
 project:
   working_name: "Scout Remastered"
@@ -522,6 +522,13 @@ testing_strategy:
       - >
         After confirmation, launch only the required client or clients and provide clear numbered
         test steps, expected results, and the observations the user should report.
+    runtime_operation_confirmation:
+      - >
+        Treat every Minecraft client or server start/stop request as incomplete until the exact target is
+        affirmatively verified from process identity plus appropriate startup/shutdown log or port evidence.
+      - >
+        Never infer that a process stopped because a stop command returned without error, and never proceed to a
+        replacement launch until the prior target's exit is confirmed. Report only the state actually verified.
     evidence:
       - "Record which checks were automated and their exact commands/results."
       - "For every manual check, record why automation was insufficient and the user's observed result."
@@ -2051,13 +2058,16 @@ latest_session:
     - "No server/common source, mutation, payload, keybind, menu, component, or config changed; the common-source client-reference audit passed."
     - "The Gradle wrapper baseline failed in the sandbox because distribution network access was denied. The approved retry reached cached Gradle 9.5.1 but failed because this host cannot establish Gradle's single-use-daemon loopback connection. No Gradle test/build/server pass is claimed."
     - "A direct locked-artifact javac compile produced the replacement renderer class and javap proved it passes the reconstructed ready stack—not the equipped bag—to ItemModelResolver. The JDK reported a post-success cached-JAR close AccessDeniedException; this host quirk is recorded and the generated proof classes were removed."
-    - "No Minecraft client was launched. Visual placement, clipping, and remote observer acceptance still require real-world testing, so the mandatory readiness gate is now the next action."
+    - "After explicit readiness confirmation, the local RS1 visual run accepted left pouch, right pouch, satchel, empty/unsupported/non-ready/unequipped suppression, old-bag removal, and tested movement behavior. No RS1-blocking visual defect was found."
+    - "The crouching/sneaking screenshot showed a hip sword following the body pose until it was mostly hidden by the legs. The human classified this as later position/anchor polish; RS5 now requires evaluation of a stable body/model anchor or pose-aware transform compensation."
+    - "The first direct fallback client incorrectly bypassed Fabric Loader and showed vanilla only. A corrected KnotClient launch was verified to load 56 mods including Scout Remastered and Trinkets; after testing, its exact PID was verified stopped."
+    - "An attempted stop of the invalid vanilla client was initially assumed successful without affirmative exit evidence. The human corrected this; both master documents now require exact process/log/port confirmation before any client/server operation is reported complete or followed by a replacement launch."
   files_changed:
     - "src/client/java/io/github/cmartell22/scoutremastered/client/BagTrinketRenderer.java"
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Ask the user whether they are ready for the required RS1 real-world client visual acceptance run."
+  next_action: "Complete RS1 automated/dedicated-server and remote-observer acceptance without reopening settled local visual checks."
 
 agent_first_prompt:
   text: >

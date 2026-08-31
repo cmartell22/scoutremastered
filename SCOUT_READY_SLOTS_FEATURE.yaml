@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 10
-last_updated_utc: "2026-08-31T19:30:07Z"
+feature_revision: 11
+last_updated_utc: "2026-08-31T20:22:53Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -367,10 +367,14 @@ phases:
     escalation_model: "GPT-5.6 Sol Medium"
     scope:
       - "Tune representative item transforms."
+      - >
+        Evaluate a stable per-position body/model anchor and pose-aware transform compensation so crouching,
+        sneaking, and other humanoid animations do not pull ready items unexpectedly behind or into the legs.
       - "Test armor/cape interactions."
       - "Test relevant WAWI visual mods."
     acceptance:
       - "No severe clipping for core categories."
+      - "Crouching/sneaking does not substantially hide hip ready items behind the legs or cause unexpected pose drift."
       - "Left/right remain visually distinct."
       - "Back item does not z-fight with satchel."
       - "No new renderer mixin unless a documented blocker requires it."
@@ -501,12 +505,25 @@ rs1_implementation:
       The direct Java compiler emitted a post-success archive-close AccessDeniedException for cached dependency JARs,
       but returned success and produced the inspected class files. Treat Gradle tests/build/server smoke as pending,
       not passed.
+  user_visual_evidence:
+    status: "LOCAL_THIRD_PERSON_ACCEPTED"
+    observed_utc: "2026-08-31T20:22:53Z"
+    accepted:
+      - "Left pouch, right pouch, and satchel role rendering passed."
+      - "Empty, unsupported, non-ready-slot, and unequipped states rendered nothing."
+      - "Eligible ready items rendered without the old pouch/satchel model or duplicate model submission."
+      - "Standing, walking, camera, and tested movement behavior passed without an RS1-blocking defect."
+    deferred_polish:
+      - >
+        During crouching/sneaking, a hip sword followed the body pose and became mostly occluded by the legs.
+        The human classified this as positioning/anchoring polish rather than an RS1 functional bug. RS5 must
+        evaluate a stable anchor or pose-aware transform before final transform acceptance.
   remaining_acceptance:
     - "Run full tests and a dedicated-server smoke when Gradle can establish loopback."
     - "Automate feasible render-crash and remote synchronization coverage with muted test clients."
-    - "User-driven visual placement/clipping and local/remote model inspection remain required; ask readiness before launching any user-test client."
+    - "Remote multiplayer model synchronization/observer acceptance remains required."
   blockers: []
-  next_action: "Ask the user whether they are ready for the required real-world client visual acceptance run."
+  next_action: "Complete RS1 automated/dedicated-server and remote-observer acceptance without reopening settled local visual checks."
 
 test_execution_policy:
   automation_first:
@@ -532,6 +549,13 @@ test_execution_policy:
     - >
       After confirmation, launch only the required client or clients and provide clear numbered test steps,
       expected results, and the exact observations the user should report.
+  runtime_operation_confirmation:
+    - >
+      Treat every Minecraft client or server start/stop request as incomplete until the exact target is
+      affirmatively verified from process identity plus appropriate startup/shutdown log or port evidence.
+    - >
+      Never infer that a process stopped because a stop command returned without error, and never proceed to a
+      replacement launch until the prior target's exit is confirmed. Report only the state actually verified.
   evidence:
     - "Record automated commands, harnesses, client/server topology, identities, assertions, and results."
     - "For each manual check, record why automation was insufficient and the user's observed result."
