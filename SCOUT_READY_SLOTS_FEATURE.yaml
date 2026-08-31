@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 11
-last_updated_utc: "2026-08-31T20:22:53Z"
+feature_revision: 12
+last_updated_utc: "2026-08-31T20:42:31Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -497,6 +497,14 @@ rs1_implementation:
       javap of that compiled class proved BAG_CONTENTS -> normalized(capacity) -> getStack(0) feeds
       ItemModelResolver.appendItemLayers; the equipped bag ItemStack is not its model argument.
     - "Common-source client-reference audit passed."
+    - >
+      A fresh direct JUnit Platform run used Fabric Loader JUnit 0.19.3's Knot-backed launcher session and the
+      exact cached Minecraft/Fabric/Trinkets artifacts. All 39 existing tests started and passed with zero
+      failures, aborts, or skips; the isolated launcher/classes were removed afterward.
+    - >
+      Two direct dedicated-server attempts loaded Fabric, Scout Remastered, Trinkets, 1519 recipes, and 1617
+      advancements without a project classloading or Mixin error before the host failed to create Netty's Java
+      selector. The second attempt also used the installed legacy WindowsSelectorProvider and failed identically.
   environment_limitations:
     - >
       Fresh ./gradlew.bat test first failed in the sandbox because distribution network access was denied, then
@@ -505,6 +513,11 @@ rs1_implementation:
       The direct Java compiler emitted a post-success archive-close AccessDeniedException for cached dependency JARs,
       but returned success and produced the inspected class files. Treat Gradle tests/build/server smoke as pending,
       not passed.
+    - >
+      BLOCKED_BY_HOST_LOOPBACK: Java 25 cannot create either WEPollSelectorImpl's or WindowsSelectorImpl's wakeup
+      pipe on this execution host (SocketException: Invalid argument: connect). Consequently the dedicated server
+      cannot bind/reach Done, and a dedicated two-client remote-observer topology cannot run here. Both failed
+      server processes exited, no project Java process remains, and TCP 25565 is confirmed free.
   user_visual_evidence:
     status: "LOCAL_THIRD_PERSON_ACCEPTED"
     observed_utc: "2026-08-31T20:22:53Z"
@@ -519,11 +532,11 @@ rs1_implementation:
         The human classified this as positioning/anchoring polish rather than an RS1 functional bug. RS5 must
         evaluate a stable anchor or pose-aware transform before final transform acceptance.
   remaining_acceptance:
-    - "Run full tests and a dedicated-server smoke when Gradle can establish loopback."
-    - "Automate feasible render-crash and remote synchronization coverage with muted test clients."
-    - "Remote multiplayer model synchronization/observer acceptance remains required."
-  blockers: []
-  next_action: "Complete RS1 automated/dedicated-server and remote-observer acceptance without reopening settled local visual checks."
+    - "Run a dedicated-server smoke to Done on a host where Java selector/loopback creation works."
+    - "Run the muted two-client remote model synchronization/observer acceptance on that network-capable host."
+  blockers:
+    - "This execution host cannot create the Java selector wakeup pipe required by Minecraft/Netty networking."
+  next_action: "Resume RS1 on a Java-network-capable host for dedicated-server Done and muted two-client remote-observer acceptance."
 
 test_execution_policy:
   automation_first:
