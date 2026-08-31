@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 7
-last_updated_utc: "2026-08-31T19:12:42Z"
+feature_revision: 8
+last_updated_utc: "2026-08-31T19:15:33Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -408,6 +408,7 @@ phases:
 rs0_architecture_lock:
   status: ACCEPTED
   decision_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
+  rs1_presentation_contract_commit: "53917345f742d6e196aefcecd42f9ee4cc87dcdf"
   source_baseline:
     minecraft: "26.1.2 exact Loom-resolved common/client sources"
     fabric_networking_api: "6.3.1+554860db4c"

@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 73
-last_updated_utc: "2026-08-31T19:12:42Z"
+state_revision: 74
+last_updated_utc: "2026-08-31T19:15:33Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS0_COMPLETE"
 current_phase: "P9"
@@ -981,6 +981,7 @@ repository_state:
   p8_release_candidate_tag: "v1.0.0-rc.1"
   p9_rs0_activation_commit: "f0c0225"
   p9_rs0_completion_commit: "75b9836bc1a508f0be01d01c1ff597780a4443cf"
+  p9_rs1_render_contract_commit: "53917345f742d6e196aefcecd42f9ee4cc87dcdf"
   last_known_good_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   last_tested_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   working_tree_expected_clean: true
@@ -2025,6 +2026,7 @@ latest_session:
     - "Locked the RS1 whitelist to the five exact tool/weapon tags plus BowItem, CrossbowItem, TridentItem, and ShieldItem class checks; unsupported stacks remain storable/swappable and render nothing."
     - "Proved the existing BagTrinketRenderer callback can submit an arbitrary ready ItemStack through an independent ItemStackRenderState in place of the old bag image; no new render mixin, persistent component, equipment slot, or inventory is authorized."
     - "The human clarified the RS1 presentation contract: the eligible ready item replaces the old pouch/satchel image. Empty, unsupported, missing-bag, or invalid-role states render nothing, and the bag image is never used as a fallback. This clarification does not authorize RS1 implementation."
+    - "The clarified RS1 replacement-rendering contract was committed as 53917345f742d6e196aefcecd42f9ee4cc87dcdf."
     - "Verified that vanilla inventory and Trinkets equipment are serialized into one player-data CompoundTag and temporary/live/backup replacement, preventing a server-thread save from persisting only half a swap."
     - "Specified an external force-kill/restart harness for integrated, dedicated-server, and dedicated-client topologies, with multiple commit/save timing windows and an exact full-stack pre-or-post oracle. Any mixed state, loss, duplication, corruption, or unexplained desync remains release-blocking."
     - "No Combat Amenities source was opened or used. Its all-rights-reserved implementation remains outside the clean-room boundary."
