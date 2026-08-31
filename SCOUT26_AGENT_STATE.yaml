@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 67
-last_updated_utc: "2026-08-12T06:28:57Z"
+state_revision: 68
+last_updated_utc: "2026-08-31T18:02:56Z"
 state_owner: "AI coding agent"
 project_status: "P8_RELEASE_CANDIDATE_COMPLETE_LOCAL_TAGGED"
 current_phase: "P8"
@@ -497,6 +497,28 @@ architecture:
 
 testing_strategy:
   philosophy: "Every historical duplication/desync bug becomes a regression test or explicit manual test."
+  execution_policy:
+    automation_first:
+      - >
+        Automate every test that can be exercised and assessed reliably with unit/integration tests,
+        test hooks, an integrated or dedicated Minecraft server, and one or more controlled clients.
+      - >
+        Prefer deterministic setup, scripted actions, logs, state assertions, persistence inspection,
+        and repeatable lifecycle/multiplayer runs over user-driven testing.
+      - >
+        Use user-driven real-world testing only for behavior that cannot be automated credibly,
+        such as irreducibly visual, subjective, or physical-input observations.
+    user_driven_client_gate:
+      - >
+        When user-driven real-world testing is required, stop before launching the Minecraft client,
+        explain what cannot be automated, and ask whether the user is ready to proceed.
+      - "Do not launch the user-test client until the user explicitly confirms readiness."
+      - >
+        After confirmation, launch only the required client or clients and provide clear numbered
+        test steps, expected results, and the observations the user should report.
+    evidence:
+      - "Record which checks were automated and their exact commands/results."
+      - "For every manual check, record why automation was insufficient and the user's observed result."
   automated:
     discover_first:
       - "./gradlew tasks"
