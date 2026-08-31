@@ -81,6 +81,22 @@ final class BagStorageTest {
 	}
 
 	@Test
+	void wholeSlotReplacementReturnsPreviousSnapshotAndPersistsTheReplacement() {
+		ItemStack bag = new ItemStack(ModItems.POUCH);
+		BagContainer container = new BagContainer(bag);
+		container.setItem(0, new ItemStack(Items.DIAMOND, 12));
+		ItemStack replacement = new ItemStack(Items.EMERALD, 7);
+
+		ItemStack previous = container.replaceWholeSlot(0, replacement).orElseThrow();
+		replacement.setCount(1);
+
+		assertSame(Items.DIAMOND, previous.getItem());
+		assertEquals(12, previous.getCount());
+		assertSame(Items.EMERALD, bag.get(ModDataComponents.BAG_CONTENTS).getStack(0).getItem());
+		assertEquals(7, bag.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
+	}
+
+	@Test
 	void vanillaBagCopiesShareOnlyImmutableValuesAndDivergeOnMutation() {
 		ItemStack originalBag = new ItemStack(ModItems.SATCHEL);
 		BagContainer originalContainer = new BagContainer(originalBag);

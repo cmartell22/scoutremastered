@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 80
-last_updated_utc: "2026-08-31T21:32:17Z"
+state_revision: 81
+last_updated_utc: "2026-08-31T22:03:02Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS2_IN_PROGRESS"
 current_phase: "P9"
@@ -994,6 +994,7 @@ repository_state:
   p9_rs0_completion_commit: "75b9836bc1a508f0be01d01c1ff597780a4443cf"
   p9_rs1_render_contract_commit: "53917345f742d6e196aefcecd42f9ee4cc87dcdf"
   p9_rs1_renderer_implementation_commit: "75ac7f0f13326af25e2cc8069884f70a926d0691"
+  p9_rs2_activation_commit: "395ef354650195886634aee9464b30bbf7154c5d"
   last_known_good_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   last_tested_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   working_tree_expected_clean: true
@@ -2090,15 +2091,39 @@ latest_session:
     - "Read SCOUT26_AGENT_STATE.yaml, SCOUT_READY_SLOTS_FEATURE.yaml, and ADR-013 completely before editing."
     - "Inspected BagContainer, BagContents, BagStorageRules, BagEquipmentRole, EquippedBagHandle, TrinketsIntegration, and the related storage/equipment/menu/hardening tests before designing the change."
     - "RS2 is active; no implementation or acceptance criterion is yet claimed complete."
+    - >
+      Implemented the narrow BagContainer whole-slot replacement primitive, exact LEFT_POUCH/RIGHT_POUCH/SATCHEL
+      ReadySlotRole validation, and a ServerPlayer-only ReadySlotSwapService with explicit fail-closed results,
+      complete snapshots, bag-first/hotbar-second mutation, rollback, and post-commit synchronization.
+    - "Added no payload, networking, key mapping, client input, renderer/config/menu change, or storage component."
+    - >
+      The direct Fabric Loader JUnit checkpoint passed all 56 tests with zero failures, aborts, or skips: 39 retained
+      tests plus one primitive and 16 direct service tests, including 1000 swaps and forced second-write rollback.
   commands_run:
     - "git status --short --branch; git log -1 --format='%H%n%h %s'; git branch --show-current"
     - "Read the complete RS2 source-of-truth documents in bounded chunks and inspect the relevant current sources/tests with rg and Get-Content."
-  tests_run: []
+    - >
+      Attempt .\\gradlew.bat test --no-daemon --console=plain in the sandbox and with approved unrestricted access;
+      record distribution-network denial followed by the documented Gradle single-use-daemon loopback failure.
+    - "Compile the RS2 production sources and all test sources directly against the exact locked cached dependency set."
+    - "Run the complete test output through Fabric Loader JUnit 0.19.3's Knot server launcher session."
+  tests_run:
+    - "CHECKPOINT_PASS: 56 tests found/started/successful; zero failed, aborted, or skipped."
+    - >
+      New coverage proves all empty/nonempty pairs, exact identity/count/damage/enchantment/name/custom-component
+      preservation, nested-bag and exact-handle rejection with zero mutation, role/slot isolation, mutation order,
+      1000-swap conservation, sole BAG_CONTENTS ownership, and complete rollback after a forced hotbar failure.
   files_changed:
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
+    - "src/main/java/io/github/cmartell22/scoutremastered/BagContainer.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotRole.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotSwapService.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/BagStorageTest.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/MinecraftTestBootstrap.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotSwapServiceTest.java"
   blockers: []
-  next_action: "Commit RS2 activation, inspect the exact selected-hotbar API/test seam, then implement the primitive, role, service, and direct automated tests."
+  next_action: "Finish structural/source audits, commit the implementation checkpoint, rerun final verification, then complete both YAML documents if every RS2 criterion remains green."
 
 agent_first_prompt:
   text: >

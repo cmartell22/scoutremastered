@@ -26,6 +26,7 @@ final class MinecraftTestBootstrap {
 		bindItemComponents(Items.EMERALD, 64, false);
 		bindItemComponents(Items.GOLD_INGOT, 64, false);
 		bindItemComponents(Items.APPLE, 64, false);
+		bindDamageableItemComponents(Items.IRON_SWORD, 250);
 		bindItemComponents(ModItems.SATCHEL, 1, true);
 		bindItemComponents(ModItems.UPGRADED_SATCHEL, 1, true);
 		bindItemComponents(ModItems.POUCH, 1, true);
@@ -44,5 +45,18 @@ final class MinecraftTestBootstrap {
 			components.set(ModDataComponents.BAG_CONTENTS, BagContents.EMPTY);
 		}
 		item.builtInRegistryHolder().bindComponents(components.build());
+	}
+
+	@SuppressWarnings("deprecation")
+	private static void bindDamageableItemComponents(Item item, int maxDamage) {
+		DataComponentMap components = DataComponentMap.builder()
+			.addAll(DataComponents.COMMON_ITEM_COMPONENTS)
+			.set(DataComponents.MAX_STACK_SIZE, 1)
+			.set(DataComponents.MAX_DAMAGE, maxDamage)
+			.set(DataComponents.DAMAGE, 0)
+			.set(DataComponents.ITEM_NAME, Component.translatable(item.getDescriptionId()))
+			.set(DataComponents.ITEM_MODEL, BuiltInRegistries.ITEM.getKey(item))
+			.build();
+		item.builtInRegistryHolder().bindComponents(components);
 	}
 }

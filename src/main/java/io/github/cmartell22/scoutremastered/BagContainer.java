@@ -109,6 +109,33 @@ public final class BagContainer implements Container {
 		this.persist();
 	}
 
+	/**
+	 * Replaces one complete logical bag slot and immediately persists the replacement.
+	 *
+	 * <p>The returned stack is a defensive snapshot of the previous value. An empty optional means
+	 * that the live handle became stale or that the replacement is not eligible for bag storage;
+	 * neither case mutates the physical bag.</p>
+	 */
+	public Optional<ItemStack> replaceWholeSlot(int slot, ItemStack replacement) {
+		this.checkSlot(slot);
+		Objects.requireNonNull(replacement, "replacement");
+		if (!this.isLive() || !replacement.isEmpty() && !BagStorageRules.canStore(replacement)) {
+			return Optional.empty();
+		}
+
+		ItemStack previous = this.items.get(slot).copy();
+		ItemStack stored = replacement.isEmpty() ? ItemStack.EMPTY : replacement.copy();
+		if (!stored.isEmpty()) {
+			stored.limitSize(this.getMaxStackSize(stored));
+		}
+		this.items.set(slot, stored);
+		if (!this.persist()) {
+			this.items.set(slot, previous.copy());
+			return Optional.empty();
+		}
+		return Optional.of(previous);
+	}
+
 	@Override
 	public void setChanged() {
 		if (this.isLive()) {
@@ -145,9 +172,9 @@ public final class BagContainer implements Container {
 			.orElse(true);
 	}
 
-	private void persist() {
+	private boolean persist() {
 		if (!this.isLive()) {
-			return;
+			return false;
 		}
 		for (int slot = 0; slot < this.items.size(); slot++) {
 			ItemStack stack = this.items.get(slot);
@@ -164,6 +191,7 @@ public final class BagContainer implements Container {
 			ModDataComponents.BAG_CONTENTS,
 			BagContents.fromItems(this.items, this.bagItem.capacity())
 		);
+		return true;
 	}
 
 	private boolean isValidSlot(int slot) {
