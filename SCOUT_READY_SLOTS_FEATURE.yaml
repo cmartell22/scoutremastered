@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 9
-last_updated_utc: "2026-08-31T19:22:41Z"
+feature_revision: 10
+last_updated_utc: "2026-08-31T19:30:07Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -473,6 +473,40 @@ rs0_architecture_lock:
     client_launch: "Not required and not performed."
   blockers: []
   next_action: "Await explicit authorization, then begin RS1 read-only rendering proof."
+
+rs1_implementation:
+  status: ACTIVE
+  implementation_commit: "75ac7f0f13326af25e2cc8069884f70a926d0691"
+  implementation:
+    renderer: >
+      BagTrinketRenderer now validates its expected back/belt Trinkets slot, reads normalized BAG_CONTENTS slot 0,
+      and submits only a whitelisted ready stack. It returns without any item-model submission for empty,
+      unsupported, missing, or invalid states, so the old equipped bag image cannot be rendered as a fallback.
+    whitelist: "ItemTags.SWORDS, AXES, PICKAXES, SHOVELS, HOES; BowItem; CrossbowItem; TridentItem; ShieldItem."
+    mutation_boundary: "No common/server code, bag mutation, payload, keybind, menu, component, or config change."
+  automated_evidence:
+    - >
+      Direct javac compilation against the exact locally resolved Minecraft 26.1.2 common/client artifacts,
+      Fabric Loader 0.19.3, Fabric API modules, Trinkets Updated 4.0.0-beta.3+26.1, JOML, and current main
+      classes produced the replacement renderer class successfully.
+    - >
+      javap of that compiled class proved BAG_CONTENTS -> normalized(capacity) -> getStack(0) feeds
+      ItemModelResolver.appendItemLayers; the equipped bag ItemStack is not its model argument.
+    - "Common-source client-reference audit passed."
+  environment_limitations:
+    - >
+      Fresh ./gradlew.bat test first failed in the sandbox because distribution network access was denied, then
+      outside the sandbox failed because Gradle could not establish its required single-use-daemon loopback connection.
+    - >
+      The direct Java compiler emitted a post-success archive-close AccessDeniedException for cached dependency JARs,
+      but returned success and produced the inspected class files. Treat Gradle tests/build/server smoke as pending,
+      not passed.
+  remaining_acceptance:
+    - "Run full tests and a dedicated-server smoke when Gradle can establish loopback."
+    - "Automate feasible render-crash and remote synchronization coverage with muted test clients."
+    - "User-driven visual placement/clipping and local/remote model inspection remain required; ask readiness before launching any user-test client."
+  blockers: []
+  next_action: "Ask the user whether they are ready for the required real-world client visual acceptance run."
 
 test_execution_policy:
   automation_first:

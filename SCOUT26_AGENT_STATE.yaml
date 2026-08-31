@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 75
-last_updated_utc: "2026-08-31T19:22:41Z"
+state_revision: 76
+last_updated_utc: "2026-08-31T19:30:07Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS1_ACTIVE"
 current_phase: "P9"
-current_task: "RS1_READ_ONLY_READY_SLOT_RENDERING_PROOF"
+current_task: "RS1_RENDERER_IMPLEMENTED_AWAITING_VISUAL_TEST_READINESS"
 
 project:
   working_name: "Scout Remastered"
@@ -817,7 +817,7 @@ phase_plan:
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
     current_subphase: "RS1"
-    current_subphase_name: "Read-only ready-slot rendering proof"
+    current_subphase_name: "Renderer implemented; automated build is host-blocked and visual acceptance awaits user readiness"
     architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
@@ -982,6 +982,7 @@ repository_state:
   p9_rs0_activation_commit: "f0c0225"
   p9_rs0_completion_commit: "75b9836bc1a508f0be01d01c1ff597780a4443cf"
   p9_rs1_render_contract_commit: "53917345f742d6e196aefcecd42f9ee4cc87dcdf"
+  p9_rs1_renderer_implementation_commit: "75ac7f0f13326af25e2cc8069884f70a926d0691"
   last_known_good_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   last_tested_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   working_tree_expected_clean: true
@@ -2012,7 +2013,7 @@ release_candidate_session_archive:
   blockers: []
   next_action: "P8 is complete. Preserve v1.0.0-rc.1 as the local release candidate; await separate explicit authorization before any push, upload, publication, or post-P8 work."
 
-latest_session:
+rs0_ready_slots_session_archive:
   session_id: "p9-ready-slots-rs0-024"
   date: "2026-08-31"
   agent: "GPT-5.6"
@@ -2038,6 +2039,25 @@ latest_session:
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
   next_action: "Await explicit authorization, then begin RS1 read-only rendering proof."
+
+latest_session:
+  session_id: "p9-ready-slots-rs1-025"
+  date: "2026-08-31"
+  agent: "GPT-5.6"
+  summary:
+    - "The human explicitly authorized RS1. Activation and the corrected replacement-rendering wording were committed as 82ce21a."
+    - "75ac7f0f13326af25e2cc8069884f70a926d0691 changes only client BagTrinketRenderer: it validates the expected Trinkets role/slot, reconstructs normalized BAG_CONTENTS slot 0, accepts only the locked five tags/four item classes, and submits that ready stack instead of the equipped bag stack."
+    - "Empty, unsupported, absent, stale, or wrong-slot states return before pose/model submission. The old pouch/satchel image has no fallback path and is never rendered alongside a ready item."
+    - "No server/common source, mutation, payload, keybind, menu, component, or config changed; the common-source client-reference audit passed."
+    - "The Gradle wrapper baseline failed in the sandbox because distribution network access was denied. The approved retry reached cached Gradle 9.5.1 but failed because this host cannot establish Gradle's single-use-daemon loopback connection. No Gradle test/build/server pass is claimed."
+    - "A direct locked-artifact javac compile produced the replacement renderer class and javap proved it passes the reconstructed ready stack—not the equipped bag—to ItemModelResolver. The JDK reported a post-success cached-JAR close AccessDeniedException; this host quirk is recorded and the generated proof classes were removed."
+    - "No Minecraft client was launched. Visual placement, clipping, and remote observer acceptance still require real-world testing, so the mandatory readiness gate is now the next action."
+  files_changed:
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/BagTrinketRenderer.java"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml"
+    - "SCOUT26_AGENT_STATE.yaml"
+  blockers: []
+  next_action: "Ask the user whether they are ready for the required RS1 real-world client visual acceptance run."
 
 agent_first_prompt:
   text: >
