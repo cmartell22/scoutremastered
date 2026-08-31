@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 15
-last_updated_utc: "2026-08-31T22:03:02Z"
+feature_revision: 16
+last_updated_utc: "2026-08-31T22:08:50Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
-current_phase: RS2
+current_phase: RS3
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -301,7 +301,7 @@ phases:
 
   RS2:
     name: "Swap primitive and automated correctness tests"
-    status: IN_PROGRESS
+    status: COMPLETE
     model: "GPT-5.6 Sol High"
     scope:
       - "Add narrow BagContainer whole-slot replacement primitive."
@@ -319,7 +319,7 @@ phases:
 
   RS3:
     name: "Serverbound payload and configurable keybinds"
-    status: BLOCKED_BY_RS2
+    status: READY_PENDING_EXPLICIT_AUTHORIZATION
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol High"
     scope:
@@ -553,8 +553,11 @@ rs1_implementation:
   next_action: "Await explicit authorization before beginning RS2; do not implement swap mutation yet."
 
 rs2_implementation:
-  status: IN_PROGRESS
+  status: COMPLETE
   authorized_utc: "2026-08-31T21:32:17Z"
+  completed_utc: "2026-08-31T22:08:50Z"
+  activation_commit: "395ef354650195886634aee9464b30bbf7154c5d"
+  implementation_commit: "e98dbf3a097d17ed555a68b1aab0d2431edd9471"
   authorization: >
     The human explicitly authorized RS2 only: the BagContainer whole-slot primitive, ReadySlotRole,
     ReadySlotSwapService without networking/client input, and comprehensive direct automated tests.
@@ -594,7 +597,7 @@ rs2_implementation:
     - "Run the full suite through Fabric Loader JUnit 0.19.3's Knot server launcher session."
   tests_run:
     - >
-      CHECKPOINT_PASS: 56 tests found, started, and passed with zero failures, aborts, or skips. This includes
+      FINAL_PASS: 56 tests found, started, and passed with zero failures, aborts, or skips. This includes
       the 39 pre-RS2 tests plus one BagContainer primitive test and 16 ReadySlotSwapService tests.
     - >
       RS2 coverage includes every empty/nonempty pairing, complete component-rich stack equality, nested-bag
@@ -603,6 +606,22 @@ rs2_implementation:
     - >
       Direct javac emitted every production/test class successfully. The known post-success cached-JAR close
       AccessDeniedException recurred for the production compiler invocation; it is a host artifact, not a source error.
+    - >
+      The complete 56-test Fabric Loader JUnit run was repeated after implementation commit e98dbf3 with the same
+      zero-failure/zero-abort/zero-skip result.
+  environment_limitations:
+    - >
+      Gradle test did not execute on this host: the sandboxed wrapper could not download through the restricted
+      network, and every approved unrestricted/cached attempt failed before task execution because Gradle 9.5.1
+      could not establish its required single-use-daemon loopback connection. No Gradle pass is claimed.
+    - >
+      The direct Java 25 compiler emits a post-success AccessDeniedException while closing some read-only cached
+      dependency JARs, after it has returned all requested class files. The independent Knot/JUnit execution of
+      those classes passed, so this is retained as a host limitation rather than a source/test failure.
+  runtime_cleanup:
+    - "Removed the temporary DirectJUnitLauncher source, .fabric test state, proof class outputs, and staged proof dependency copies."
+    - "Verified zero Java/javaw processes whose command line referenced C:\\CodexLocalProjects\\JavaBackport."
+    - "Verified zero listeners on TCP 25565. No Minecraft client or gameplay server was launched for RS2."
   files_changed:
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
@@ -613,7 +632,8 @@ rs2_implementation:
     - "src/test/java/io/github/cmartell22/scoutremastered/MinecraftTestBootstrap.java"
     - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotSwapServiceTest.java"
   blockers: []
-  next_action: "Finish structural/source audits, commit the implementation checkpoint, rerun final verification, then complete both YAML documents if every RS2 criterion remains green."
+  remaining_acceptance: []
+  next_action: "RS2 is complete. Await separate explicit authorization before beginning RS3 payload or key-mapping work."
 
 test_execution_policy:
   automation_first:
