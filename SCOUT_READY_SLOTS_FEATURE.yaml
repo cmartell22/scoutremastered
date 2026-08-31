@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 13
-last_updated_utc: "2026-08-31T21:15:15Z"
+feature_revision: 14
+last_updated_utc: "2026-08-31T21:32:17Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -301,7 +301,7 @@ phases:
 
   RS2:
     name: "Swap primitive and automated correctness tests"
-    status: READY_PENDING_AUTHORIZATION
+    status: IN_PROGRESS
     model: "GPT-5.6 Sol High"
     scope:
       - "Add narrow BagContainer whole-slot replacement primitive."
@@ -551,6 +551,35 @@ rs1_implementation:
   remaining_acceptance: []
   blockers: []
   next_action: "Await explicit authorization before beginning RS2; do not implement swap mutation yet."
+
+rs2_implementation:
+  status: IN_PROGRESS
+  authorized_utc: "2026-08-31T21:32:17Z"
+  authorization: >
+    The human explicitly authorized RS2 only: the BagContainer whole-slot primitive, ReadySlotRole,
+    ReadySlotSwapService without networking/client input, and comprehensive direct automated tests.
+    RS3 remains unauthorized and must not begin.
+  verified_start_state:
+    branch: main
+    head: "5852b574aafc8ad49339a3c0b361aa16bf10e413"
+    subject: "docs: complete Ready Slots RS1"
+    working_tree: clean
+  inspected_before_design:
+    - "SCOUT26_AGENT_STATE.yaml (complete)"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml (complete)"
+    - "docs/adr/ADR-013-ready-slots-rs0-architecture.md (complete)"
+    - "BagContainer, BagContents, BagStorageRules, BagEquipmentRole, EquippedBagHandle, and TrinketsIntegration"
+    - "BagStorageTest, TrinketsIntegrationTest, PackMenuTest, P5HardeningTest, and MinecraftTestBootstrap"
+  implementation: []
+  commands_run:
+    - "git status --short --branch; git log -1 --format; git branch --show-current"
+    - "Read all three RS2 source-of-truth documents in full and inspect the existing storage/handle/test boundaries."
+  tests_run: []
+  files_changed:
+    - "SCOUT_READY_SLOTS_FEATURE.yaml"
+    - "SCOUT26_AGENT_STATE.yaml"
+  blockers: []
+  next_action: "Commit RS2 activation, inspect the exact selected-hotbar API/test seam, then implement the primitive, role, service, and direct tests."
 
 test_execution_policy:
   automation_first:

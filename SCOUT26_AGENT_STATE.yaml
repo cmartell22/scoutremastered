@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 79
-last_updated_utc: "2026-08-31T21:15:15Z"
+state_revision: 80
+last_updated_utc: "2026-08-31T21:32:17Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS1_COMPLETE_RS2_PENDING_AUTHORIZATION"
+project_status: "P9_READY_SLOTS_RS2_IN_PROGRESS"
 current_phase: "P9"
-current_task: "RS2_AWAITING_EXPLICIT_AUTHORIZATION"
+current_task: "RS2_SWAP_PRIMITIVE_AND_AUTOMATED_CORRECTNESS_TESTS"
 
 project:
   working_name: "Scout Remastered"
@@ -828,7 +828,7 @@ phase_plan:
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
     current_subphase: "RS2"
-    current_subphase_name: "RS1 complete; RS2 awaits explicit authorization"
+    current_subphase_name: "Swap primitive and automated correctness tests"
     architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
@@ -2051,7 +2051,7 @@ rs0_ready_slots_session_archive:
   blockers: []
   next_action: "Await explicit authorization, then begin RS1 read-only rendering proof."
 
-latest_session:
+rs1_ready_slots_session_archive:
   session_id: "p9-ready-slots-rs1-025"
   date: "2026-08-31"
   agent: "GPT-5.6"
@@ -2079,6 +2079,26 @@ latest_session:
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
   next_action: "RS1 is complete. Await explicit authorization before beginning RS2 swap primitive work."
+
+latest_session:
+  session_id: "p9-ready-slots-rs2-026"
+  date: "2026-08-31"
+  agent: "GPT-5.6"
+  summary:
+    - "The human explicitly authorized RS2 only; RS3 remains unauthorized and unstarted."
+    - "Verified clean main at expected HEAD 5852b574aafc8ad49339a3c0b361aa16bf10e413 (`docs: complete Ready Slots RS1`)."
+    - "Read SCOUT26_AGENT_STATE.yaml, SCOUT_READY_SLOTS_FEATURE.yaml, and ADR-013 completely before editing."
+    - "Inspected BagContainer, BagContents, BagStorageRules, BagEquipmentRole, EquippedBagHandle, TrinketsIntegration, and the related storage/equipment/menu/hardening tests before designing the change."
+    - "RS2 is active; no implementation or acceptance criterion is yet claimed complete."
+  commands_run:
+    - "git status --short --branch; git log -1 --format='%H%n%h %s'; git branch --show-current"
+    - "Read the complete RS2 source-of-truth documents in bounded chunks and inspect the relevant current sources/tests with rg and Get-Content."
+  tests_run: []
+  files_changed:
+    - "SCOUT_READY_SLOTS_FEATURE.yaml"
+    - "SCOUT26_AGENT_STATE.yaml"
+  blockers: []
+  next_action: "Commit RS2 activation, inspect the exact selected-hotbar API/test seam, then implement the primitive, role, service, and direct automated tests."
 
 agent_first_prompt:
   text: >
