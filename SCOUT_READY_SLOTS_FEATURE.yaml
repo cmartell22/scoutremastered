@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 6
-last_updated_utc: "2026-08-31T18:43:20Z"
+feature_revision: 7
+last_updated_utc: "2026-08-31T19:12:42Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -28,6 +28,8 @@ player_experience:
   - "Left pouch slot 0 is visibly worn on the left hip."
   - "Right pouch slot 0 is visibly worn on the right hip."
   - "Satchel slot 0 is visibly worn on the back."
+  - "The eligible ready item replaces the old equipped pouch/satchel image; they are never rendered together."
+  - "Render nothing for an empty ready slot, unsupported ready stack, invalid role, or missing corresponding bag."
   - "Three configurable controls swap the corresponding ready stack with the selected main-hand stack."
   - "Ready items remain ordinary Scout bag contents. No new equipment inventory exists."
   - "Unsupported items can remain in and swap through ready slots even if not rendered."
@@ -256,7 +258,7 @@ phases:
       - "Verify enum payload codec pattern."
       - "Verify BAG_CONTENTS reaches remote players on equipped Trinkets stacks."
       - "Verify initial whitelist tags."
-      - "Prove BagTrinketRenderer can submit an additional arbitrary ItemStack."
+      - "Prove BagTrinketRenderer can submit an arbitrary ready-slot ItemStack in place of the equipped bag image."
       - "Document Combat Amenities clean-room boundary."
       - >
         Verify the persistence/save boundary for the selected hotbar stack and the equipped Trinkets bag,
@@ -276,6 +278,7 @@ phases:
     scope:
       - "Extend BagTrinketRenderer only."
       - "Render bag-local slot 0."
+      - "Remove the old pouch/satchel item-model submission; the ready item replaces it."
       - "Hardcoded transforms + conservative whitelist."
     do_not:
       - "No keybinds."
@@ -286,8 +289,11 @@ phases:
       - "Left pouch slot 0 appears on left hip."
       - "Right pouch slot 0 appears on right hip."
       - "Satchel slot 0 appears on back."
-      - "Empty/unsupported stacks render nothing."
-      - "Existing bag models still render correctly."
+      - "The equipped pouch/satchel image is not rendered, whether the ready item is visible or not."
+      - "Empty ready slots render nothing."
+      - "Unsupported ready stacks render nothing."
+      - "Missing pouch/satchel or invalid role renders nothing."
+      - "The ready item and old bag image are never rendered together."
       - "Representative sword, tool, bow, crossbow, shield, trident do not crash."
       - "Remote multiplayer player shows correct stacks."
       - "Dedicated server starts cleanly."
@@ -425,7 +431,11 @@ rs0_architecture_lock:
       and ShieldItem instances. Unsupported stacks remain storable and swappable but invisible.
     renderer: >
       Extend the existing BagTrinketRenderer. Minecraft 26.1.2 ItemModelResolver accepts an arbitrary
-      ItemStack into a fresh ItemStackRenderState, so no new player-render mixin or equipment slot is needed.
+      ItemStack into a fresh ItemStackRenderState, so submit the eligible ready stack instead of the equipped
+      bag stack. The old pouch/satchel image is removed; no new player-render mixin or equipment slot is needed.
+    empty_render_rule: >
+      Submit no item model when slot 0 is empty, its stack is not whitelisted, the role/equipped bag is invalid,
+      or no corresponding pouch/satchel is equipped. Never fall back to rendering the bag image.
     persistence: >
       Vanilla inventory and Trinkets equipment serialize into one player ValueOutput and one temporary/live/
       backup player-data replacement. A server-thread swap cannot interleave with save serialization, so an

@@ -2,7 +2,7 @@
 
 - Date: 2026-08-31
 - RS0 status: Accepted
-- Decision: Proceed to RS1 using the existing Trinkets renderer and the contracts below.
+- Decision: Proceed to RS1 using the existing Trinkets renderer and the contracts below, with the ready item replacing the old bag-image rendering.
 
 ## Context
 
@@ -53,7 +53,9 @@ The five tool/weapon constants exist in Minecraft 26.1.2. The four class checks 
 
 The existing `BagTrinketRenderer` remains the sole rendering integration. Its callback already creates an independent `ItemStackRenderState`, passes an arbitrary `ItemStack` to `ItemModelResolver.appendItemLayers(..., ItemDisplayContext.FIXED, ...)`, and submits that state to the callback's `SubmitNodeCollector`. The Minecraft 26.1.2 API has no requirement that this stack equal the equipped Trinkets stack.
 
-RS1 may therefore push a second pose, derive a defensive slot-0 stack from synchronized `BAG_CONTENTS`, apply a position/category transform, and submit it through a second fresh render state. No player-render mixin, new equipment slot, new persistent component, or second inventory is authorized.
+RS1 will stop submitting the equipped pouch/satchel item model itself. Instead, it will derive a defensive slot-0 stack from synchronized `BAG_CONTENTS`, apply a position/category transform, and submit that ready stack through a fresh render state. The ready item replaces the old bag image; the two are never rendered together.
+
+The renderer submits nothing when the ready slot is empty, the ready stack is outside the whitelist, the equipped bag/role is missing or invalid, or the callback is not invoked because no corresponding bag is equipped. No player-render mixin, new equipment slot, new persistent component, or second inventory is authorized.
 
 ### 6. Persistence and abrupt-process safety
 

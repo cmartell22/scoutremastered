@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 72
-last_updated_utc: "2026-08-31T18:43:20Z"
+state_revision: 73
+last_updated_utc: "2026-08-31T19:12:42Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS0_COMPLETE"
 current_phase: "P9"
@@ -1131,8 +1131,8 @@ decision_log:
     decision: >
       Implement Ready Slots as a server-thread exact-handle swap between bag-local slot 0 and
       Inventory.setSelectedItem, with role-only bounded payloads, immediate container-ID-0 owner sync,
-      Trinkets full-stack observer sync, a conservative render whitelist, and a second arbitrary ItemStack
-      submission inside the existing BagTrinketRenderer. Keep both owners in their existing single player-data
+      Trinkets full-stack observer sync, a conservative render whitelist, and an arbitrary ready ItemStack
+      submission in place of the old bag image inside the existing BagTrinketRenderer. Keep both owners in their existing single player-data
       snapshot and require automated force-kill/restart tests to accept only an exact complete pre- or post-state.
     reason: >
       Exact Minecraft 26.1.2 and Trinkets Updated 4.0.0-beta.3+26.1 sources prove the hotbar mutation APIs,
@@ -2023,7 +2023,8 @@ latest_session:
     - "Locked a role-only bounded VarInt payload codec; malformed IDs fail closed and payloads never carry stacks, bag indices, capacity, or equipment references."
     - "Verified that BAG_CONTENTS rides ItemStack component synchronization and that Trinkets detects component-only equipped-stack changes through ItemStack.matches before sending full SyncInventoryPayload stacks to tracking players."
     - "Locked the RS1 whitelist to the five exact tool/weapon tags plus BowItem, CrossbowItem, TridentItem, and ShieldItem class checks; unsupported stacks remain storable/swappable and render nothing."
-    - "Proved the existing BagTrinketRenderer callback can submit a second arbitrary ItemStack through an independent ItemStackRenderState; no new render mixin, persistent component, equipment slot, or inventory is authorized."
+    - "Proved the existing BagTrinketRenderer callback can submit an arbitrary ready ItemStack through an independent ItemStackRenderState in place of the old bag image; no new render mixin, persistent component, equipment slot, or inventory is authorized."
+    - "The human clarified the RS1 presentation contract: the eligible ready item replaces the old pouch/satchel image. Empty, unsupported, missing-bag, or invalid-role states render nothing, and the bag image is never used as a fallback. This clarification does not authorize RS1 implementation."
     - "Verified that vanilla inventory and Trinkets equipment are serialized into one player-data CompoundTag and temporary/live/backup replacement, preventing a server-thread save from persisting only half a swap."
     - "Specified an external force-kill/restart harness for integrated, dedicated-server, and dedicated-client topologies, with multiple commit/save timing windows and an exact full-stack pre-or-post oracle. Any mixed state, loss, duplication, corruption, or unexplained desync remains release-blocking."
     - "No Combat Amenities source was opened or used. Its all-rights-reserved implementation remains outside the clean-room boundary."
