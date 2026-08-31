@@ -5,19 +5,19 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 69
-last_updated_utc: "2026-08-31T18:10:51Z"
+state_revision: 70
+last_updated_utc: "2026-08-31T18:16:46Z"
 state_owner: "AI coding agent"
-project_status: "P8_RELEASE_CANDIDATE_COMPLETE_LOCAL_TAGGED"
-current_phase: "P8"
-current_task: "P8_COMPLETE"
+project_status: "P9_READY_SLOTS_RS0_ACTIVE"
+current_phase: "P9"
+current_task: "RS0_ARCHITECTURE_LOCK_AND_API_VERIFICATION"
 
 project:
   working_name: "Scout Remastered"
   public_name: "Scout Remastered"
   mod_id: "scoutremastered"
   java_package: "io.github.cmartell22.scoutremastered"
-  repository: null
+  repository: "https://github.com/cmartell22/scoutremastered.git"
   target_platform: "Fabric"
   target_minecraft_line: "26.1.x"
   preferred_build_baseline: "26.1.2"
@@ -809,6 +809,20 @@ phase_plan:
       - "State file points to tested commit and artifact."
       - "No temporary project identifiers remain unless explicitly approved."
 
+  P9:
+    name: "Ready Slots"
+    status: "ACTIVE"
+    objective: >
+      Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
+      server-authoritative full-stack swap with the selected hotbar slot.
+    detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
+    current_subphase: "RS0"
+    current_subphase_name: "Architecture lock and API verification"
+    completion_gate: >
+      P9 core is complete only after RS4 passes without item loss, duplication, corruption,
+      partial crash persistence, ghost stacks, or unresolved desynchronization. RS5 is polish;
+      RS6 and RS7 remain deferred.
+
 release_candidate:
   status: "COMPLETE_LOCAL_ONLY"
   version: "1.0.0-rc.1"
@@ -912,7 +926,7 @@ dependency_lock:
 
 repository_state:
   initialized: true
-  remote: null
+  remote: "https://github.com/cmartell22/scoutremastered.git"
   default_branch: "main"
   working_branch: "main"
   initial_state_commit: "a26d732c95c51328926bcd9e4a86fed188c0589c"

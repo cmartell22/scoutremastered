@@ -6,11 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 3
-last_updated_utc: "2026-08-31T18:10:51Z"
+feature_revision: 4
+last_updated_utc: "2026-08-31T18:16:46Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: PLANNED
+status: ACTIVE
+current_phase: RS0
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -248,7 +249,7 @@ keybinds:
 phases:
   RS0:
     name: "Architecture lock and API verification"
-    status: PLANNED
+    status: ACTIVE
     model: "GPT-5.6 Sol High"
     scope:
       - "Verify exact 26.1.2 selected-hotbar mutation/sync API."
