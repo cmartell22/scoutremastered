@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 8
-last_updated_utc: "2026-08-31T19:15:33Z"
+feature_revision: 9
+last_updated_utc: "2026-08-31T19:22:41Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
-current_phase: RS0_COMPLETE_AWAITING_RS1_AUTHORIZATION
+current_phase: RS1
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -187,7 +187,6 @@ rendering:
   v1_path:
     hook: "BagTrinketRenderer.submit(...)"
     algorithm:
-      - "Render the bag exactly as today."
       - "Read bag stack BAG_CONTENTS slot 0."
       - "Stop if empty or not render-whitelisted."
       - "Determine BACK/LEFT_HIP/RIGHT_HIP from bag role and TrinketSlotAccess.index()."
@@ -196,6 +195,7 @@ rendering:
       - "Resolve normal item layers with ItemModelResolver, ItemDisplayContext.FIXED."
       - "Submit ItemStackRenderState."
       - "Pop pose."
+      - "Never submit the equipped pouch/satchel item model."
   benefits:
     - "No additional AvatarRenderer mixin."
     - "No new PlayerRenderState accessor."
@@ -272,7 +272,7 @@ phases:
 
   RS1:
     name: "Read-only ready-slot rendering proof"
-    status: NEXT
+    status: ACTIVE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     scope:
@@ -557,7 +557,7 @@ manual_acceptance:
     - "Integrated Inventory persistence unchanged."
     - "Shift-click unchanged."
     - "No nested-bag regression."
-    - "Existing wearable bag rendering unchanged."
+    - "Old wearable bag images are absent; ready-slot visibility follows the RS1 whitelist and empty-render rule."
 
 risk_register:
   R1:

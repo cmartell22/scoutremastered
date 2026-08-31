@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 74
-last_updated_utc: "2026-08-31T19:15:33Z"
+state_revision: 75
+last_updated_utc: "2026-08-31T19:22:41Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS0_COMPLETE"
+project_status: "P9_READY_SLOTS_RS1_ACTIVE"
 current_phase: "P9"
-current_task: "RS0_COMPLETE_AWAITING_RS1_AUTHORIZATION"
+current_task: "RS1_READ_ONLY_READY_SLOT_RENDERING_PROOF"
 
 project:
   working_name: "Scout Remastered"
@@ -816,8 +816,8 @@ phase_plan:
       Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
-    current_subphase: "RS0_COMPLETE"
-    current_subphase_name: "Architecture lock accepted; RS1 awaiting explicit authorization"
+    current_subphase: "RS1"
+    current_subphase_name: "Read-only ready-slot rendering proof"
     architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
