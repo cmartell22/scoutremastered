@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 70
-last_updated_utc: "2026-08-31T18:16:46Z"
+state_revision: 71
+last_updated_utc: "2026-08-31T18:39:09Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS0_ACTIVE"
+project_status: "P9_READY_SLOTS_RS0_COMPLETE"
 current_phase: "P9"
-current_task: "RS0_ARCHITECTURE_LOCK_AND_API_VERIFICATION"
+current_task: "RS0_COMPLETE_AWAITING_RS1_AUTHORIZATION"
 
 project:
   working_name: "Scout Remastered"
@@ -816,8 +816,9 @@ phase_plan:
       Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
-    current_subphase: "RS0"
-    current_subphase_name: "Architecture lock and API verification"
+    current_subphase: "RS0_COMPLETE"
+    current_subphase_name: "Architecture lock accepted; RS1 awaiting explicit authorization"
+    architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
       partial crash persistence, ghost stacks, or unresolved desynchronization. RS5 is polish;
@@ -978,6 +979,7 @@ repository_state:
   p8_release_identity_commit: "f2bd0ad594dbaf42693dda5ab8d90dce76c7b19e"
   p8_client_resource_packaging_fix_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   p8_release_candidate_tag: "v1.0.0-rc.1"
+  p9_rs0_activation_commit: "f0c0225"
   last_known_good_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   last_tested_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   working_tree_expected_clean: true
@@ -1122,6 +1124,20 @@ decision_log:
       existing BagContainer/BagStorageRules boundary avoid the historical need for packet-handler, player-lifecycle,
       global-menu, and Trinkets-internal mixins. Any expansion beyond the ADR hard stops changes the recommendation
       to shipping the proven Pack Menu without Integrated Inventory.
+  - id: "ADR-013"
+    date: "2026-08-31"
+    status: "ACCEPTED"
+    decision: >
+      Implement Ready Slots as a server-thread exact-handle swap between bag-local slot 0 and
+      Inventory.setSelectedItem, with role-only bounded payloads, immediate container-ID-0 owner sync,
+      Trinkets full-stack observer sync, a conservative render whitelist, and a second arbitrary ItemStack
+      submission inside the existing BagTrinketRenderer. Keep both owners in their existing single player-data
+      snapshot and require automated force-kill/restart tests to accept only an exact complete pre- or post-state.
+    reason: >
+      Exact Minecraft 26.1.2 and Trinkets Updated 4.0.0-beta.3+26.1 sources prove the hotbar mutation APIs,
+      component-aware stack comparison and remote payload path, arbitrary item render-state API, and shared
+      temporary/live/backup player-save boundary. This avoids client-owned content, a second inventory, a new
+      render mixin, and any save window in which one half can be serialized without the other.
 
 open_questions:
   blocking_before_release:
@@ -1722,7 +1738,7 @@ session_history:
     blockers: []
     next_action: "Audit and harden P2-P4 lifecycle, corruption, anti-dupe, and multiplayer behavior in P5."
 
-latest_session:
+release_candidate_session_archive:
   session_id: "p8-release-candidate-023"
   date: "2026-08-12"
   agent: "GPT-5.6"
@@ -1993,6 +2009,30 @@ latest_session:
     - "src/client/java/com/example/scout26/client/IntegratedInventoryClientNetworking.java (BUG-P7B-003 conditional layout refresh)"
   blockers: []
   next_action: "P8 is complete. Preserve v1.0.0-rc.1 as the local release candidate; await separate explicit authorization before any push, upload, publication, or post-P8 work."
+
+latest_session:
+  session_id: "p9-ready-slots-rs0-024"
+  date: "2026-08-31"
+  agent: "GPT-5.6"
+  summary:
+    - "The human explicitly authorized RS0. Activation was committed as f0c0225 after both YAML documents were read in full and the clean release-candidate baseline was verified."
+    - "Accepted ADR-013 using exact Minecraft 26.1.2, Fabric Networking API 6.3.1+554860db4c, Trinkets Updated 4.0.0-beta.3+26.1, and current Scout Remastered sources/binaries."
+    - "Locked the server swap boundary to exact-handle prevalidation, complete stack snapshots, bag-local slot-0 replacement, Inventory.setSelectedItem/setChanged, rollback on representable failure, and explicit inventoryMenu.broadcastChanges owner sync."
+    - "Locked a role-only bounded VarInt payload codec; malformed IDs fail closed and payloads never carry stacks, bag indices, capacity, or equipment references."
+    - "Verified that BAG_CONTENTS rides ItemStack component synchronization and that Trinkets detects component-only equipped-stack changes through ItemStack.matches before sending full SyncInventoryPayload stacks to tracking players."
+    - "Locked the RS1 whitelist to the five exact tool/weapon tags plus BowItem, CrossbowItem, TridentItem, and ShieldItem class checks; unsupported stacks remain storable/swappable and render nothing."
+    - "Proved the existing BagTrinketRenderer callback can submit a second arbitrary ItemStack through an independent ItemStackRenderState; no new render mixin, persistent component, equipment slot, or inventory is authorized."
+    - "Verified that vanilla inventory and Trinkets equipment are serialized into one player-data CompoundTag and temporary/live/backup replacement, preventing a server-thread save from persisting only half a swap."
+    - "Specified an external force-kill/restart harness for integrated, dedicated-server, and dedicated-client topologies, with multiple commit/save timing windows and an exact full-stack pre-or-post oracle. Any mixed state, loss, duplication, corruption, or unexplained desync remains release-blocking."
+    - "No Combat Amenities source was opened or used. Its all-rights-reserved implementation remains outside the clean-room boundary."
+    - "No Minecraft client was launched. Automated-client sound muting and the human readiness gate remain mandatory."
+    - "The release-candidate production/test source remains unchanged and retained reports show 39 passing tests. Fresh wrapper and cached-Gradle attempts were blocked by this host's inability to establish Gradle's single-use-daemon loopback connection, so no fresh pass is claimed."
+  files_changed:
+    - "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml"
+    - "SCOUT26_AGENT_STATE.yaml"
+  blockers: []
+  next_action: "Await explicit authorization, then begin RS1 read-only rendering proof."
 
 agent_first_prompt:
   text: >

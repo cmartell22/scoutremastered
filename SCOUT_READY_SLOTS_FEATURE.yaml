@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 4
-last_updated_utc: "2026-08-31T18:16:46Z"
+feature_revision: 5
+last_updated_utc: "2026-08-31T18:39:09Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
-current_phase: RS0
+current_phase: RS0_COMPLETE_AWAITING_RS1_AUTHORIZATION
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -249,7 +249,7 @@ keybinds:
 phases:
   RS0:
     name: "Architecture lock and API verification"
-    status: ACTIVE
+    status: DONE
     model: "GPT-5.6 Sol High"
     scope:
       - "Verify exact 26.1.2 selected-hotbar mutation/sync API."
@@ -270,7 +270,7 @@ phases:
 
   RS1:
     name: "Read-only ready-slot rendering proof"
-    status: BLOCKED_BY_RS0
+    status: NEXT
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     scope:
@@ -398,6 +398,69 @@ phases:
       - "GUI writes client presentation config only."
       - "No inventory mutation from config screen."
       - "Cancel/revert predictable."
+
+rs0_architecture_lock:
+  status: ACCEPTED
+  decision_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
+  source_baseline:
+    minecraft: "26.1.2 exact Loom-resolved common/client sources"
+    fabric_networking_api: "6.3.1+554860db4c"
+    trinkets_updated: "4.0.0-beta.3+26.1"
+    scout_commit_reviewed: "f0c0225"
+  decisions:
+    selected_hotbar_mutation: >
+      On the server thread, validate and snapshot both owners, replace exact bag-local slot 0 through
+      BagContainer, then use Inventory.setSelectedItem(ItemStack), Inventory.setChanged(), and
+      ServerPlayer.inventoryMenu.broadcastChanges(). Roll back exact snapshots on any representable
+      second-write failure.
+    payload_codec: >
+      Send only a ReadySlotRole with an explicit stable VarInt ID. Decode with explicit bounds checking;
+      malformed IDs fail closed and never fall back to a valid role.
+    component_sync: >
+      BAG_CONTENTS is carried by the full ItemStack component patch. Trinkets detects component-only
+      equipped-stack changes with ItemStack.matches and sends full SyncInventoryPayload stacks to tracking
+      players; container ID 0 supplies the immediate owning-client update.
+    render_whitelist: >
+      Render ItemTags.SWORDS, AXES, PICKAXES, SHOVELS, and HOES plus BowItem, CrossbowItem, TridentItem,
+      and ShieldItem instances. Unsupported stacks remain storable and swappable but invisible.
+    renderer: >
+      Extend the existing BagTrinketRenderer. Minecraft 26.1.2 ItemModelResolver accepts an arbitrary
+      ItemStack into a fresh ItemStackRenderState, so no new player-render mixin or equipment slot is needed.
+    persistence: >
+      Vanilla inventory and Trinkets equipment serialize into one player ValueOutput and one temporary/live/
+      backup player-data replacement. A server-thread swap cannot interleave with save serialization, so an
+      abrupt restart must recover one complete pre-state or one complete post-state, never a mixed half-swap.
+    clean_room: >
+      Combat Amenities remains an all-rights-reserved behavior/API reference only. No source, constants,
+      transforms, assets, class structure, packet layout, comments, or tests may be copied; none was opened in RS0.
+  crash_harness:
+    controller: "External process owns exact JVM PIDs and force-terminates without /stop, save-all, disconnect, shutdown hooks, or cleanup."
+    fixtures: "Isolated copied worlds, deterministic identities, and component-rich marker stacks with a durably verified pre-state."
+    timing_windows:
+      - "before server commit"
+      - "immediately after server commit"
+      - "after client acknowledgement"
+      - "around normal save cadence"
+      - "during deterministic repeated swaps"
+    topologies:
+      - "integrated client/server JVM hard kill and same-world restart"
+      - "dedicated server hard kill with connected automated clients and same-world restart"
+      - "dedicated automated client hard kill while the authoritative server remains alive, followed by reconnect"
+    oracle: >
+      The recovered hotbar/bag pair and all stack components must exactly equal one allowed complete snapshot.
+      Loss, duplication, corruption, a mixed pre/post pair, or unexplained desynchronization is release-blocking.
+    client_audio: "Preconfigure automated clients with sound categories at zero whenever the verified 26.1.2 options format permits it."
+  verification:
+    exact_source_inspection: PASS
+    renderer_structural_proof: PASS
+    code_baseline: "Production/test source is unchanged from release-candidate commit ddcdb89."
+    retained_tests: "39 tests, zero failures or errors, from the unchanged release-candidate baseline."
+    fresh_gradle_attempt: >
+      BLOCKED_BY_HOST: wrapper and cached Gradle 9.5.1 could not establish the single-use daemon loopback
+      connection on this execution host. This is not counted as a fresh pass and no source failure was observed.
+    client_launch: "Not required and not performed."
+  blockers: []
+  next_action: "Await explicit authorization, then begin RS1 read-only rendering proof."
 
 test_execution_policy:
   automation_first:
