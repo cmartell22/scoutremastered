@@ -14,5 +14,8 @@
   "narration.scoutremastered.slot_count": "%s slots",
   "narration.scoutremastered.not_equipped": "not equipped",
   "key.scoutremastered.open_pack": "Open Pack Inventory",
+  "key.scoutremastered.swap_left_ready": "Swap Left Pouch Ready Slot",
+  "key.scoutremastered.swap_right_ready": "Swap Right Pouch Ready Slot",
+  "key.scoutremastered.swap_back_ready": "Swap Satchel Ready Slot",
   "message.scoutremastered.no_equipped_bags": "Equip a satchel or pouch to open the Pack Inventory."
 }

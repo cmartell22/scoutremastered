@@ -18,6 +18,7 @@ public final class ScoutRemasteredMod implements ModInitializer {
 		ModMenus.initialize();
 		TrinketsIntegration.initialize();
 		PackNetworking.initialize();
+		ReadySlotNetworking.initialize();
 		IntegratedInventoryNetworking.initialize();
 		LOGGER.info("ScoutRemastered initialized");
 	}

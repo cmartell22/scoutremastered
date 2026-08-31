@@ -29,6 +29,7 @@ public final class ScoutRemasteredClient implements ClientModInitializer {
 		IntegratedInventoryConfig.load();
 		IntegratedInventoryClientNetworking.initialize();
 		IntegratedInventoryScreenEvents.initialize();
+		ReadySlotKeyMappings.initialize();
 		MenuScreens.register(ModMenus.PACK, PackScreen::new);
 		TrinketRendererRegistry.registerRenderer(ModItems.SATCHEL, BagTrinketRenderer.INSTANCE);
 		TrinketRendererRegistry.registerRenderer(ModItems.UPGRADED_SATCHEL, BagTrinketRenderer.INSTANCE);
