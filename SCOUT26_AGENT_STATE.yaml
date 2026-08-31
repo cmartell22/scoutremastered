@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 71
-last_updated_utc: "2026-08-31T18:39:09Z"
+state_revision: 72
+last_updated_utc: "2026-08-31T18:43:20Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS0_COMPLETE"
 current_phase: "P9"
@@ -980,6 +980,7 @@ repository_state:
   p8_client_resource_packaging_fix_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   p8_release_candidate_tag: "v1.0.0-rc.1"
   p9_rs0_activation_commit: "f0c0225"
+  p9_rs0_completion_commit: "75b9836bc1a508f0be01d01c1ff597780a4443cf"
   last_known_good_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   last_tested_commit: "ddcdb89662e954fe3a177a6fab58528ea46fe42d"
   working_tree_expected_clean: true
@@ -2016,6 +2017,7 @@ latest_session:
   agent: "GPT-5.6"
   summary:
     - "The human explicitly authorized RS0. Activation was committed as f0c0225 after both YAML documents were read in full and the clean release-candidate baseline was verified."
+    - "The accepted ADR and RS0 completion state were committed as 75b9836bc1a508f0be01d01c1ff597780a4443cf."
     - "Accepted ADR-013 using exact Minecraft 26.1.2, Fabric Networking API 6.3.1+554860db4c, Trinkets Updated 4.0.0-beta.3+26.1, and current Scout Remastered sources/binaries."
     - "Locked the server swap boundary to exact-handle prevalidation, complete stack snapshots, bag-local slot-0 replacement, Inventory.setSelectedItem/setChanged, rollback on representable failure, and explicit inventoryMenu.broadcastChanges owner sync."
     - "Locked a role-only bounded VarInt payload codec; malformed IDs fail closed and payloads never carry stacks, bag indices, capacity, or equipment references."

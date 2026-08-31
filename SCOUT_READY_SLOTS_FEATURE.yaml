@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 5
-last_updated_utc: "2026-08-31T18:39:09Z"
+feature_revision: 6
+last_updated_utc: "2026-08-31T18:43:20Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -451,6 +451,7 @@ rs0_architecture_lock:
       Loss, duplication, corruption, a mixed pre/post pair, or unexplained desynchronization is release-blocking.
     client_audio: "Preconfigure automated clients with sound categories at zero whenever the verified 26.1.2 options format permits it."
   verification:
+    completion_commit: "75b9836bc1a508f0be01d01c1ff597780a4443cf"
     exact_source_inspection: PASS
     renderer_structural_proof: PASS
     code_baseline: "Production/test source is unchanged from release-candidate commit ddcdb89."
