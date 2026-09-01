@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 26
-last_updated_utc: "2026-09-01T03:01:04Z"
+feature_revision: 27
+last_updated_utc: "2026-09-01T03:04:01Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: RS5_COMPLETE
@@ -854,6 +854,7 @@ rs5_implementation:
   implementation_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
   test_checkpoint_commit: "aafddfdb199e3e98b08b93f0f72a2c6e60095d16"
   build_evidence_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
+  completion_commit: "32f7b90e36500b4ae7d72104ede09f8d767ebb54"
   authorization: >
     The human explicitly authorized RS5 transform and compatibility polish only. RS6 external configuration
     and RS7 interactive positioning remain deferred and must not begin.

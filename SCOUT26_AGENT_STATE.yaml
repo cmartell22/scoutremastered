@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 92
-last_updated_utc: "2026-09-01T03:01:04Z"
+state_revision: 93
+last_updated_utc: "2026-09-01T03:04:01Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS5_COMPLETE"
 current_phase: "P9"
@@ -1006,6 +1006,7 @@ repository_state:
   p9_rs5_implementation_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
   p9_rs5_test_checkpoint_commit: "aafddfdb199e3e98b08b93f0f72a2c6e60095d16"
   p9_rs5_build_evidence_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
+  p9_rs5_completion_commit: "32f7b90e36500b4ae7d72104ede09f8d767ebb54"
   last_known_good_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
   last_tested_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
   working_tree_expected_clean: true
@@ -2371,6 +2372,7 @@ latest_session:
       ScoutRemastered-RS5-Visual scheduled task, and .rs5-launch-client.ps1 helper were removed. TCP 25565 is free.
       The current user-driven run's latest.log and debug.log were removed after evidence capture; historical logs
       and the existing P7B-test world were preserved.
+    - "RS5 completion evidence was committed as 32f7b90e36500b4ae7d72104ede09f8d767ebb54."
   commands_run:
     - "git status --short --branch; git rev-parse HEAD"
     - "Read all three required source-of-truth documents in bounded complete chunks."
