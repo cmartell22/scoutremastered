@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 31
-last_updated_utc: "2026-09-01T07:56:42Z"
+feature_revision: 32
+last_updated_utc: "2026-09-01T11:20:24Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: RS7A_ACTIVE
-current_phase: RS7A
+status: RS7A_COMPLETE
+current_phase: RS7A_COMPLETE
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -1072,8 +1072,18 @@ rs6_implementation:
   next_action: "RS6 is complete. Do not begin RS7A or RS7B without separate explicit authorization."
 
 rs7a_implementation:
-  status: ACTIVE
+  status: COMPLETE
   authorized_utc: "2026-09-01T07:56:42Z"
+  completed_utc: "2026-09-01T11:20:24Z"
+  activation_commit: "d95aacb983ae4fa2e5ae48e573896f0022ea7005"
+  implementation_commits:
+    - "87c0a57078133fe9d5beca205eebbb4a6b159c47: initial functional editor"
+    - "ab3101563db015e73885d2725dfd6e5d9b1f39bd: editor-key regression coverage"
+    - "cdb8b96ca65d0688855985f531f37eaf1158cd5a: bounded input, scale, mirror, and policy validation fixes"
+    - "fd69b0c6fd53f93ba4b13d27f42ab09fba5cf342: granular categories and editor/list/preview UX polish"
+    - "f1a915fb95d2bf098762082c4a8f6ff14bb3a1e7: pose-aligned preview, stateful per-axis mirror, held rotation, and tag policies"
+    - "9b0be540af1f30fb971b8e8525d1fa956444e05b: accepted doubled held-rotation speed"
+  completion_commit: "PENDING_COMPLETION_COMMIT"
   authorization: >
     The human explicitly authorized RS7A functional interactive positioning GUI work and explicitly requires a
     user-driven GUI test before completion. RS7B curated default calibration remains deferred and must not begin.
@@ -1094,24 +1104,71 @@ rs7a_implementation:
     - "No inventory, equipment, ready-slot, networking, storage, ownership, transaction, menu, component, or persistent bag-data mutation."
     - "No new mixin or dependency unless an exact documented blocker proves it necessary."
     - "No RS7B item-by-item calibration or promotion of personal values into bundled defaults."
-  planned_behavior:
-    - "Open through a configurable client key while in world."
-    - "Render the synchronized local player through InventoryScreen.extractEntityInInventoryFollowsMouse for a live Ready Slots preview."
-    - "Edit bounded translation, rotation, and scale with sliders plus exact numeric entry."
-    - "Select base, category, or exact-item scope and left hip, right hip, or back position."
-    - "Edit category enablement and exact-item whitelist/blacklist rules."
-    - "Provide reset, copy/paste, and left/right mirror controls."
-    - "Apply drafts only in memory for preview; Cancel/Escape restores the opening config without writing."
-    - "Save atomically replaces only config/scoutremastered-ready-slots.json in deterministic inspectable JSON."
-  acceptance_addition: >
-    After automation and clean build, pause before launching a user-driven client, explain the focused GUI matrix,
-    ask readiness, and require the human's explicit GUI acceptance before marking RS7A complete.
+  implementation_result:
+    - "Added configurable O-key access to a client-only Ready Slots editor while in world; the existing B mapping remains untouched."
+    - "Added a live synchronized local-player paper-doll preview with button-controlled yaw/pitch, fixed head/body alignment, click steps, 350 ms hold delay, smooth repeat, vertical bounds, and forward reset."
+    - "Added left hip, right hip, and back selection plus Default Position, category, and exact-item scopes."
+    - "Added sliders and exact numeric entry for X/Y/Z, RX/RY/RZ, and Scale using the inclusive RS6 bounds: translation -4..4, rotation -360..360, and scale 0.01..8."
+    - "Out-of-range text remains visible for correction but is not accepted, does not move the slider, preserves the prior valid draft, and displays feedback."
+    - "Added Reset, whole-transform Copy/Paste, and independent X/Y/Z/RX/RY/RZ mirror buttons. Translation mirrors negate; angular mirrors move 90 degrees by sign, toggle to the original on a second unchanged click, and restart after manual edits."
+    - "Added category Visible editing and granular sword, axe, pickaxe, shovel, hoe, spear, bow, crossbow, shield, and trident categories while preserving legacy handheld config compatibility."
+    - "Converted the policy page to scrollable whitelist/blacklist selector lists with per-entry removal, Clear, and Reset to default."
+    - "Policy selectors accept loaded exact item IDs or registered #namespace:item_tag selectors; blacklist always wins, exact whitelist precedes lexically ordered matching tag whitelists, and built-in classification follows. Exact-item transforms remain exact-only."
+    - "Save atomically writes deterministic external presentation JSON; Cancel/Escape restores the exact opening config and writes nothing."
+    - "No new mixin or dependency and no storage, ownership, payload, networking, transaction, menu, component, or persistent bag-data change."
+  automated_evidence:
+    focused: "21/21 presentation-config, config-file, and structural rendering/editor tests passed after tag and preview refinement."
+    complete_suite: "89 tests; zero failures, errors, or skips across 10 generated Gradle XML suites."
+    clean_build: >
+      PASS. The human ran .\gradlew.bat clean build --no-daemon --console=plain with Gradle 9.5.1 and
+      Fabric Loom 1.17.20 after the final speed adjustment. Generated XML independently confirmed 89/89.
+    final_artifact:
+      path: "build/libs/scoutremastered-1.0.0-rc.1.jar"
+      bytes: 190195
+      sha256: "2D116635D5D48D8239EDEBC8B0E6370793AD51B848F6D710DF7FE84B5BCF7B44"
+  human_visual_acceptance:
+    status: PASS
+    why_manual: "Final placement controls, model motion, clipping feedback, and interaction clarity require human visual/UX judgment."
+    accepted_rows:
+      - "Bounded sliders/numeric fields at Default Position, category, and exact-item scope, including Scale."
+      - "Invalid 5000 remains editable but is rejected with warning and preserves the previous valid value."
+      - "Category visibility plus enable/disable, whitelist, blacklist, invalid-ID warning, remove, clear, and reset-to-default behavior."
+      - "Scrollable policy lists, granular categories including spears, clearer scope/Scale labels, and uncropped feedback placement."
+      - "Independent translation and angular mirror behavior for positive/negative/manual-edit/toggle cases."
+      - "Preview head/body alignment, fixed click rotation, held smooth rotation at the accepted doubled speed, vertical bounds, and Reset."
+      - "Registered #minecraft:swords selectors, unregistered-tag warning, tag whitelist bypass of category visibility, tag blacklist precedence, exact selector behavior, Save persistence, reopen, and Cancel restore."
+    final_human_report: "all pass"
+  runtime_evidence:
+    tag_and_preview_run:
+      scheduled_task: "ScoutRemastered-RS7A-Tags"
+      cmd_pid: 29536
+      gradle_wrapper_pid: 35552
+      gradle_daemon_pid: 37860
+      minecraft_pid: 20928
+      gradle_listener: "127.0.0.1:59012"
+      world_and_player: "P7B-test / Player728"
+      save_evidence: "Three Ready Slots presentation config saves were logged at 04:07:49, 04:08:04, and 04:08:09 local time."
+      teardown: "Task Last Result 0; exact four PIDs absent; stopping server, saving players/worlds/all three dimensions, and render stopping logged; TCP 25565 had zero listeners."
+    final_speed_run:
+      scheduled_task: "ScoutRemastered-RS7A-Speed"
+      cmd_pid: 40712
+      gradle_wrapper_pid: 14184
+      gradle_daemon_pid: 39464
+      minecraft_pid: 37100
+      gradle_listener: "127.0.0.1:58912"
+      world_and_player: "P7B-test / Player486"
+      teardown: "Task Last Result 0; exact four PIDs absent; all three dimensions saved and render stopping logged; TCP 25565 had zero listeners."
+  cleanup:
+    - "Deleted both exact scheduled tasks after successful result 0."
+    - "Removed temporary launch helpers, launch logs, current latest/debug logs, focused compile/runner artifacts, backups, and generated temporary harness material."
+    - "Preserved historical archived logs and the existing P7B-test world."
+    - "Restored config/scoutremastered-ready-slots.json to the exact pretest SHA-256 129E06D2FD37A9545E2569B88F3A93F4B11638E055A6FC94514B54F3CD21B050."
+    - "Verified no exact launch PIDs remained and TCP 25565 had zero listeners."
   blockers: []
-  remaining_acceptance:
-    - "Implement functional editor and deterministic persistence."
-    - "Complete automated suite and clean Gradle build."
-    - "Human-run visual and interaction acceptance of the GUI."
-  next_action: "Commit RS7A activation, then implement the client-only editor without beginning RS7B."
+  remaining_acceptance: []
+  next_action: >
+    RS7A is complete. Do not begin RS7B without separate explicit authorization. RS7B remains the deferred,
+    human-guided item-by-item calibration and promotion of accepted personal values into clean bundled defaults.
 
 test_execution_policy:
   automation_first:

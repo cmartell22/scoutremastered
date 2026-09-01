@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 97
-last_updated_utc: "2026-09-01T07:56:42Z"
+state_revision: 98
+last_updated_utc: "2026-09-01T11:20:24Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS7A_ACTIVE"
+project_status: "P9_READY_SLOTS_RS7A_COMPLETE"
 current_phase: "P9"
-current_task: "RS7A_INTERACTIVE_POSITIONING_GUI"
+current_task: "AWAIT_RS7B_AUTHORIZATION"
 
 project:
   working_name: "Scout Remastered"
@@ -2471,34 +2471,80 @@ latest_session:
   date: "2026-09-01"
   agent: "GPT-5.6"
   summary:
-    - "The human explicitly authorized RS7A functional positioning GUI work; RS7B remains deferred and unstarted."
+    - "RS7A functional interactive positioning GUI is complete and human-accepted; RS7B remains deferred and unstarted."
     - "Verified clean main at ffeb5029e3089a439cef5f569c1c37425ae63fd5 before any RS7A change."
     - "Read both durable YAML files, ADR-013, the RS6 config guide, and current config/client integration sources completely."
     - >
-      Exact Minecraft 26.1.2 source confirms InventoryScreen.extractEntityInInventoryFollowsMouse supplies a live
-      local-player preview and current Screen/CycleButton/AbstractSliderButton/EditBox/Checkbox/Button APIs cover the
-      editor without a mixin or new dependency.
+      Implemented a client-only O-key editor with a live synchronized player preview, bounded slider/numeric editing,
+      Default Position/category/exact-item scopes, granular item categories, category visibility, deterministic Save,
+      exact Cancel/Escape restore, reset, copy/paste, and independent per-field mirror controls.
     - >
-      The planned editor previews an immutable in-memory draft, uses the shared RS6 bounds, writes deterministic JSON
-      only on Save, and restores the opening config on Cancel/Escape. It cannot mutate inventory, equipment, ready
-      stacks, networking, storage, ownership, transactions, menus, components, or persistent bag data.
+      Added scrollable whitelist/blacklist selector management with remove, clear, reset-to-default, loaded exact item
+      IDs, and registered #item_tag selectors. Blacklist wins; exact whitelist precedes lexically ordered tag matches;
+      item-specific transforms remain exact-only.
     - >
-      The human explicitly requires visual/user-interaction testing. After automation and clean build, pause before
-      launching Minecraft, provide the focused GUI checklist, ask readiness, and do not complete RS7A without explicit acceptance.
+      Fixed preview head/body alignment and added button-only rotation with fixed click steps, 350 ms delayed smooth
+      hold repeat, vertical bounds, reset, and the human-accepted doubled held speed. Angular mirror controls move by
+      90 degrees according to sign, toggle back when unchanged, and restart after manual input.
+    - >
+      Human acceptance covered bounded inputs and warnings, Scale in all scopes, category/list UX, exact and tag policy
+      precedence, Save/reopen/Cancel, all mirror axes, preview motion/head alignment, and final held speed; final report was
+      "all pass".
+    - >
+      Final clean Gradle 9.5.1/Fabric Loom 1.17.20 build passed. Generated XML confirms 89 tests with zero failures,
+      errors, or skips. Production JAR is 190195 bytes, SHA-256
+      2D116635D5D48D8239EDEBC8B0E6370793AD51B848F6D710DF7FE84B5BCF7B44.
+    - >
+      No renderer mixin or new dependency was added. Production inventory, storage, ownership, payloads, networking,
+      transactions, menus, components, persistent bag data, and server-authority behavior remain unchanged.
+  commits:
+    activation: "d95aacb983ae4fa2e5ae48e573896f0022ea7005"
+    editor: "87c0a57078133fe9d5beca205eebbb4a6b159c47"
+    key_test: "ab3101563db015e73885d2725dfd6e5d9b1f39bd"
+    interaction_fixes: "cdb8b96ca65d0688855985f531f37eaf1158cd5a"
+    ux_polish: "fd69b0c6fd53f93ba4b13d27f42ab09fba5cf342"
+    preview_and_tags: "f1a915fb95d2bf098762082c4a8f6ff14bb3a1e7"
+    accepted_hold_speed: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
+    completion: "PENDING_COMPLETION_COMMIT"
   commands_run:
-    - "git status --short --branch; git rev-parse HEAD; git branch --show-current"
-    - "Read all 2477 master-state lines, all 1277 feature-state lines, ADR-013, and the RS6 config guide."
-    - "Inspect current RS6 config model/file/client bootstrap/key mappings and exact locally resolved Minecraft 26.1.2 GUI/player-preview sources."
-  tests_run: []
+    - '.\gradlew.bat clean build --no-daemon --console=plain'
+    - "Direct exact-source Java 25 compilation plus a focused JUnit Platform launcher for config/file/rendering editor coverage."
+    - "Two final user-driven runClient launches through temporary interactive scheduled tasks, with exact PID/log/port audits."
+  tests_run:
+    - "Focused presentation/config/rendering-editor suite: 21/21 passed."
+    - "Complete generated Gradle JUnit XML: 89 tests, zero failures/errors/skips across 10 suites."
+    - "Final clean Gradle build: PASS."
+    - "Human GUI and visual acceptance matrix: PASS; final report 'all pass'."
   files_changed:
+    - "README.md"
+    - "docs/READY_SLOTS_CONFIG.md"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotConfig.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotConfigScreen.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotKeyMappings.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotRenderPolicy.java"
+    - "src/client/resources/assets/scoutremastered/config/ready-slots-default.json"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfig.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfigFile.java"
+    - "src/main/resources/assets/scoutremastered/lang/en_us.json"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotNetworkingTest.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfigFileTest.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfigTest.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotRenderingTest.java"
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
+  runtime_evidence:
+    - "Tag/preview acceptance: task ScoutRemastered-RS7A-Tags; cmd/wrapper/daemon/client PIDs 29536/35552/37860/20928; listener 127.0.0.1:59012; P7B-test Player728; task result 0."
+    - "Final speed acceptance: task ScoutRemastered-RS7A-Speed; cmd/wrapper/daemon/client PIDs 40712/14184/39464/37100; listener 127.0.0.1:58912; P7B-test Player486; task result 0."
+    - "Both teardowns logged server stop, player/world saves, all three dimensions saved, and render stop; exact PIDs absent and TCP 25565 had zero listeners."
+  cleanup:
+    - "Deleted exact scheduled tasks and removed temporary helpers, launch/current logs, test runners/proof classes, config backups, and harness artifacts."
+    - "Restored the pretest external config SHA-256 129E06D2FD37A9545E2569B88F3A93F4B11638E055A6FC94514B54F3CD21B050."
+    - "Preserved historical archived logs and the existing P7B-test world."
   blockers: []
-  remaining_acceptance:
-    - "Implement and test the functional RS7A editor."
-    - "Run the complete automated suite and clean Gradle build."
-    - "Obtain explicit human visual/user-interaction GUI acceptance."
-  next_action: "Commit RS7A activation, then implement the client-only editor without beginning RS7B."
+  remaining_acceptance: []
+  next_action: >
+    RS7A is complete. Await separate explicit authorization before beginning RS7B. RS7B is the deferred human-guided
+    item-by-item calibration and promotion of accepted values into clean bundled defaults.
 
 agent_first_prompt:
   text: >
