@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 30
-last_updated_utc: "2026-09-01T03:56:03Z"
+feature_revision: 31
+last_updated_utc: "2026-09-01T07:56:42Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: RS6_COMPLETE
-current_phase: RS6
+status: RS7A_ACTIVE
+current_phase: RS7A
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -37,8 +37,8 @@ player_experience:
 non_goals_v1:
   - "No new persistent slots."
   - "No client-authoritative inventory mutation."
-  - "No transform-editor GUI."
-  - "No per-item user GUI."
+  - "No GUI-driven inventory, equipment, or ready-slot mutation."
+  - "No RS7B curated-default calibration during RS7A."
   - "No jiggle/sway animation."
   - "No enchantment particles."
   - "No secondary decorative models."
@@ -394,7 +394,7 @@ phases:
 
   RS7A:
     name: "Interactive positioning GUI"
-    status: FUTURE_OPTIONAL
+    status: ACTIVE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     prerequisite: "RS6 stable and demonstrated need."
@@ -1070,6 +1070,48 @@ rs6_implementation:
   blockers: []
   remaining_acceptance: []
   next_action: "RS6 is complete. Do not begin RS7A or RS7B without separate explicit authorization."
+
+rs7a_implementation:
+  status: ACTIVE
+  authorized_utc: "2026-09-01T07:56:42Z"
+  authorization: >
+    The human explicitly authorized RS7A functional interactive positioning GUI work and explicitly requires a
+    user-driven GUI test before completion. RS7B curated default calibration remains deferred and must not begin.
+  verified_start_state:
+    branch: main
+    head: "ffeb5029e3089a439cef5f569c1c37425ae63fd5"
+    working_tree: clean
+  inspected_before_activation:
+    - "SCOUT26_AGENT_STATE.yaml (complete, 2477 lines)"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml (complete, 1277 lines)"
+    - "docs/adr/ADR-013-ready-slots-rs0-architecture.md (complete)"
+    - "docs/READY_SLOTS_CONFIG.md and all current RS6 config/client integration sources (complete)"
+    - >
+      Exact locally resolved Minecraft 26.1.2 InventoryScreen live-entity preview, Screen lifecycle/widget,
+      CycleButton, AbstractSliderButton, EditBox, Checkbox, and Button source APIs.
+  implementation_boundary:
+    - "Client presentation configuration and editor UI only."
+    - "No inventory, equipment, ready-slot, networking, storage, ownership, transaction, menu, component, or persistent bag-data mutation."
+    - "No new mixin or dependency unless an exact documented blocker proves it necessary."
+    - "No RS7B item-by-item calibration or promotion of personal values into bundled defaults."
+  planned_behavior:
+    - "Open through a configurable client key while in world."
+    - "Render the synchronized local player through InventoryScreen.extractEntityInInventoryFollowsMouse for a live Ready Slots preview."
+    - "Edit bounded translation, rotation, and scale with sliders plus exact numeric entry."
+    - "Select base, category, or exact-item scope and left hip, right hip, or back position."
+    - "Edit category enablement and exact-item whitelist/blacklist rules."
+    - "Provide reset, copy/paste, and left/right mirror controls."
+    - "Apply drafts only in memory for preview; Cancel/Escape restores the opening config without writing."
+    - "Save atomically replaces only config/scoutremastered-ready-slots.json in deterministic inspectable JSON."
+  acceptance_addition: >
+    After automation and clean build, pause before launching a user-driven client, explain the focused GUI matrix,
+    ask readiness, and require the human's explicit GUI acceptance before marking RS7A complete.
+  blockers: []
+  remaining_acceptance:
+    - "Implement functional editor and deterministic persistence."
+    - "Complete automated suite and clean Gradle build."
+    - "Human-run visual and interaction acceptance of the GUI."
+  next_action: "Commit RS7A activation, then implement the client-only editor without beginning RS7B."
 
 test_execution_policy:
   automation_first:
