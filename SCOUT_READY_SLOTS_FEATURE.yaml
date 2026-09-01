@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 22
-last_updated_utc: "2026-09-01T01:16:40Z"
+feature_revision: 23
+last_updated_utc: "2026-09-01T01:24:40Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: CORE_COMPLETE_RS5_PENDING_AUTHORIZATION
-current_phase: RS5_PENDING_AUTHORIZATION
+status: RS5_ACTIVE
+current_phase: RS5
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -362,7 +362,7 @@ phases:
 
   RS5:
     name: "Transform and compatibility polish"
-    status: PENDING_AUTHORIZATION
+    status: ACTIVE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     scope:
@@ -827,6 +827,50 @@ rs4_implementation:
   blockers: []
   remaining_acceptance: []
   next_action: "RS4 and P9 core are complete. Await separate explicit authorization before beginning RS5 transform/compatibility polish."
+
+rs5_implementation:
+  status: ACTIVE
+  authorized_utc: "2026-09-01T01:24:40Z"
+  activation_commit: "PENDING_COMMIT"
+  authorization: >
+    The human explicitly authorized RS5 transform and compatibility polish only. RS6 external configuration
+    and RS7 interactive positioning remain deferred and must not begin.
+  verified_start_state:
+    branch: main
+    head: "6ac298eb75d3400e79ba6d40074c9e84deb8a309"
+    working_tree: clean
+  inspected_before_activation:
+    - "SCOUT26_AGENT_STATE.yaml (complete)"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml (complete)"
+    - "docs/adr/ADR-013-ready-slots-rs0-architecture.md (complete)"
+    - "Current BagTrinketRenderer, its transforms/whitelist/suppression policy, and client registration"
+    - "Exact Trinkets Updated TrinketRenderer callback/helpers and render-layer integration bytecode"
+    - "Exact Minecraft 26.1.2 HumanoidModel crouch pose, ModelPart transforms, HumanoidRenderState, armor/cape models and layer ordering"
+    - "Representative vanilla FIXED item-model transforms for tools, bow, crossbow, shield, and trident"
+  source_findings:
+    - >
+      translateToChest applies root and animated body transforms, then (0, 0.4, -0.16). During crouch,
+      HumanoidModel sets body.xRot=0.5, body.y+=3.2, and both legs.z+=4.0. The current additional hip
+      transform therefore moves the item from its standing front/side plane into the crouched leg plane.
+    - >
+      The existing callback exposes HumanoidModel.root(), ModelPart.translateAndRotate, and HumanoidRenderState,
+      so hip items can use a stable root/pelvis-space anchor while the back item remains torso-aware. No renderer
+      mixin or PlayerRenderState accessor is required by the reviewed APIs.
+    - >
+      Trinkets appends its render layer from LivingEntityRenderer construction before AvatarRenderer adds armor
+      and cape layers. Cape geometry is body-attached at z=2/16 and animated independently; back-item depth must
+      be visually checked for clean occlusion rather than coplanar z-fighting.
+    - "No WAWI visual mod artifact is locally available in the searched project profiles, normal mods folder, or Gradle cache."
+  implementation_boundary:
+    - "Client rendering transforms/policy only."
+    - "Preserve all RS1 empty, unsupported, invalid-role, and unequipped suppression."
+    - "No storage, ownership, payload, transaction, menu, or persistent-data change."
+    - "No new renderer mixin unless a documented blocker disproves the existing callback path."
+  blockers: []
+  remaining_acceptance:
+    - "Automated suite and clean Gradle build."
+    - "Human visual matrix for placement, crouch/animation, armor, cape, left/right distinction, and representative categories."
+  next_action: "Commit activation, then implement the reviewed transform-only correction and automated structural coverage."
 
 test_execution_policy:
   automation_first:
