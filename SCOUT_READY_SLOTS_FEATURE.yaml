@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 34
-last_updated_utc: "2026-09-01T15:55:14Z"
+feature_revision: 35
+last_updated_utc: "2026-09-01T15:57:54Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: RS7B_ACTIVE
@@ -1173,7 +1173,7 @@ rs7a_implementation:
 rs7b_implementation:
   status: ACTIVE
   authorized_utc: "2026-09-01T15:55:14Z"
-  activation_commit: "PENDING_ACTIVATION_COMMIT"
+  activation_commit: "50f5b173e5fbbfbd58c5f4aa1b0c122cf394a7e9"
   authorization: >
     The human explicitly authorized RS7B curated default calibration after accepting RS7A. Work is limited to
     human-guided presentation calibration and promotion of explicitly accepted deterministic values into bundled

@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 100
-last_updated_utc: "2026-09-01T15:55:14Z"
+state_revision: 101
+last_updated_utc: "2026-09-01T15:57:54Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS7B_ACTIVE"
 current_phase: "P9"
@@ -1013,6 +1013,7 @@ repository_state:
   p9_rs7a_activation_commit: "d95aacb983ae4fa2e5ae48e573896f0022ea7005"
   p9_rs7a_implementation_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
   p9_rs7a_completion_commit: "02fc7a997d9f147a7fc07ca68e41b0bacab9288a"
+  p9_rs7b_activation_commit: "50f5b173e5fbbfbd58c5f4aa1b0c122cf394a7e9"
   last_known_good_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
   last_tested_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
   working_tree_expected_clean: true
@@ -2491,7 +2492,7 @@ latest_session:
       presentation-only correction.
   commits:
     rs7a_completion: "02fc7a997d9f147a7fc07ca68e41b0bacab9288a"
-    rs7b_activation: "PENDING_ACTIVATION_COMMIT"
+    rs7b_activation: "50f5b173e5fbbfbd58c5f4aa1b0c122cf394a7e9"
   commands_run:
     - "git status --short --branch; git rev-parse HEAD; git branch --show-current"
     - "Read durable Ready Slots state, ADR-013, docs/READY_SLOTS_CONFIG.md, bundled/external JSON, ReadySlotConfig, ReadySlotPresentationConfigFile, and config tests."
