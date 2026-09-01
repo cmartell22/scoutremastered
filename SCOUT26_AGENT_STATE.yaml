@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 87
-last_updated_utc: "2026-09-01T01:06:11Z"
+state_revision: 88
+last_updated_utc: "2026-09-01T01:16:40Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_CORE_COMPLETE_RS5_PENDING_AUTHORIZATION"
 current_phase: "P9"
@@ -1002,8 +1002,8 @@ repository_state:
   p9_rs3_completion_commit: "3c86a5d75390640f9c38841b3f8a11d24c0df137"
   p9_rs4_activation_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
   p9_rs4_completion_commit: "ec37ec649ffc7a81654a0d7c5982734881fa3fa3"
-  last_known_good_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
-  last_tested_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
+  last_known_good_commit: "21651aeb474e78eef01edeb833331dc8eaa44787"
+  last_tested_commit: "21651aeb474e78eef01edeb833331dc8eaa44787"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -2273,8 +2273,10 @@ latest_session:
       Every exact PID exited, TCP 25565 cleared, and all temporary scheduled tasks were deleted.
     - >
       A fresh Fabric Loader JUnit 0.19.3 Knot server session found, started, and passed all 68 tests with zero failures,
-      aborts, or skips. Gradle still did not execute tasks because of the documented wrapper-network and daemon-loopback
-      host limitations; no Gradle pass is claimed.
+      aborts, or skips. The human then ran .\gradlew.bat clean build --no-daemon --console=plain from a normal Windows
+      terminal at commit 21651aeb474e78eef01edeb833331dc8eaa44787. Gradle 9.5.1/Fabric Loom 1.17.20 completed all
+      clean, compile, resource, packaging, test, check, and build tasks successfully in 21 seconds. Generated JUnit XML
+      corroborates 68 tests with zero failures, errors, or skips.
     - >
       RS4 required no production or persistent test-source change. The temporary harness, launcher, compiled proof output,
       copied worlds/logs, extracted sources, and runtime entrypoints were removed after acceptance.
@@ -2283,6 +2285,7 @@ latest_session:
     - "Muted integrated Fabric lifecycle scenario and loopback-only two-player dedicated lifecycle scenario."
     - "Exact-PID dedicated-client kill/reconnect, six-window integrated-JVM crash matrix, and two-window connected-client dedicated-server crash matrix."
     - "Fabric Loader JUnit 0.19.3 direct Knot launcher over all project tests."
+    - '.\gradlew.bat clean build --no-daemon --console=plain (human-run normal Windows terminal; BUILD SUCCESSFUL).'
     - "Exact Java PID, TCP 25565, scheduled-task, temporary-entrypoint, and worktree cleanup audits."
   tests_run:
     - "PASS: integrated normal lifecycle/adversarial scenario, one player."
@@ -2291,7 +2294,8 @@ latest_session:
     - "PASS: six integrated JVM force-kill/restart timing windows; exact PRE-or-POST oracle."
     - "PASS: two connected-client dedicated-server force-kill/restart timing windows; exact PRE-or-POST oracle."
     - "PASS: 68 tests found/started/successful; zero failed, aborted, or skipped."
-    - "GRADLE_NOT_EXECUTED: documented access/loopback failures occurred before task execution; no Gradle pass claimed."
+    - "PASS: Gradle 9.5.1 clean build; 10 actionable tasks executed successfully in 21 seconds."
+    - "PASS: generated Gradle JUnit XML reports 68 tests; zero failures, errors, or skips."
   files_changed:
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"

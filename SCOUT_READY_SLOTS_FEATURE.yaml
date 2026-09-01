@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 21
-last_updated_utc: "2026-09-01T01:06:11Z"
+feature_revision: 22
+last_updated_utc: "2026-09-01T01:16:40Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: CORE_COMPLETE_RS5_PENDING_AUTHORIZATION
@@ -815,8 +815,11 @@ rs4_implementation:
       Direct Java 25 compilation returned exit 0 for current main, client, harness, and all test sources. The known
       post-success cached-JAR archive-close AccessDeniedException was emitted and did not change the successful output.
     gradle: >
-      No Gradle pass is claimed. The wrapper remained blocked by sandbox distribution access and cached Gradle remained
-      blocked before task execution by the documented single-use-daemon loopback IOException.
+      PASS. The human ran .\gradlew.bat clean build --no-daemon --console=plain from a normal Windows terminal at
+      completion-state commit 21651aeb474e78eef01edeb833331dc8eaa44787. Gradle 9.5.1/Fabric Loom 1.17.20 executed
+      clean, compilation, resources, jar/sourcesJar, test, check, and build successfully in 21 seconds (10 actionable
+      tasks, all executed). The generated JUnit XML independently confirms 68 tests, zero failures/errors/skips.
+      Deprecation/Unsafe warnings and the Gradle 10 compatibility warning are non-failing follow-up maintenance.
   implementation_result: >
     No production or persistent test-source change was required. The RS2 transaction and RS3 intent path already met
     the RS4 lifecycle, multiplayer, adversarial, and crash-conservation gates. All temporary harness classes,
