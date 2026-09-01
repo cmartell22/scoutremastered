@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 94
-last_updated_utc: "2026-09-01T03:22:47Z"
+state_revision: 95
+last_updated_utc: "2026-09-01T03:52:52Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS6_ACTIVE"
+project_status: "P9_READY_SLOTS_RS6_COMPLETE"
 current_phase: "P9"
-current_task: "RS6_EXTERNAL_CONFIG_FOUNDATION"
+current_task: "AWAITING_SEPARATE_RS7A_AUTHORIZATION"
 
 project:
   working_name: "Scout Remastered"
@@ -822,7 +822,7 @@ phase_plan:
 
   P9:
     name: "Ready Slots"
-    status: "RS6_ACTIVE"
+    status: "RS6_COMPLETE"
     objective: >
       Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
       server-authoritative full-stack swap with the selected hotbar slot.
@@ -833,7 +833,7 @@ phase_plan:
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
       partial crash persistence, ghost stacks, or unresolved desynchronization. RS5 is complete;
-      RS6 is active and RS7A/RS7B remain deferred.
+      RS6 is complete and RS7A/RS7B remain deferred pending separate authorization.
 
 release_candidate:
   status: "COMPLETE_LOCAL_ONLY"
@@ -1007,8 +1007,10 @@ repository_state:
   p9_rs5_test_checkpoint_commit: "aafddfdb199e3e98b08b93f0f72a2c6e60095d16"
   p9_rs5_build_evidence_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
   p9_rs5_completion_commit: "32f7b90e36500b4ae7d72104ede09f8d767ebb54"
-  last_known_good_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
-  last_tested_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
+  p9_rs6_activation_commit: "d8cba8ba997793a3352ef9585633032eebd55117"
+  p9_rs6_implementation_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
+  last_known_good_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
+  last_tested_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -2414,19 +2416,53 @@ latest_session:
       then item patch. Render blacklist wins over explicit item whitelist, which wins over enabled built-in categories.
       Missing or corrupt external JSON falls back to the bundled baseline; an invalid bundled baseline disables only
       Ready Slots rendering rather than affecting storage or swapping.
+    - >
+      Implemented and committed RS6 as 0386691110fc880aba8497a05f72684471cdbe2a. The bundled client JSON exactly
+      preserves the accepted RS5 transforms while allowing deterministic position, category, and exact-item patches,
+      plus explicit item whitelist/blacklist policy. No renderer mixin, GUI, dependency, or gameplay persistence path changed.
+    - >
+      Translation is bounded inclusively to -4.0..4.0, rotation to -360.0..360.0 degrees, and scale to 0.01..8.0.
+      All values must be finite; unknown fields and invalid/empty overrides reject the whole external file. Tests
+      explicitly accept the boundaries and reject translation 5000 and scale 0.
+    - >
+      The complete Gradle suite passed 81/81 with zero failures, errors, or skips. The required clean Gradle 9.5.1/
+      Fabric Loom 1.17.20 build executed all 10 actionable tasks and completed successfully in 18 seconds. The built
+      144787-byte JAR SHA-256 is D6EAF263BA6AADD7D1B0796A8D038EF164388577AFDA68E3C5D0C22358937345.
+    - >
+      Final temporary scheduled-task PowerShell PID 9028 and wrapper PID 23312 were absent after exit; TCP 25565 had
+      zero listeners. The temporary scheduled task, helper, workspace-local logs, and all proof artifacts were removed.
   commands_run:
     - "git status --short --branch; git rev-parse HEAD; git branch --show-current"
     - "Read ADR-013 and current Ready Slots renderer, transforms, render policy, client bootstrap, existing client config, build metadata, and renderer tests."
     - "Inspect exact local Fabric Loader config-dir usage, Gson availability, registry-key usage, and client resource layout."
-  tests_run: []
+    - '.\gradlew.bat clean build --no-daemon --console=plain'
+    - "Audit generated Gradle JUnit XML, packaged JAR entries/hash, exact temporary PIDs, task result, and TCP 25565 state."
+  tests_run:
+    - "Complete Gradle JUnit suite: 81 tests, zero failures/errors/skips across 10 suites."
+    - "ReadySlotPresentationConfigTest: 5/5."
+    - "ReadySlotPresentationConfigFileTest: 3/3."
+    - "ReadySlotRenderingTest: 5/5."
+    - "Clean Gradle build: PASS; 10 actionable tasks executed; BUILD SUCCESSFUL in 18s."
   files_changed:
+    - "CHANGELOG.md"
+    - "README.md"
+    - "docs/READY_SLOTS_CONFIG.md"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfig.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfigFile.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/BagTrinketRenderer.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotConfig.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotRenderPolicy.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotTransforms.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ScoutRemasteredClient.java"
+    - "src/client/resources/assets/scoutremastered/config/ready-slots-default.json"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfigFileTest.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfigTest.java"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotRenderingTest.java"
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  remaining_acceptance:
-    - "Implement external client presentation config with safe fallback and documented precedence."
-    - "Run the complete automated suite and clean Gradle build."
-  next_action: "Commit RS6 activation, then implement the client-only JSON config foundation without starting RS7A or RS7B."
+  remaining_acceptance: []
+  next_action: "RS6 is complete. Await separate explicit authorization before beginning RS7A; do not begin RS7B before RS7A is functional and accepted."
 
 agent_first_prompt:
   text: >

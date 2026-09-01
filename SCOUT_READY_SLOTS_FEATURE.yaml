@@ -6,11 +6,11 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 28
-last_updated_utc: "2026-09-01T03:22:47Z"
+feature_revision: 29
+last_updated_utc: "2026-09-01T03:52:52Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: RS6_ACTIVE
+status: RS6_COMPLETE
 current_phase: RS6
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
@@ -381,7 +381,7 @@ phases:
 
   RS6:
     name: "External config foundation"
-    status: ACTIVE
+    status: COMPLETE
     model: "GPT-5.6 Terra High"
     scope:
       - "Move transforms from Java constants to client config."
@@ -975,8 +975,11 @@ rs5_implementation:
     human-guided calibration and commits the accepted values as clean built-in defaults.
 
 rs6_implementation:
-  status: ACTIVE
+  status: COMPLETE
   authorized_utc: "2026-09-01T03:22:47Z"
+  completed_utc: "2026-09-01T03:52:52Z"
+  activation_commit: "d8cba8ba997793a3352ef9585633032eebd55117"
+  implementation_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
   authorization: >
     The human explicitly authorized RS6 external config foundation. RS7A functional GUI and RS7B curated-default
     calibration remain deferred and must not begin.
@@ -1011,11 +1014,61 @@ rs6_implementation:
       Missing external JSON is created from and uses the bundled baseline. Corrupt or invalid external JSON is left
       untouched and the bundled baseline is used. If the bundled baseline itself cannot be parsed, only Ready Slots
       rendering is disabled; storage and server-authoritative swapping remain unchanged.
+  implemented_format:
+    external_path: "config/scoutremastered-ready-slots.json"
+    bundled_baseline: "assets/scoutremastered/config/ready-slots-default.json"
+    transform_precedence:
+      - "Base position transform"
+      - "Field-wise category/position patch"
+      - "Field-wise exact-item/position patch"
+    visibility_precedence:
+      - "Exact-item blacklist suppresses unconditionally"
+      - "Exact-item whitelist selects its configured category"
+      - "Otherwise enabled built-in categories gate the conservative RS1 classifier"
+    inclusive_value_bounds:
+      translation: "-4.0..4.0"
+      rotation_degrees: "-360.0..360.0"
+      scale: "0.01..8.0"
+    validation: >
+      All numbers must be finite. Unknown/misspelled fields, empty category/item override blocks, malformed item IDs,
+      unsupported schema versions, invalid types, and out-of-range values reject the complete external file. The
+      parser test explicitly rejects translation 5000 and scale 0 while accepting every documented boundary.
+  implementation_result:
+    - "Moved every accepted RS5 position/rotation/scale default from Java constants into the bundled client JSON."
+    - "Retained the accepted RS5 root/pelvis hip anchor and animated chest back anchor exactly."
+    - "Added deterministic category and exact-item overrides plus item whitelist/blacklist presentation policy."
+    - "Added first-run create-new provisioning, complete bundled fallback, corrupt-file preservation, and fail-closed rendering if the bundled baseline itself is invalid."
+    - "No renderer mixin, dependency, GUI, storage, bag ownership, payload, networking, transaction, menu, component, or persistent gameplay-data change."
+  automated_evidence:
+    junit: "81 tests; zero failures, errors, or skips across 10 generated Gradle XML suites"
+    relevant_config_tests:
+      - "ReadySlotPresentationConfigTest: 5/5"
+      - "ReadySlotPresentationConfigFileTest: 3/3"
+      - "ReadySlotRenderingTest: 5/5"
+    gradle: >
+      PASS. .\gradlew.bat clean build --no-daemon --console=plain ran with Gradle 9.5.1/Fabric Loom 1.17.20.
+      All 10 actionable tasks executed and BUILD SUCCESSFUL completed in 18 seconds. The direct Codex parent could
+      not establish Gradle's loopback worker, so the exact command ran through a temporary user-context scheduled
+      task; task LastTaskResult and wrapper exit were both 0.
+    artifact:
+      path: "build/libs/scoutremastered-1.0.0-rc.1.jar"
+      bytes: 144787
+      sha256: "D6EAF263BA6AADD7D1B0796A8D038EF164388577AFDA68E3C5D0C22358937345"
+      packaged_entries_verified:
+        - "assets/scoutremastered/config/ready-slots-default.json"
+        - "ReadySlotPresentationConfig and ReadySlotPresentationConfigFile classes"
+        - "client ReadySlotConfig and ReadySlotTransforms classes"
+  visual_acceptance: >
+    No new user-driven visual run was required for RS6. The bundled JSON reproduces the human-accepted RS5 transforms
+    exactly, asserted by deterministic tests, and RS6 changes only how those presentation values are sourced.
+    Subjective per-item calibration remains deferred to separately authorized RS7A/RS7B work.
+  runtime_and_cleanup:
+    - "Final scheduled task PowerShell PID 9028 and Gradle wrapper PID 23312 were both absent after exit."
+    - "Temporary ScoutRemastered-RS6-Build task, .rs6-gradle-task.ps1, .rs6-gradle-build logs, and earlier proof artifacts were removed."
+    - "The temporary task was absent after deletion and TCP port 25565 had zero listeners."
   blockers: []
-  remaining_acceptance:
-    - "Implementation and deterministic config/fallback/precedence tests."
-    - "Complete automated suite and clean Gradle build."
-  next_action: "Commit RS6 activation, then implement the external client presentation config foundation."
+  remaining_acceptance: []
+  next_action: "RS6 is complete. Do not begin RS7A or RS7B without separate explicit authorization."
 
 test_execution_policy:
   automation_first:
