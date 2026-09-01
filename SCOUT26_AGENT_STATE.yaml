@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 93
-last_updated_utc: "2026-09-01T03:04:01Z"
+state_revision: 94
+last_updated_utc: "2026-09-01T03:22:47Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS5_COMPLETE"
+project_status: "P9_READY_SLOTS_RS6_ACTIVE"
 current_phase: "P9"
-current_task: "RS5_COMPLETE_RS6_RS7A_RS7B_DEFERRED"
+current_task: "RS6_EXTERNAL_CONFIG_FOUNDATION"
 
 project:
   working_name: "Scout Remastered"
@@ -822,18 +822,18 @@ phase_plan:
 
   P9:
     name: "Ready Slots"
-    status: "RS5_COMPLETE"
+    status: "RS6_ACTIVE"
     objective: >
       Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
-    current_subphase: "RS5"
-    current_subphase_name: "Transform and compatibility polish"
+    current_subphase: "RS6"
+    current_subphase_name: "External config foundation"
     architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
-      partial crash persistence, ghost stacks, or unresolved desynchronization. RS5 is polish;
-      RS6 and RS7 remain deferred.
+      partial crash persistence, ghost stacks, or unresolved desynchronization. RS5 is complete;
+      RS6 is active and RS7A/RS7B remain deferred.
 
 release_candidate:
   status: "COMPLETE_LOCAL_ONLY"
@@ -2307,7 +2307,7 @@ rs4_completion_session_archive:
   blockers: []
   next_action: "RS4 and P9 core are complete. Await separate explicit authorization before beginning RS5 transform and compatibility polish."
 
-latest_session:
+rs5_completion_session_archive:
   session_id: "p9-ready-slots-rs5-030"
   date: "2026-08-31"
   agent: "GPT-5.6"
@@ -2396,6 +2396,37 @@ latest_session:
     RS5 is complete. Preserve this accepted rendering baseline and do not begin RS6, RS7A, or RS7B without separate
     explicit authorization. RS7A must first deliver the functional GUI; RS7B then performs human-guided calibration
     and commits the accepted per-item/category values as clean built-in defaults.
+
+latest_session:
+  session_id: "p9-ready-slots-rs6-031"
+  date: "2026-08-31"
+  agent: "GPT-5.6"
+  summary:
+    - "The human explicitly authorized RS6 external config foundation. RS7A and RS7B remain deferred and unstarted."
+    - "Verified clean main at 87b1da9de2eb13144e38cec8d39561da448c5908 before any RS6 change."
+    - "Re-established the complete durable project state and RS6 requirements, then reread ADR-013 and all current Ready Slots renderer, transform, policy, client-bootstrap, config, build, and test sources relevant to RS6."
+    - >
+      Exact local APIs confirm the existing client bootstrap already uses FabricLoader.getInstance().getConfigDir(),
+      Gson is present on the locked Minecraft classpath, and item registry keys are available through the existing
+      BuiltInRegistries.ITEM API. No new dependency or server/common entrypoint behavior is required.
+    - >
+      Planned config precedence is deterministic: bundled safe baseline, external base position, category patch,
+      then item patch. Render blacklist wins over explicit item whitelist, which wins over enabled built-in categories.
+      Missing or corrupt external JSON falls back to the bundled baseline; an invalid bundled baseline disables only
+      Ready Slots rendering rather than affecting storage or swapping.
+  commands_run:
+    - "git status --short --branch; git rev-parse HEAD; git branch --show-current"
+    - "Read ADR-013 and current Ready Slots renderer, transforms, render policy, client bootstrap, existing client config, build metadata, and renderer tests."
+    - "Inspect exact local Fabric Loader config-dir usage, Gson availability, registry-key usage, and client resource layout."
+  tests_run: []
+  files_changed:
+    - "SCOUT_READY_SLOTS_FEATURE.yaml"
+    - "SCOUT26_AGENT_STATE.yaml"
+  blockers: []
+  remaining_acceptance:
+    - "Implement external client presentation config with safe fallback and documented precedence."
+    - "Run the complete automated suite and clean Gradle build."
+  next_action: "Commit RS6 activation, then implement the client-only JSON config foundation without starting RS7A or RS7B."
 
 agent_first_prompt:
   text: >

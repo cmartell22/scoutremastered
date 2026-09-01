@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 27
-last_updated_utc: "2026-09-01T03:04:01Z"
+feature_revision: 28
+last_updated_utc: "2026-09-01T03:22:47Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: RS5_COMPLETE
-current_phase: RS5
+status: RS6_ACTIVE
+current_phase: RS6
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -381,7 +381,7 @@ phases:
 
   RS6:
     name: "External config foundation"
-    status: DEFERRED_POST_CORE
+    status: ACTIVE
     model: "GPT-5.6 Terra High"
     scope:
       - "Move transforms from Java constants to client config."
@@ -973,6 +973,49 @@ rs5_implementation:
     RS5 is complete. Do not begin RS6, RS7A, or RS7B without separate explicit authorization. Preserve the accepted
     RS5 constants as the future config baseline; RS7A must first deliver a functional GUI, and RS7B then performs
     human-guided calibration and commits the accepted values as clean built-in defaults.
+
+rs6_implementation:
+  status: ACTIVE
+  authorized_utc: "2026-09-01T03:22:47Z"
+  authorization: >
+    The human explicitly authorized RS6 external config foundation. RS7A functional GUI and RS7B curated-default
+    calibration remain deferred and must not begin.
+  verified_start_state:
+    branch: main
+    head: "87b1da9de2eb13144e38cec8d39561da448c5908"
+    working_tree: clean
+  inspected_before_activation:
+    - "SCOUT26_AGENT_STATE.yaml durable state and known deltas from its complete RS5 read"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml durable state and known deltas from its complete RS5 read"
+    - "docs/adr/ADR-013-ready-slots-rs0-architecture.md (complete)"
+    - "BagTrinketRenderer, ReadySlotRenderPolicy, ReadySlotTransforms, and ScoutRemasteredClient (complete)"
+    - "IntegratedInventoryConfig, build.gradle, gradle.properties, fabric.mod.json, and ReadySlotRenderingTest (complete)"
+    - "Exact local Fabric Loader config-dir usage, Gson artifacts/API usage, item registry-key usage, and client resource layout"
+  implementation_boundary:
+    - "Client presentation configuration only; no storage, ownership, payload, transaction, menu, component, or persistent bag-data change."
+    - "No RS7A GUI or RS7B calibration work."
+    - "No new dependency and no renderer mixin."
+  planned_format:
+    external_path: "config/scoutremastered-ready-slots.json"
+    bundled_baseline: "assets/scoutremastered/config/ready-slots-default.json"
+    transform_precedence:
+      - "Bundled safe baseline"
+      - "External base position transform"
+      - "External category patch"
+      - "External item patch"
+    visibility_precedence:
+      - "Item blacklist suppresses unconditionally"
+      - "Explicit item whitelist selects its configured category"
+      - "Otherwise the enabled built-in category set gates the conservative RS1 classifier"
+    failure_policy: >
+      Missing external JSON is created from and uses the bundled baseline. Corrupt or invalid external JSON is left
+      untouched and the bundled baseline is used. If the bundled baseline itself cannot be parsed, only Ready Slots
+      rendering is disabled; storage and server-authoritative swapping remain unchanged.
+  blockers: []
+  remaining_acceptance:
+    - "Implementation and deterministic config/fallback/precedence tests."
+    - "Complete automated suite and clean Gradle build."
+  next_action: "Commit RS6 activation, then implement the external client presentation config foundation."
 
 test_execution_policy:
   automation_first:
