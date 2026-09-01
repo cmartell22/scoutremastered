@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 18
-last_updated_utc: "2026-08-31T23:59:32Z"
+feature_revision: 19
+last_updated_utc: "2026-09-01T00:13:19Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
@@ -338,7 +338,7 @@ phases:
 
   RS4:
     name: "Lifecycle, desync, and adversarial hardening"
-    status: READY_PENDING_EXPLICIT_AUTHORIZATION
+    status: ACTIVE
     model: "GPT-5.6 Sol High"
     acceptance:
       - "Swap then immediate logout/login persists exactly."
@@ -724,6 +724,43 @@ rs3_implementation:
   blockers: []
   remaining_acceptance: []
   next_action: "RS3 is complete. Await separate explicit authorization before beginning RS4 lifecycle, crash, or adversarial persistence work."
+
+rs4_implementation:
+  status: ACTIVE
+  authorized_utc: "2026-09-01T00:13:19Z"
+  authorization: >
+    The human explicitly authorized RS4 lifecycle, desynchronization, adversarial equipment/hotbar behavior,
+    multiplayer ownership/observer behavior, and abrupt dedicated-client, integrated-JVM, and dedicated-server
+    force-kill/restart testing. RS5 remains unauthorized and must not begin.
+  verified_start_state:
+    branch: main
+    head: "3c86a5d75390640f9c38841b3f8a11d24c0df137"
+    subject: "docs: complete Ready Slots RS3"
+    working_tree: clean
+  inspected_before_activation:
+    - "SCOUT26_AGENT_STATE.yaml (complete)"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml (complete)"
+    - "docs/adr/ADR-013-ready-slots-rs0-architecture.md (complete)"
+    - "ReadySlotSwapService, the existing P5 hardening test, current source inventory, and build/test source-set topology"
+  baseline_test_attempt:
+    - >
+      Fresh sandboxed .\\gradlew.bat test --no-daemon --console=plain could not fetch Gradle 9.5.1 because
+      network access was denied. The approved unrestricted retry reached cached Gradle but failed before task
+      execution with java.io.IOException: Unable to establish loopback connection.
+    - "No Gradle test pass is claimed; exact-artifact direct compilation and Fabric Loader/runtime fallbacks remain required."
+  strict_oracle: >
+    Every recovered authoritative hotbar/bag pair and all stack components must exactly equal one complete allowed
+    pre-swap or post-swap snapshot. Mixed pairs, loss, duplication, count changes, stripped components, corruption,
+    ghost stacks, or unexplained desynchronization block RS4 completion.
+  runtime_plan:
+    - "Use isolated copied worlds and deterministic player identities."
+    - "Exercise real server-authoritative Ready Slots paths with component-rich distinguishable marker stacks."
+    - "Cover normal lifecycle, rapid equipment/hotbar changes, Creative, two-player ownership/observer state, and dimension/death transitions."
+    - "Use an external controller with exact captured PIDs for abrupt dedicated-client, integrated-JVM, and dedicated-server termination at multiple timing windows."
+    - "Restart the same world and identities and apply the strict exact pre-or-post oracle."
+  blockers: []
+  remaining_acceptance: "All RS4 acceptance rows remain pending at activation."
+  next_action: "Inspect exact lifecycle/runtime APIs, construct the isolated deterministic harness, and execute RS4 acceptance without beginning RS5."
 
 test_execution_policy:
   automation_first:
