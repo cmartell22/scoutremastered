@@ -2,6 +2,12 @@
 
 All notable changes to Scout Remastered are documented here.
 
+## Unreleased
+
+- Added bounded client-side Ready Slots presentation configuration with deterministic position, category, and exact-item transform overrides.
+- Added configurable render-category gating plus exact-item whitelist and blacklist rules.
+- Invalid external configuration now falls back as a whole to the bundled tested baseline without altering the bad file or any server-authoritative bag state.
+
 ## 1.0.0-rc.1 - 2026-08-12
 
 - First release candidate for Minecraft 26.1.2 on Fabric.

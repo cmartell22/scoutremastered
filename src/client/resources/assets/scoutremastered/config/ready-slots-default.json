@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "render_policy": {
+    "enabled_categories": [
+      "handheld",
+      "bow",
+      "crossbow",
+      "shield",
+      "trident"
+    ],
+    "item_whitelist": {},
+    "item_blacklist": []
+  },
+  "base_transforms": {
+    "left_hip": {
+      "translate_x": 0.27,
+      "translate_y": 0.72,
+      "translate_z": -0.20,
+      "rotate_x": 0.0,
+      "rotate_y": 0.0,
+      "rotate_z": 180.0,
+      "scale": 1.0
+    },
+    "right_hip": {
+      "translate_x": -0.27,
+      "translate_y": 0.72,
+      "translate_z": -0.20,
+      "rotate_x": 0.0,
+      "rotate_y": 0.0,
+      "rotate_z": 180.0,
+      "scale": 1.0
+    },
+    "back": {
+      "translate_x": 0.0,
+      "translate_y": 0.12,
+      "translate_z": 0.44,
+      "rotate_x": 0.0,
+      "rotate_y": 180.0,
+      "rotate_z": 180.0,
+      "scale": 1.0
+    }
+  },
+  "category_overrides": {
+    "handheld": {
+      "left_hip": { "scale": 0.40 },
+      "right_hip": { "scale": 0.40 },
+      "back": { "scale": 0.72 }
+    },
+    "bow": {
+      "left_hip": { "scale": 0.42 },
+      "right_hip": { "scale": 0.42 },
+      "back": { "scale": 0.72 }
+    },
+    "crossbow": {
+      "left_hip": { "scale": 0.36 },
+      "right_hip": { "scale": 0.36 },
+      "back": { "scale": 0.64 }
+    },
+    "shield": {
+      "left_hip": { "scale": 0.44 },
+      "right_hip": { "scale": 0.44 },
+      "back": { "scale": 0.74 }
+    },
+    "trident": {
+      "left_hip": { "scale": 0.52 },
+      "right_hip": { "scale": 0.52 },
+      "back": { "scale": 0.88 }
+    }
+  },
+  "item_overrides": {}
+}

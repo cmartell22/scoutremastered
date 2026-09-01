@@ -1,5 +1,8 @@
 package io.github.cmartell22.scoutremastered.client;
 
+import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig;
+import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig.Category;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
@@ -17,6 +20,24 @@ final class ReadySlotRenderPolicy {
 		if (stack.isEmpty()) {
 			return null;
 		}
+		ReadySlotPresentationConfig config = ReadySlotConfig.current();
+		String itemId = itemId(stack);
+		if (config.itemBlacklisted(itemId)) {
+			return null;
+		}
+		Category explicitlyWhitelisted = config.whitelistedCategory(itemId).orElse(null);
+		if (explicitlyWhitelisted != null) {
+			return explicitlyWhitelisted;
+		}
+		Category builtIn = builtInCategory(stack);
+		return builtIn != null && config.categoryEnabled(builtIn) ? builtIn : null;
+	}
+
+	static String itemId(ItemStack stack) {
+		return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+	}
+
+	private static @Nullable Category builtInCategory(ItemStack stack) {
 		if (stack.is(ItemTags.SWORDS)
 			|| stack.is(ItemTags.AXES)
 			|| stack.is(ItemTags.PICKAXES)
@@ -37,29 +58,5 @@ final class ReadySlotRenderPolicy {
 			return Category.TRIDENT;
 		}
 		return null;
-	}
-
-	enum Category {
-		HANDHELD(0.40F, 0.72F),
-		BOW(0.42F, 0.72F),
-		CROSSBOW(0.36F, 0.64F),
-		SHIELD(0.44F, 0.74F),
-		TRIDENT(0.52F, 0.88F);
-
-		private final float hipScale;
-		private final float backScale;
-
-		Category(float hipScale, float backScale) {
-			this.hipScale = hipScale;
-			this.backScale = backScale;
-		}
-
-		float hipScale() {
-			return this.hipScale;
-		}
-
-		float backScale() {
-			return this.backScale;
-		}
 	}
 }

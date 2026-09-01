@@ -41,12 +41,18 @@ integrated_inventory_enabled=true
 
 When enabled in a survival-style inventory, the feature displays active bag slots around the vanilla inventory. It remains dormant in Creative inventory screens. The server remains authoritative for every mutation, and replacing or rebuilding an equipped bag while the screen is open invalidates its old view safely; close and reopen the inventory to bind the replacement.
 
+## Ready Slots presentation configuration
+
+Ready Slots render bag-local slot 0 at the left hip, right hip, or back. On first client start, Scout Remastered creates `config/scoutremastered-ready-slots.json` from the bundled tested defaults. The JSON can enable or suppress render categories, explicitly whitelist or blacklist item IDs, and override position, rotation, and scale by position, category, or exact item. Restart the client after editing it.
+
+Invalid or out-of-range external configuration falls back to the complete bundled baseline and cannot affect storage or server-authoritative swapping. See [docs/READY_SLOTS_CONFIG.md](docs/READY_SLOTS_CONFIG.md) for the schema, precedence, limits, and examples.
+
 ## Compatibility and limitations
 
 - Scout Remastered targets Fabric only; Forge and NeoForge are not supported.
 - There is no migration from the temporary pre-release `scout26` namespace or from historical Scout/Scout-Recrafted data. Do not use the release candidate to upgrade worlds that contain those development-only bags without a backup.
 - The optional Integrated Inventory can occasionally paint synchronized high-capacity bag items a frame late immediately after opening. Contents and input remain server-authoritative; the B-key Pack Inventory remains available.
-- Wearable bag rendering intentionally reuses ordinary item models/textures as a placeholder. Custom wearable geometry is deferred.
+- Ready Slots use each item's ordinary fixed-display model. Extremely unusual third-party models may need a client-side transform override.
 
 ## Building from source
 

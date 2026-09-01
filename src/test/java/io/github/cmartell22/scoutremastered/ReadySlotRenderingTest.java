@@ -39,27 +39,37 @@ final class ReadySlotRenderingTest {
 	void hipsUseStableMirroredRootSpaceInsteadOfTheAnimatedTorso() throws IOException {
 		String transforms = source("ReadySlotTransforms.java");
 
-		int hipStart = transforms.indexOf("private static void applyHip(");
-		int backStart = transforms.indexOf("private static void applyBack(");
-		String hipMethod = transforms.substring(hipStart, backStart);
-
-		assertTrue(hipMethod.contains("model.root().translateAndRotate(poseStack)"));
-		assertFalse(hipMethod.contains("translateToChest"));
-		assertTrue(hipMethod.contains("position == Position.LEFT_HIP ? HIP_X : -HIP_X"));
-		assertTrue(transforms.contains("private static final float HIP_X = 0.27F"));
-		assertTrue(transforms.contains("private static final float HIP_Z = -0.20F"));
+		assertTrue(transforms.contains("if (position == Position.BACK)"));
+		assertTrue(transforms.contains("model.root().translateAndRotate(poseStack)"));
+		assertTrue(transforms.contains("ReadySlotConfig.current().resolve(position, category, itemId)"));
+		assertFalse(transforms.contains("HIP_X"));
+		assertFalse(transforms.contains("HIP_Z"));
 	}
 
 	@Test
 	void backRetainsTorsoMotionWithArmorAndCapeDepthClearance() throws IOException {
 		String transforms = source("ReadySlotTransforms.java");
-		String policy = source("ReadySlotRenderPolicy.java");
 
 		assertTrue(transforms.contains("TrinketRenderer.translateToChest(poseStack, model, state)"));
-		assertTrue(transforms.contains("private static final float BACK_Z = 0.44F"));
-		assertTrue(transforms.contains("poseStack.mulPose(new Quaternionf().rotateY(Mth.PI))"));
-		assertTrue(policy.contains("HANDHELD(0.40F, 0.72F)"));
-		assertTrue(policy.contains("TRIDENT(0.52F, 0.88F)"));
+		assertTrue(transforms.contains("transform.rotateY()"));
+		assertTrue(transforms.contains("transform.rotateZ()"));
+		assertTrue(transforms.contains("transform.scale()"));
+		assertFalse(transforms.contains("BACK_Z"));
+	}
+
+	@Test
+	void rs6ConfigIsClientLoadedAndFailsClosedWithoutMutatingTheExternalFile() throws IOException {
+		String bootstrap = source("ScoutRemasteredClient.java");
+		String loader = source("ReadySlotConfig.java");
+		String policy = source("ReadySlotRenderPolicy.java");
+
+		assertTrue(bootstrap.contains("ReadySlotConfig.load()"));
+		assertTrue(loader.contains("FabricLoader.getInstance().getConfigDir()"));
+		assertTrue(loader.contains("scoutremastered-ready-slots.json"));
+		assertTrue(loader.contains("current = bundled.config()"));
+		assertTrue(loader.contains("leaving the file untouched"));
+		assertTrue(policy.indexOf("itemBlacklisted(itemId)") < policy.indexOf("whitelistedCategory(itemId)"));
+		assertTrue(policy.indexOf("whitelistedCategory(itemId)") < policy.indexOf("categoryEnabled(builtIn)"));
 	}
 
 	@Test

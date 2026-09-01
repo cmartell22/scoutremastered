@@ -4,6 +4,7 @@ import io.github.cmartell22.scoutremastered.BagEquipmentRole;
 import io.github.cmartell22.scoutremastered.BagContents;
 import io.github.cmartell22.scoutremastered.BagItem;
 import io.github.cmartell22.scoutremastered.ModDataComponents;
+import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig;
 import io.github.cmartell22.scoutremastered.TrinketsIntegration;
 import com.mojang.blaze3d.vertex.PoseStack;
 import eu.pb4.trinkets.api.DefaultTrinketSlots;
@@ -56,7 +57,7 @@ final class BagTrinketRenderer implements TrinketRenderer {
 			.getOrDefault(ModDataComponents.BAG_CONTENTS, BagContents.EMPTY)
 			.normalized(bagItem.capacity())
 			.getStack(0);
-		ReadySlotRenderPolicy.Category category = ReadySlotRenderPolicy.category(readyStack);
+		ReadySlotPresentationConfig.Category category = ReadySlotRenderPolicy.category(readyStack);
 		if (category == null) {
 			return;
 		}
@@ -67,7 +68,8 @@ final class BagTrinketRenderer implements TrinketRenderer {
 			humanoidModel,
 			humanoidState,
 			position(bagItem, slot),
-			category
+			category,
+			ReadySlotRenderPolicy.itemId(readyStack)
 		);
 
 		ItemStackRenderState itemRenderState = new ItemStackRenderState();
@@ -93,12 +95,12 @@ final class BagTrinketRenderer implements TrinketRenderer {
 		};
 	}
 
-	private static ReadySlotTransforms.Position position(BagItem bagItem, TrinketSlotAccess slot) {
+	private static ReadySlotPresentationConfig.Position position(BagItem bagItem, TrinketSlotAccess slot) {
 		if (bagItem.equipmentRole() == BagEquipmentRole.SATCHEL) {
-			return ReadySlotTransforms.Position.BACK;
+			return ReadySlotPresentationConfig.Position.BACK;
 		}
 		return slot.index() == TrinketsIntegration.LEFT_POUCH_INDEX
-			? ReadySlotTransforms.Position.LEFT_HIP
-			: ReadySlotTransforms.Position.RIGHT_HIP;
+			? ReadySlotPresentationConfig.Position.LEFT_HIP
+			: ReadySlotPresentationConfig.Position.RIGHT_HIP;
 	}
 }

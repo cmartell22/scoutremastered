@@ -27,6 +27,7 @@ public final class ScoutRemasteredClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		IntegratedInventoryConfig.load();
+		ReadySlotConfig.load();
 		IntegratedInventoryClientNetworking.initialize();
 		IntegratedInventoryScreenEvents.initialize();
 		ReadySlotKeyMappings.initialize();
