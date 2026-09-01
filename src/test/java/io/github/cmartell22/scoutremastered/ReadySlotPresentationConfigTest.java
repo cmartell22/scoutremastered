@@ -123,6 +123,39 @@ final class ReadySlotPresentationConfigTest {
 	}
 
 	@Test
+	void rs7aBaseEditsPropagateThroughMaskingOverrides() throws IOException {
+		ReadySlotPresentationConfig opening = defaults().withItemTransform(
+			"example:wand",
+			Position.LEFT_HIP,
+			new Transform(1.0F, 0.5F, -0.1F, 10.0F, 20.0F, 30.0F, 0.5F)
+		);
+		Transform previousBase = opening.baseTransform(Position.LEFT_HIP);
+		Transform updatedBase = new Transform(
+			0.57F,
+			previousBase.translateY(),
+			previousBase.translateZ(),
+			previousBase.rotateX(),
+			previousBase.rotateY(),
+			previousBase.rotateZ(),
+			2.0F
+		);
+
+		ReadySlotPresentationConfig edited = opening.withBaseTransformPropagatingOverrides(
+			Position.LEFT_HIP,
+			updatedBase
+		);
+
+		assertEquals(updatedBase, edited.baseTransform(Position.LEFT_HIP));
+		assertEquals(0.8F, edited.resolveCategory(Position.LEFT_HIP, Category.HANDHELD).scale(), 0.0001F);
+		assertEquals(0.84F, edited.resolveCategory(Position.LEFT_HIP, Category.BOW).scale(), 0.0001F);
+		assertEquals(0.4F, opening.resolveCategory(Position.LEFT_HIP, Category.HANDHELD).scale(), 0.0001F);
+		Transform item = edited.resolve(Position.LEFT_HIP, Category.HANDHELD, "example:wand");
+		assertEquals(1.30F, item.translateX(), 0.0001F);
+		assertEquals(1.0F, item.scale(), 0.0001F);
+		assertEquals(0.42F, edited.resolveCategory(Position.RIGHT_HIP, Category.BOW).scale(), 0.0001F);
+	}
+
+	@Test
 	void publicBoundsPermitModelTuningButRejectAbsurdValues() throws IOException {
 		assertEquals(-4.0F, ReadySlotPresentationConfig.MIN_TRANSLATION);
 		assertEquals(4.0F, ReadySlotPresentationConfig.MAX_TRANSLATION);

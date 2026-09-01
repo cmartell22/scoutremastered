@@ -87,6 +87,9 @@ final class ReadySlotRenderingTest {
 		assertTrue(editor.contains("ReadySlotPresentationConfig.MIN_TRANSLATION"));
 		assertTrue(editor.contains("ReadySlotPresentationConfig.MAX_ROTATION"));
 		assertTrue(editor.contains("ReadySlotPresentationConfig.MAX_SCALE"));
+		assertTrue(editor.contains("withBaseTransformPropagatingOverrides"));
+		assertTrue(editor.contains("BuiltInRegistries.ITEM.containsKey(identifier)"));
+		assertTrue(editor.contains("Mirrored the current transform") || editor.contains("ready_slots.mirrored"));
 		assertTrue(loader.contains("ReadySlotPresentationConfigFile.save(path, config)"));
 		assertFalse(editor.contains("ClientPlayNetworking"));
 		assertFalse(editor.contains("ReadySlotSwapService"));

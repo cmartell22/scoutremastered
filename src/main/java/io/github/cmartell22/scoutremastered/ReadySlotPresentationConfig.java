@@ -191,6 +191,42 @@ public final class ReadySlotPresentationConfig {
 		return copyWith(this.enabledCategories, this.itemWhitelist, this.itemBlacklist, updated, this.categoryOverrides, this.itemOverrides);
 	}
 
+	/**
+	 * Changes a base transform as a global visual adjustment. Existing category/item patch fields are
+	 * shifted by the same translation/rotation delta or scale ratio so they do not mask the live edit.
+	 */
+	public ReadySlotPresentationConfig withBaseTransformPropagatingOverrides(Position position, Transform transform) {
+		Objects.requireNonNull(position, "position");
+		Objects.requireNonNull(transform, "transform");
+		Transform previous = this.baseTransform(position);
+		Map<Position, Transform> updatedBase = new EnumMap<>(this.baseTransforms);
+		updatedBase.put(position, transform);
+
+		Map<Category, Map<Position, TransformPatch>> updatedCategories = mutableCategoryOverrides();
+		for (Map<Position, TransformPatch> patches : updatedCategories.values()) {
+			TransformPatch patch = patches.get(position);
+			if (patch != null) {
+				patches.put(position, patch.adjustedForBaseChange(previous, transform));
+			}
+		}
+
+		Map<String, Map<Position, TransformPatch>> updatedItems = mutableItemOverrides();
+		for (Map<Position, TransformPatch> patches : updatedItems.values()) {
+			TransformPatch patch = patches.get(position);
+			if (patch != null) {
+				patches.put(position, patch.adjustedForBaseChange(previous, transform));
+			}
+		}
+		return copyWith(
+			this.enabledCategories,
+			this.itemWhitelist,
+			this.itemBlacklist,
+			updatedBase,
+			updatedCategories,
+			updatedItems
+		);
+	}
+
 	public ReadySlotPresentationConfig withCategoryTransform(Category category, Position position, Transform transform) {
 		Map<Category, Map<Position, TransformPatch>> updated = mutableCategoryOverrides();
 		updated.computeIfAbsent(Objects.requireNonNull(category, "category"), ignored -> new EnumMap<>(Position.class))
@@ -758,6 +794,24 @@ public final class ReadySlotPresentationConfig {
 				this.rotateZ != null ? this.rotateZ : base.rotateZ(),
 				this.scale != null ? this.scale : base.scale()
 			);
+		}
+
+		public TransformPatch adjustedForBaseChange(Transform previousBase, Transform updatedBase) {
+			Objects.requireNonNull(previousBase, "previousBase");
+			Objects.requireNonNull(updatedBase, "updatedBase");
+			return new TransformPatch(
+				adjustLinear(this.translateX, previousBase.translateX(), updatedBase.translateX()),
+				adjustLinear(this.translateY, previousBase.translateY(), updatedBase.translateY()),
+				adjustLinear(this.translateZ, previousBase.translateZ(), updatedBase.translateZ()),
+				adjustLinear(this.rotateX, previousBase.rotateX(), updatedBase.rotateX()),
+				adjustLinear(this.rotateY, previousBase.rotateY(), updatedBase.rotateY()),
+				adjustLinear(this.rotateZ, previousBase.rotateZ(), updatedBase.rotateZ()),
+				this.scale == null ? null : this.scale * updatedBase.scale() / previousBase.scale()
+			);
+		}
+
+		private static Float adjustLinear(Float value, float previousBase, float updatedBase) {
+			return value == null ? null : value + updatedBase - previousBase;
 		}
 	}
 

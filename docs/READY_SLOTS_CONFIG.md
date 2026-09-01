@@ -11,10 +11,11 @@ The file is created from Scout Remastered's bundled, tested baseline the first t
 Open the editor while in a world. Its player model is a live preview of the current local player, including equipped Scout bags and their ready items.
 
 - **Transform** mode edits the required base position, a category override, or an exact-item override for `left_hip`, `right_hip`, and `back`.
+- Base edits act as global adjustments: existing override fields move by the same translation/rotation delta or scale ratio, so a category or exact-item override cannot silently mask the live control.
 - Every slider has a numeric field for precise entry. Both paths enforce the same limits as the parser.
 - **Reset** restores a base position from the bundled baseline or removes the selected category/item override.
-- **Copy** and **Paste** transfer a complete transform. **Mirror** copies a hip transform to the opposite hip while reversing X translation and Y/Z rotation.
-- **Visibility** mode enables or disables classifier categories and manages exact-item whitelist/blacklist entries. Its actions keep the two item lists mutually exclusive.
+- **Copy** and **Paste** transfer a complete transform. **Mirror** immediately reverses X translation and Y/Z rotation for the transform currently shown; it does not depend on Copy and does not edit another position.
+- **Visibility** mode enables or disables classifier categories and manages exact-item whitelist/blacklist entries. Item actions require an ID present in the current game's item registry and keep the two lists mutually exclusive.
 - **Save** atomically replaces only `config/scoutremastered-ready-slots.json` with deterministic, stable-order JSON.
 - **Cancel** or Escape restores the exact configuration active when the editor opened and writes nothing.
 

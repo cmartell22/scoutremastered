@@ -18,7 +18,9 @@ import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 /** RS7A client-only, live-preview editor for bounded Ready Slots presentation settings. */
 final class ReadySlotConfigScreen extends Screen {
@@ -195,7 +197,7 @@ final class ReadySlotConfigScreen extends Screen {
 		itemBox.setValue(this.itemId);
 		itemBox.setResponder(value -> {
 			this.itemId = value.trim();
-			if (this.mode == Mode.TRANSFORM && this.scope == Scope.ITEM && ReadySlotPresentationConfig.isValidItemId(this.itemId)) {
+			if (this.mode == Mode.TRANSFORM && this.scope == Scope.ITEM && isRegisteredItemId()) {
 				synchronizeTransformWidgets();
 			}
 		});
@@ -242,7 +244,7 @@ final class ReadySlotConfigScreen extends Screen {
 		return switch (this.scope) {
 			case BASE -> this.draft.baseTransform(this.position);
 			case CATEGORY -> this.draft.resolveCategory(this.position, this.category);
-			case ITEM -> ReadySlotPresentationConfig.isValidItemId(this.itemId)
+			case ITEM -> isRegisteredItemId()
 				? this.draft.resolve(this.position, this.category, this.itemId)
 				: this.draft.resolveCategory(this.position, this.category);
 		};
@@ -279,21 +281,19 @@ final class ReadySlotConfigScreen extends Screen {
 	}
 
 	private boolean applySelectedTransform(Transform transform) {
+		if (this.scope == Scope.ITEM && !requireValidItemId()) {
+			return false;
+		}
 		try {
 			ReadySlotPresentationConfig updated = switch (this.scope) {
-				case BASE -> this.draft.withBaseTransform(this.position, transform);
+				case BASE -> this.draft.withBaseTransformPropagatingOverrides(this.position, transform);
 				case CATEGORY -> this.draft.withCategoryTransform(this.category, this.position, transform);
-				case ITEM -> {
-					if (!ReadySlotPresentationConfig.isValidItemId(this.itemId)) {
-						throw new IllegalArgumentException("Invalid item id");
-					}
-					yield this.draft.withItemTransform(this.itemId, this.position, transform);
-				}
+				case ITEM -> this.draft.withItemTransform(this.itemId, this.position, transform);
 			};
 			updateDraft(updated);
 			return true;
 		} catch (IllegalArgumentException exception) {
-			setError(Component.translatable("screen.scoutremastered.ready_slots.invalid_item_id"));
+			setError(Component.translatable("screen.scoutremastered.ready_slots.adjustment_out_of_bounds"));
 			return false;
 		}
 	}
@@ -315,7 +315,7 @@ final class ReadySlotConfigScreen extends Screen {
 	private void resetTransform() {
 		ReadySlotPresentationConfig updated;
 		switch (this.scope) {
-			case BASE -> updated = this.draft.withBaseTransform(
+			case BASE -> updated = this.draft.withBaseTransformPropagatingOverrides(
 				this.position,
 				ReadySlotConfig.bundledBaseline().baseTransform(this.position)
 			);
@@ -350,11 +350,6 @@ final class ReadySlotConfigScreen extends Screen {
 	}
 
 	private void mirrorTransform() {
-		if (this.position == Position.BACK) {
-			setError(Component.translatable("screen.scoutremastered.ready_slots.back_not_mirrored"));
-			return;
-		}
-		Position targetPosition = this.position == Position.LEFT_HIP ? Position.RIGHT_HIP : Position.LEFT_HIP;
 		Transform source = selectedTransform();
 		Transform mirrored = new Transform(
 			-source.translateX(),
@@ -365,12 +360,9 @@ final class ReadySlotConfigScreen extends Screen {
 			-source.rotateZ(),
 			source.scale()
 		);
-		Position sourcePosition = this.position;
-		this.position = targetPosition;
-		boolean applied = applySelectedTransform(mirrored);
-		this.position = sourcePosition;
-		if (applied) {
-			setSuccess(Component.translatable("screen.scoutremastered.ready_slots.mirrored", targetPosition.id()));
+		if (applySelectedTransform(mirrored)) {
+			synchronizeTransformWidgets();
+			setSuccess(Component.translatable("screen.scoutremastered.ready_slots.mirrored"));
 		}
 	}
 
@@ -399,11 +391,19 @@ final class ReadySlotConfigScreen extends Screen {
 	}
 
 	private boolean requireValidItemId() {
-		if (!ReadySlotPresentationConfig.isValidItemId(this.itemId)) {
+		if (!isRegisteredItemId()) {
 			setError(Component.translatable("screen.scoutremastered.ready_slots.invalid_item_id"));
 			return false;
 		}
 		return true;
+	}
+
+	private boolean isRegisteredItemId() {
+		if (!ReadySlotPresentationConfig.isValidItemId(this.itemId)) {
+			return false;
+		}
+		Identifier identifier = Identifier.tryParse(this.itemId);
+		return identifier != null && BuiltInRegistries.ITEM.containsKey(identifier);
 	}
 
 	private void updateDraft(ReadySlotPresentationConfig updated) {
