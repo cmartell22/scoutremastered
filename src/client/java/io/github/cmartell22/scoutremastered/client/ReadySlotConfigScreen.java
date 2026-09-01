@@ -217,14 +217,14 @@ final class ReadySlotConfigScreen extends Screen {
 		int width = controlsX() - 26;
 		int y = this.height - 43;
 		int small = Math.max(18, (width - 12) / 6);
-		addPreviewButton(Component.literal("<"), x, y, small, () -> this.previewYaw -= 15.0F, () -> this.previewYaw -= 2.0F);
-		addPreviewButton(Component.literal(">"), x + small + 3, y, small, () -> this.previewYaw += 15.0F, () -> this.previewYaw += 2.0F);
+		addPreviewButton(Component.literal("<"), x, y, small, () -> this.previewYaw -= 15.0F, () -> this.previewYaw -= 4.0F);
+		addPreviewButton(Component.literal(">"), x + small + 3, y, small, () -> this.previewYaw += 15.0F, () -> this.previewYaw += 4.0F);
 		addPreviewButton(Component.literal("^"), x + (small + 3) * 2, y, small,
 			() -> this.previewPitch = Math.max(-45.0F, this.previewPitch - 10.0F),
-			() -> this.previewPitch = Math.max(-45.0F, this.previewPitch - 1.0F));
+			() -> this.previewPitch = Math.max(-45.0F, this.previewPitch - 2.0F));
 		addPreviewButton(Component.literal("v"), x + (small + 3) * 3, y, small,
 			() -> this.previewPitch = Math.min(45.0F, this.previewPitch + 10.0F),
-			() -> this.previewPitch = Math.min(45.0F, this.previewPitch + 1.0F));
+			() -> this.previewPitch = Math.min(45.0F, this.previewPitch + 2.0F));
 		addRenderableWidget(Button.builder(Component.translatable("screen.scoutremastered.ready_slots.preview_reset"), button -> {
 			this.previewYaw = 0.0F;
 			this.previewPitch = 0.0F;

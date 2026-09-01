@@ -83,6 +83,8 @@ final class ReadySlotRenderingTest {
 		assertFalse(editor.contains("InventoryScreen.extractEntityInInventoryFollowsMouse("));
 		assertTrue(editor.contains("extractEntityPreview("));
 		assertTrue(editor.contains("this.previewYaw -= 15.0F"));
+		assertTrue(editor.contains("this.previewYaw -= 4.0F"));
+		assertTrue(editor.contains("this.previewPitch - 2.0F"));
 		assertTrue(editor.contains("this.previewPitch = 0.0F"));
 		assertTrue(editor.contains("HOLD_DELAY_MILLIS = 350L"));
 		assertTrue(editor.contains("livingRenderState.yRot = 0.0F"));
