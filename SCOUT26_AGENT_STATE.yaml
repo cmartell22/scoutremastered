@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 89
-last_updated_utc: "2026-09-01T01:24:40Z"
+state_revision: 90
+last_updated_utc: "2026-09-01T01:35:36Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS5_ACTIVE"
 current_phase: "P9"
@@ -1002,8 +1002,10 @@ repository_state:
   p9_rs3_completion_commit: "3c86a5d75390640f9c38841b3f8a11d24c0df137"
   p9_rs4_activation_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
   p9_rs4_completion_commit: "ec37ec649ffc7a81654a0d7c5982734881fa3fa3"
-  last_known_good_commit: "21651aeb474e78eef01edeb833331dc8eaa44787"
-  last_tested_commit: "21651aeb474e78eef01edeb833331dc8eaa44787"
+  p9_rs5_activation_commit: "03e23e89dd209aaa33636c4036ceeab2d46e6813"
+  p9_rs5_implementation_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
+  last_known_good_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
+  last_tested_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -2315,18 +2317,40 @@ latest_session:
       4.0.0-beta.3+26.1 rendering APIs. The crouch defect is caused by applying the animated torso pitch
       to a hip offset; a root/pelvis-space hip anchor is available through the existing callback and requires no mixin.
     - "No WAWI visual mod artifact is present in the project run profiles, normal Minecraft mods folder, or resolved Gradle cache."
-    - "RS5 is active. No implementation code has changed at this activation checkpoint."
+    - "RS5 activation was committed as 03e23e89dd209aaa33636c4036ceeab2d46e6813."
+    - >
+      Client-only implementation commit e4636242b68ac56ba5872b703704d953c4f39d0d separates the render
+      policy and transforms, anchors hips in mirrored root/pelvis space, retains the torso-aware back anchor,
+      adds armor/cape depth clearance, and applies bounded category scales for tools, bows, crossbows, shields,
+      and tridents. RS1 suppression and replacement-rendering behavior are retained.
+    - "No server/common production source, storage, ownership, payload, transaction, menu, component, or persistent data changed; no renderer mixin was added."
+    - >
+      Direct Java 25 compilation emitted all changed client classes against the exact locked artifacts. The known
+      post-success cached-JAR close AccessDeniedException recurred after class emission.
+    - >
+      Fabric Loader JUnit 0.19.3's Knot server session passed 72/72 tests with zero failures, aborts, or skips:
+      68 retained tests plus four RS5 renderer/policy/anchor/mixin-boundary regressions.
+    - >
+      The mandated clean Gradle build was attempted in the sandbox and approved unrestricted context. The first
+      attempt could not fetch through the restricted network; the cached retry failed before task execution because
+      Gradle could not establish its single-use-daemon loopback connection. No Gradle pass is claimed.
+    - "The direct-test launcher, proof classes, copied dependency set, and generated .fabric state were removed. TCP 25565 is free, no project runtime process remains, and no Scout/RS5/Codex scheduled task was found."
   commands_run:
     - "git status --short --branch; git rev-parse HEAD"
     - "Read all three required source-of-truth documents in bounded complete chunks."
     - "Inspect BagTrinketRenderer, client registration, exact TrinketRenderer bytecode, HumanoidModel/ModelPart/HumanoidRenderState, AvatarRenderer, CapeLayer, PlayerCapeModel, armor-layer ordering, and representative FIXED item transforms."
     - "Search local project profiles, normal Minecraft mods, and resolved Gradle artifacts for WAWI-related visual mods."
-  tests_run: []
+    - "Direct Java 25 client compilation and Fabric Loader JUnit Knot execution over the complete suite."
+    - ".\\gradlew.bat clean build --no-daemon --console=plain in sandbox and approved unrestricted contexts."
+  tests_run:
+    - "PASS: exact-artifact direct client compilation emitted BagTrinketRenderer, ReadySlotRenderPolicy, and ReadySlotTransforms."
+    - "PASS: 72 tests found/started/successful; zero failed, aborted, or skipped."
+    - "GRADLE_NOT_EXECUTED: single-use-daemon loopback failure occurred before task execution; no pass claimed."
   files_changed:
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Commit RS5 activation, then implement the source-reviewed root-space hip anchor and bounded category/position transforms without changing server or persistent behavior."
+  next_action: "Have the human run the clean Gradle build in a normal Windows terminal, then obtain explicit readiness before launching the user-driven muted client for the RS5 visual acceptance matrix."
 
 agent_first_prompt:
   text: >

@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 23
-last_updated_utc: "2026-09-01T01:24:40Z"
+feature_revision: 24
+last_updated_utc: "2026-09-01T01:35:36Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: RS5_ACTIVE
@@ -831,7 +831,8 @@ rs4_implementation:
 rs5_implementation:
   status: ACTIVE
   authorized_utc: "2026-09-01T01:24:40Z"
-  activation_commit: "PENDING_COMMIT"
+  activation_commit: "03e23e89dd209aaa33636c4036ceeab2d46e6813"
+  implementation_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
   authorization: >
     The human explicitly authorized RS5 transform and compatibility polish only. RS6 external configuration
     and RS7 interactive positioning remain deferred and must not begin.
@@ -866,11 +867,42 @@ rs5_implementation:
     - "Preserve all RS1 empty, unsupported, invalid-role, and unequipped suppression."
     - "No storage, ownership, payload, transaction, menu, or persistent-data change."
     - "No new renderer mixin unless a documented blocker disproves the existing callback path."
+  implementation:
+    - >
+      ReadySlotRenderPolicy preserves the exact RS1 five-tag/four-class whitelist and empty/unsupported
+      suppression while selecting bounded HANDHELD, BOW, CROSSBOW, SHIELD, or TRIDENT scale profiles.
+    - >
+      ReadySlotTransforms anchors both hip positions to HumanoidModel.root() at mirrored x +/-0.27,
+      y 0.72, and z -0.20. The animated body transform is not applied to hips, so crouch torso pitch
+      cannot rotate them into the legs' translated z plane.
+    - >
+      The back position retains TrinketRenderer.translateToChest so it follows torso animation, and moves
+      its additional z to 0.44. Combined with the helper's -0.16, its rest plane is approximately 0.28,
+      beyond vanilla chest armor and cape's approximately 0.19 outer rest plane.
+    - >
+      BagTrinketRenderer still validates the exact role/slot, reconstructs normalized bag-local slot 0,
+      returns before submission for every suppressed state, and passes only the ready stack to FIXED item layers.
+  automated_evidence:
+    - >
+      Exact-artifact Java 25 compilation emitted all three changed client classes. The known post-success
+      cached-JAR close AccessDeniedException recurred after class emission.
+    - >
+      Fabric Loader JUnit 0.19.3 Knot server execution passed 72/72 tests with zero failures, aborts, or skips.
+      Four new structural regressions lock RS1 suppression/whitelist behavior, root-space mirrored hip anchoring,
+      torso-aware back depth, and the no-renderer-mixin/common-client-dependency boundary.
+    - >
+      The required clean build was attempted in sandboxed and approved unrestricted contexts. The cached Gradle
+      9.5.1 retry failed before task execution on the documented single-use-daemon loopback IOException, so no
+      Gradle pass is claimed and a normal Windows terminal run remains required.
+  runtime_cleanup:
+    - "Removed the direct JUnit launcher, proof classes, copied dependency JARs, and generated .fabric state."
+    - "Verified TCP 25565 free and no matching scheduled task."
+    - "An elevated command-line audit found no remaining project Java/javaw/cmd/PowerShell runtime other than the audit process itself."
   blockers: []
   remaining_acceptance:
-    - "Automated suite and clean Gradle build."
+    - "Clean Gradle build from a normal Windows terminal."
     - "Human visual matrix for placement, crouch/animation, armor, cape, left/right distinction, and representative categories."
-  next_action: "Commit activation, then implement the reviewed transform-only correction and automated structural coverage."
+  next_action: "Run the normal-terminal clean build, then obtain explicit readiness before launching the muted user-test client for visual acceptance."
 
 test_execution_policy:
   automation_first:
