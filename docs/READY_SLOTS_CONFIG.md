@@ -105,4 +105,4 @@ All numbers must be finite. These bounds allow broad placement around custom pla
 
 `schema_version` is currently `1`. Unsupported schema versions fail as a complete file and use the bundled baseline. The default file is the authoritative example for every required section and base field.
 
-RS7B remains separate work. It will use deterministic values saved by this GUI for human-guided, one-by-one calibration and promotion into shipped defaults.
+RS7B uses deterministic values saved by this GUI for human-guided, one-by-one calibration and promotion into shipped defaults. Its representative matrix, restart gate, and promotion ledger are recorded in `docs/RS7B_CALIBRATION.md`.
