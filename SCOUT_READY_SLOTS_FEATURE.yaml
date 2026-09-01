@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 19
-last_updated_utc: "2026-09-01T00:13:19Z"
+feature_revision: 20
+last_updated_utc: "2026-09-01T01:02:52Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: ACTIVE
-current_phase: RS4
+status: CORE_COMPLETE_RS5_PENDING_AUTHORIZATION
+current_phase: RS5_PENDING_AUTHORIZATION
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -338,7 +338,7 @@ phases:
 
   RS4:
     name: "Lifecycle, desync, and adversarial hardening"
-    status: ACTIVE
+    status: COMPLETE
     model: "GPT-5.6 Sol High"
     acceptance:
       - "Swap then immediate logout/login persists exactly."
@@ -362,7 +362,7 @@ phases:
 
   RS5:
     name: "Transform and compatibility polish"
-    status: BLOCKED_BY_RS4
+    status: PENDING_AUTHORIZATION
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     scope:
@@ -726,8 +726,12 @@ rs3_implementation:
   next_action: "RS3 is complete. Await separate explicit authorization before beginning RS4 lifecycle, crash, or adversarial persistence work."
 
 rs4_implementation:
-  status: ACTIVE
+  status: COMPLETE
   authorized_utc: "2026-09-01T00:13:19Z"
+  completed_utc: "2026-09-01T01:02:52Z"
+  activation_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
+  completion_commit: "PENDING_RECORD_AFTER_COMMIT"
+  production_baseline: "4234726f6504dec55f39d9fc61c41971c30d2a70"
   authorization: >
     The human explicitly authorized RS4 lifecycle, desynchronization, adversarial equipment/hotbar behavior,
     multiplayer ownership/observer behavior, and abrupt dedicated-client, integrated-JVM, and dedicated-server
@@ -758,9 +762,68 @@ rs4_implementation:
     - "Cover normal lifecycle, rapid equipment/hotbar changes, Creative, two-player ownership/observer state, and dimension/death transitions."
     - "Use an external controller with exact captured PIDs for abrupt dedicated-client, integrated-JVM, and dedicated-server termination at multiple timing windows."
     - "Restart the same world and identities and apply the strict exact pre-or-post oracle."
+  automated_acceptance:
+    normal_lifecycle:
+      status: PASS
+      evidence:
+        - >
+          An isolated muted integrated client used the real role-only payload and server transaction path. It passed
+          exact component-rich swap state, dimension transfer, keepInventory death/respawn, and owner client mirror.
+        - >
+          The deterministic server stress pass covered 270 rapid role/hotbar changes per player, pouch and satchel
+          unequip/replacement fail-closed checks, stale removed-bag isolation, and 1001 Creative swaps with an unchanged
+          exact multiset.
+    dedicated_two_player:
+      status: PASS
+      evidence: >
+        A loopback-only dedicated Fabric server and separate muted ScoutAlice/ScoutBob clients passed independent
+        component-rich owner inventories, the same stress/lifecycle matrix, exact remote synchronized bag state on
+        both clients, and no ghost or unexplained desynchronization. Exact server/client PIDs and TCP ownership were
+        verified before force teardown.
+    abrupt_dedicated_client:
+      status: PASS
+      evidence: >
+        After server commit and client mirror acknowledgement, exact client PID 34168 was force-killed. The server
+        confirmed disconnect; the same identity rejoined in PID 33420 and passed the exact authoritative and client
+        mirror oracle without restarting the server.
+    integrated_force_kill_restart:
+      status: PASS
+      windows:
+        before_commit: PRE
+        after_commit: PRE
+        after_client_ack: PRE
+        autosave_before: POST
+        autosave_after: POST
+        repeated_swap_101: PRE
+      evidence: >
+        An external controller copied a clean world per timing window, waited for an in-process exact-PID marker,
+        force-killed the actual integrated JVM without graceful shutdown, restarted the identical world/identity,
+        and accepted only a complete exact PRE or POST snapshot including all stack components.
+    dedicated_server_force_kill_restart:
+      status: PASS
+      windows:
+        after_commit: PRE
+        autosave_after: POST
+      evidence: >
+        With a dedicated client actively connected, an external controller force-killed the exact dedicated-server
+        JVM at both post-commit and post-autosave windows. Restarting the identical world and identity recovered only
+        the complete legal state; no mixed pair, loss, duplication, count change, or component change occurred.
+  final_automated_tests:
+    status: PASS
+    direct_fabric_loader_junit: "68 found, 68 started, 68 successful; zero failed, aborted, or skipped"
+    compile: >
+      Direct Java 25 compilation returned exit 0 for current main, client, harness, and all test sources. The known
+      post-success cached-JAR archive-close AccessDeniedException was emitted and did not change the successful output.
+    gradle: >
+      No Gradle pass is claimed. The wrapper remained blocked by sandbox distribution access and cached Gradle remained
+      blocked before task execution by the documented single-use-daemon loopback IOException.
+  implementation_result: >
+    No production or persistent test-source change was required. The RS2 transaction and RS3 intent path already met
+    the RS4 lifecycle, multiplayer, adversarial, and crash-conservation gates. All temporary harness classes,
+    launchers, copied worlds, logs, and scheduled tasks were removed after evidence capture.
   blockers: []
-  remaining_acceptance: "All RS4 acceptance rows remain pending at activation."
-  next_action: "Inspect exact lifecycle/runtime APIs, construct the isolated deterministic harness, and execute RS4 acceptance without beginning RS5."
+  remaining_acceptance: []
+  next_action: "RS4 and P9 core are complete. Await separate explicit authorization before beginning RS5 transform/compatibility polish."
 
 test_execution_policy:
   automation_first:

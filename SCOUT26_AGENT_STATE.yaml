@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 85
-last_updated_utc: "2026-09-01T00:13:19Z"
+state_revision: 86
+last_updated_utc: "2026-09-01T01:02:52Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS4_ACTIVE"
+project_status: "P9_READY_SLOTS_CORE_COMPLETE_RS5_PENDING_AUTHORIZATION"
 current_phase: "P9"
-current_task: "RS4_LIFECYCLE_DESYNC_AND_ADVERSARIAL_HARDENING"
+current_task: "AWAIT_RS5_AUTHORIZATION"
 
 project:
   working_name: "Scout Remastered"
@@ -822,13 +822,13 @@ phase_plan:
 
   P9:
     name: "Ready Slots"
-    status: "ACTIVE"
+    status: "CORE_COMPLETE_RS5_PENDING_AUTHORIZATION"
     objective: >
       Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
-    current_subphase: "RS4"
-    current_subphase_name: "RS4 lifecycle, desync, and adversarial hardening active"
+    current_subphase: "RS5_PENDING_AUTHORIZATION"
+    current_subphase_name: "RS4 and P9 core complete; RS5 polish not authorized"
     architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
@@ -1000,8 +1000,10 @@ repository_state:
   p9_rs3_activation_commit: "e572cdd29d163595984af2f222776aa3c9aba910"
   p9_rs3_implementation_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
   p9_rs3_completion_commit: "3c86a5d75390640f9c38841b3f8a11d24c0df137"
-  last_known_good_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
-  last_tested_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
+  p9_rs4_activation_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
+  p9_rs4_completion_commit: "PENDING_RECORD_AFTER_COMMIT"
+  last_known_good_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
+  last_tested_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -2213,7 +2215,7 @@ rs3_ready_slots_session_archive:
   blockers: []
   next_action: "RS3 is complete. Await separate explicit authorization before beginning RS4 save/reload or forced-restart testing."
 
-latest_session:
+rs4_activation_session_archive:
   session_id: "p9-ready-slots-rs4-028"
   date: "2026-08-31"
   agent: "GPT-5.6"
@@ -2241,6 +2243,60 @@ latest_session:
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
   next_action: "Build and run the isolated RS4 lifecycle and abrupt-termination harness; do not begin RS5."
+
+latest_session:
+  session_id: "p9-ready-slots-rs4-029"
+  date: "2026-08-31"
+  agent: "GPT-5.6"
+  summary:
+    - "RS4 lifecycle, adversarial, multiplayer, desynchronization, and abrupt-process acceptance is complete; RS5 remains unauthorized and unstarted."
+    - >
+      The isolated integrated lifecycle run passed the real role-only networking path, exact component-rich swap,
+      dimension change, death/respawn, owner client mirror, and deterministic server stress: 270 rapid role/hotbar
+      changes, pouch/satchel unequip and physical replacement, stale-bag isolation, and 1001 Creative swaps with an
+      unchanged exact multiset.
+    - >
+      A desktop-session loopback-only dedicated server plus separate muted ScoutAlice and ScoutBob clients passed the
+      same stress/lifecycle checks, exact independent owner state, both clients' synchronized remote bag state, and no
+      ghost stack or unexplained desynchronization.
+    - >
+      The abrupt dedicated-client check force-killed exact client PID 34168 after server commit and mirror acknowledgement;
+      the server confirmed disconnect, and the same identity rejoined as PID 33420 with exact authoritative and client state.
+    - >
+      The external integrated-JVM controller force-killed six actual JVMs without graceful shutdown and restarted the
+      identical copied worlds. Recovery was complete PRE for before-commit, after-commit, after-ack, and 101-swap windows,
+      and complete POST for autosave-before and autosave-after. No mixed, lost, duplicated, count-changed, stripped, or
+      corrupt stack occurred.
+    - >
+      With a client connected, the dedicated-server controller force-killed the actual server after commit and after
+      autosave, then restarted the identical world/identity. Recovery was respectively complete PRE and complete POST.
+      Every exact PID exited, TCP 25565 cleared, and all temporary scheduled tasks were deleted.
+    - >
+      A fresh Fabric Loader JUnit 0.19.3 Knot server session found, started, and passed all 68 tests with zero failures,
+      aborts, or skips. Gradle still did not execute tasks because of the documented wrapper-network and daemon-loopback
+      host limitations; no Gradle pass is claimed.
+    - >
+      RS4 required no production or persistent test-source change. The temporary harness, launcher, compiled proof output,
+      copied worlds/logs, extracted sources, and runtime entrypoints were removed after acceptance.
+  commands_run:
+    - "Direct Java 25 compilation of current main/client code, temporary deterministic harness, and all test sources using locked cached artifacts."
+    - "Muted integrated Fabric lifecycle scenario and loopback-only two-player dedicated lifecycle scenario."
+    - "Exact-PID dedicated-client kill/reconnect, six-window integrated-JVM crash matrix, and two-window connected-client dedicated-server crash matrix."
+    - "Fabric Loader JUnit 0.19.3 direct Knot launcher over all project tests."
+    - "Exact Java PID, TCP 25565, scheduled-task, temporary-entrypoint, and worktree cleanup audits."
+  tests_run:
+    - "PASS: integrated normal lifecycle/adversarial scenario, one player."
+    - "PASS: dedicated normal lifecycle/adversarial/remote-mirror scenario, two players."
+    - "PASS: abrupt dedicated-client force-kill and same-identity reconnect."
+    - "PASS: six integrated JVM force-kill/restart timing windows; exact PRE-or-POST oracle."
+    - "PASS: two connected-client dedicated-server force-kill/restart timing windows; exact PRE-or-POST oracle."
+    - "PASS: 68 tests found/started/successful; zero failed, aborted, or skipped."
+    - "GRADLE_NOT_EXECUTED: documented access/loopback failures occurred before task execution; no Gradle pass claimed."
+  files_changed:
+    - "SCOUT_READY_SLOTS_FEATURE.yaml"
+    - "SCOUT26_AGENT_STATE.yaml"
+  blockers: []
+  next_action: "RS4 and P9 core are complete. Await separate explicit authorization before beginning RS5 transform and compatibility polish."
 
 agent_first_prompt:
   text: >
