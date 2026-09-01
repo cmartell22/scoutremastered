@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 33
-last_updated_utc: "2026-09-01T11:24:44Z"
+feature_revision: 34
+last_updated_utc: "2026-09-01T15:55:14Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: RS7A_COMPLETE
-current_phase: RS7A_COMPLETE
+status: RS7B_ACTIVE
+current_phase: RS7B
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -394,7 +394,7 @@ phases:
 
   RS7A:
     name: "Interactive positioning GUI"
-    status: ACTIVE
+    status: COMPLETE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     prerequisite: "RS6 stable and demonstrated need."
@@ -412,7 +412,7 @@ phases:
 
   RS7B:
     name: "Curated default transform calibration"
-    status: FUTURE_OPTIONAL
+    status: ACTIVE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     prerequisite: "RS7A functional GUI complete and accepted."
@@ -1169,6 +1169,50 @@ rs7a_implementation:
   next_action: >
     RS7A is complete. Do not begin RS7B without separate explicit authorization. RS7B remains the deferred,
     human-guided item-by-item calibration and promotion of accepted personal values into clean bundled defaults.
+
+rs7b_implementation:
+  status: ACTIVE
+  authorized_utc: "2026-09-01T15:55:14Z"
+  activation_commit: "PENDING_ACTIVATION_COMMIT"
+  authorization: >
+    The human explicitly authorized RS7B curated default calibration after accepting RS7A. Work is limited to
+    human-guided presentation calibration and promotion of explicitly accepted deterministic values into bundled
+    defaults; RS7A behavior and all gameplay/storage/server-authority code remain frozen.
+  verified_start_state:
+    branch: main
+    head: "d262c030808fe56eb89380c6593cfd412730fa7d"
+    working_tree: clean
+  inspected_before_activation:
+    - "SCOUT26_AGENT_STATE.yaml and SCOUT_READY_SLOTS_FEATURE.yaml durable state in this continuing thread"
+    - "docs/adr/ADR-013-ready-slots-rs0-architecture.md (complete)"
+    - "docs/READY_SLOTS_CONFIG.md (complete)"
+    - "Bundled and external Ready Slots JSON (complete)"
+    - "ReadySlotConfig, ReadySlotPresentationConfigFile, and presentation config/file regression tests (complete)"
+  implementation_boundary:
+    - "Presentation values and their bundled-default regression assertions only."
+    - "Use the accepted RS7A GUI for tuning; do not hand-invent subjective transform values."
+    - "Promote only values the human explicitly accepts after restart reproduction."
+    - "Keep the pre-existing personal external config backed up and restore it after calibration."
+    - "No renderer/UI behavior, mixin, dependency, inventory, equipment, ready-slot, networking, storage, ownership, transaction, menu, component, or persistent bag-data change unless a demonstrated prerequisite requires the smallest presentation-only correction."
+  calibration_strategy:
+    - "Build an exact representative matrix from the locally resolved Minecraft 26.1.2 item registry/tags; do not guess item IDs."
+    - "Seed a reversible calibration external file from the current bundled baseline, separate from the user's existing override."
+    - "Calibrate category defaults first for left hip, right hip, and back; use exact-item overrides only when one category default cannot cleanly cover a demonstrated outlier."
+    - "After each accepted adjustment, read and diff deterministic saved JSON, record the accepted row, and commit the promoted bundled value plus regression assertion."
+    - "Before completion, remove/withhold the personal override and require the shipped bundled baseline alone to reproduce the complete accepted matrix."
+  acceptance:
+    - "Every supported representative item category/type has clean human-accepted placement at all applicable Ready Slot positions."
+    - "Accepted GUI values reproduce identically after restart before promotion."
+    - "Committed bundled defaults reproduce the accepted visual matrix with no personal override file present."
+    - "All transform values remain finite and within RS6/RS7A bounds."
+    - "Default calibration changes client presentation only and leaves all suppression and gameplay invariants unchanged."
+    - "Complete automated suite and clean Gradle build pass after final promotion."
+  blockers: []
+  remaining_acceptance:
+    - "Prepare exact representative matrix and reversible calibration profile."
+    - "Complete iterative human calibration and deterministic promotion."
+    - "Run final automation/build and bundled-default-only visual acceptance."
+  next_action: "Commit activation, record its exact SHA, then prepare the first calibration batch without launching a client until the human confirms readiness."
 
 test_execution_policy:
   automation_first:
