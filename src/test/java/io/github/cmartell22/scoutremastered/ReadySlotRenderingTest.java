@@ -68,7 +68,7 @@ final class ReadySlotRenderingTest {
 		assertTrue(loader.contains("scoutremastered-ready-slots.json"));
 		assertTrue(loader.contains("current = bundled.config()"));
 		assertTrue(loader.contains("leaving the file untouched"));
-		assertTrue(policy.indexOf("itemBlacklisted(itemId)") < policy.indexOf("whitelistedCategory(itemId)"));
+		assertTrue(policy.indexOf("itemBlacklist().stream()") < policy.indexOf("whitelistedCategory(itemId)"));
 		assertTrue(policy.indexOf("whitelistedCategory(itemId)") < policy.indexOf("categoryEnabled(builtIn)"));
 	}
 
@@ -84,6 +84,9 @@ final class ReadySlotRenderingTest {
 		assertTrue(editor.contains("extractEntityPreview("));
 		assertTrue(editor.contains("this.previewYaw -= 15.0F"));
 		assertTrue(editor.contains("this.previewPitch = 0.0F"));
+		assertTrue(editor.contains("HOLD_DELAY_MILLIS = 350L"));
+		assertTrue(editor.contains("livingRenderState.yRot = 0.0F"));
+		assertTrue(editor.contains("livingRenderState.xRot = 0.0F"));
 		assertTrue(editor.contains("ReadySlotConfig.preview(updated)"));
 		assertTrue(editor.contains("ReadySlotConfig.save(this.draft)"));
 		assertTrue(editor.contains("ReadySlotConfig.restore(this.openingConfig)"));
@@ -93,7 +96,8 @@ final class ReadySlotRenderingTest {
 		assertTrue(editor.contains("withBaseTransformPropagatingOverrides"));
 		assertTrue(editor.contains("BuiltInRegistries.ITEM.containsKey(identifier)"));
 		assertTrue(editor.contains("mirrorField(field)"));
-		assertTrue(editor.contains("float next = value - 90.0F"));
+		assertTrue(editor.contains("currentValue < 0.0F ? currentValue + 90.0F : currentValue - 90.0F"));
+		assertTrue(editor.contains("Float.compare(currentValue, previous.mirrored())"));
 		assertTrue(editor.contains("ContainerObjectSelectionList<PolicyEntry>"));
 		assertTrue(editor.contains("resetPolicyList()"));
 		assertTrue(editor.contains("clearPolicyList()"));
@@ -121,6 +125,9 @@ final class ReadySlotRenderingTest {
 		}
 		assertFalse(editor.contains("Category.HANDHELD,"));
 		assertTrue(editor.contains("withWhitelistedItem(this.itemId, this.category)"));
+		assertTrue(policy.contains("ReadySlotPresentationConfig.isTagSelector"));
+		assertTrue(policy.contains("TagKey.create(Registries.ITEM, identifier)"));
+		assertTrue(editor.contains("BuiltInRegistries.ITEM.get(TagKey.create(Registries.ITEM, identifier)).isPresent()"));
 	}
 
 	@Test

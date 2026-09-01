@@ -3,7 +3,10 @@ package io.github.cmartell22.scoutremastered.client;
 import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig;
 import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig.Category;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
@@ -22,12 +25,22 @@ final class ReadySlotRenderPolicy {
 		}
 		ReadySlotPresentationConfig config = ReadySlotConfig.current();
 		String itemId = itemId(stack);
-		if (config.itemBlacklisted(itemId)) {
+		if (config.itemBlacklist().stream().anyMatch(selector -> selectorMatches(stack, itemId, selector))) {
 			return null;
 		}
 		Category explicitlyWhitelisted = config.whitelistedCategory(itemId).orElse(null);
 		if (explicitlyWhitelisted != null) {
 			return explicitlyWhitelisted;
+		}
+		Category tagWhitelisted = config.itemWhitelist().entrySet().stream()
+			.filter(entry -> ReadySlotPresentationConfig.isTagSelector(entry.getKey()))
+			.sorted(java.util.Map.Entry.comparingByKey())
+			.filter(entry -> selectorMatches(stack, itemId, entry.getKey()))
+			.map(java.util.Map.Entry::getValue)
+			.findFirst()
+			.orElse(null);
+		if (tagWhitelisted != null) {
+			return tagWhitelisted;
 		}
 		Category builtIn = builtInCategory(stack);
 		return builtIn != null && config.categoryEnabled(builtIn) ? builtIn : null;
@@ -35,6 +48,14 @@ final class ReadySlotRenderPolicy {
 
 	static String itemId(ItemStack stack) {
 		return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+	}
+
+	private static boolean selectorMatches(ItemStack stack, String itemId, String selector) {
+		if (!ReadySlotPresentationConfig.isTagSelector(selector)) {
+			return itemId.equals(selector);
+		}
+		Identifier identifier = Identifier.tryParse(selector.substring(1));
+		return identifier != null && stack.is(TagKey.create(Registries.ITEM, identifier));
 	}
 
 	static @Nullable Category builtInCategory(ItemStack stack) {

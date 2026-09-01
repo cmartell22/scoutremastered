@@ -1,6 +1,7 @@
 package io.github.cmartell22.scoutremastered;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig.Category;
 import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig.Position;
@@ -100,6 +101,23 @@ final class ReadySlotPresentationConfigTest {
 		assertEquals(Category.HANDHELD, config.whitelistedCategory("minecraft:stick").orElseThrow());
 		assertTrue(config.itemBlacklisted("minecraft:stick"));
 		assertFalse(config.itemBlacklisted("minecraft:diamond_sword"));
+	}
+
+	@Test
+	void policySelectorsAcceptTagsButItemOverridesRemainExactItemOnly() throws IOException {
+		ReadySlotPresentationConfig configured = defaults()
+			.withWhitelistedItem("#examplemod:tools", Category.PICKAXE)
+			.withBlacklistedItem("#examplemod:hidden");
+
+		assertEquals(Category.PICKAXE, configured.whitelistedCategory("#examplemod:tools").orElseThrow());
+		assertTrue(configured.itemBlacklisted("#examplemod:hidden"));
+		assertTrue(ReadySlotPresentationConfig.isValidPolicySelector("#minecraft:swords"));
+		assertFalse(ReadySlotPresentationConfig.isValidItemId("#minecraft:swords"));
+		assertEquals(configured.toJson(), parse(configured.toJson()).toJson());
+
+		Transform transform = configured.baseTransform(Position.LEFT_HIP);
+		assertThrows(JsonParseException.class,
+			() -> configured.withItemTransform("#examplemod:tools", Position.LEFT_HIP, transform));
 	}
 
 	@Test

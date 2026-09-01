@@ -292,7 +292,7 @@ public final class ReadySlotPresentationConfig {
 
 	public ReadySlotPresentationConfig withWhitelistedItem(String itemId, Category category) {
 		Map<String, Category> updated = new LinkedHashMap<>(this.itemWhitelist);
-		updated.put(requireItemId(itemId, "render_policy.item_whitelist"), Objects.requireNonNull(category, "category"));
+		updated.put(requirePolicySelector(itemId, "render_policy.item_whitelist"), Objects.requireNonNull(category, "category"));
 		return copyWith(this.enabledCategories, updated, this.itemBlacklist, this.baseTransforms, this.categoryOverrides, this.itemOverrides);
 	}
 
@@ -304,7 +304,7 @@ public final class ReadySlotPresentationConfig {
 
 	public ReadySlotPresentationConfig withBlacklistedItem(String itemId) {
 		Set<String> updated = new LinkedHashSet<>(this.itemBlacklist);
-		updated.add(requireItemId(itemId, "render_policy.item_blacklist"));
+		updated.add(requirePolicySelector(itemId, "render_policy.item_blacklist"));
 		return copyWith(this.enabledCategories, this.itemWhitelist, updated, this.baseTransforms, this.categoryOverrides, this.itemOverrides);
 	}
 
@@ -316,6 +316,19 @@ public final class ReadySlotPresentationConfig {
 
 	public static boolean isValidItemId(String itemId) {
 		return itemId != null && ITEM_ID.matcher(itemId).matches();
+	}
+
+	public static boolean isValidPolicySelector(String selector) {
+		if (selector == null) {
+			return false;
+		}
+		return selector.startsWith("#")
+			? isValidItemId(selector.substring(1))
+			: isValidItemId(selector);
+	}
+
+	public static boolean isTagSelector(String selector) {
+		return selector != null && selector.startsWith("#") && isValidPolicySelector(selector);
 	}
 
 	/** Deterministic, stable-order JSON used by the RS7A editor and future RS7B promotion workflow. */
@@ -495,8 +508,8 @@ public final class ReadySlotPresentationConfig {
 	private static Map<String, Category> parseWhitelist(JsonObject object) {
 		Map<String, Category> result = new LinkedHashMap<>();
 		for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-			String itemId = requireItemId(entry.getKey(), "render_policy.item_whitelist");
-			result.put(itemId, Category.fromId(requireString(entry.getValue(), "item_whitelist." + itemId)));
+			String selector = requirePolicySelector(entry.getKey(), "render_policy.item_whitelist");
+			result.put(selector, Category.fromId(requireString(entry.getValue(), "item_whitelist." + selector)));
 		}
 		return result;
 	}
@@ -512,7 +525,7 @@ public final class ReadySlotPresentationConfig {
 	private static Set<String> parseItemIds(JsonArray array, String path) {
 		Set<String> result = new LinkedHashSet<>();
 		for (int index = 0; index < array.size(); index++) {
-			result.add(requireItemId(requireString(array.get(index), path + "[" + index + "]"), path));
+			result.add(requirePolicySelector(requireString(array.get(index), path + "[" + index + "]"), path));
 		}
 		return result;
 	}
@@ -612,6 +625,13 @@ public final class ReadySlotPresentationConfig {
 			throw error(path + " contains invalid item id " + itemId);
 		}
 		return itemId;
+	}
+
+	private static String requirePolicySelector(String selector, String path) {
+		if (!isValidPolicySelector(selector)) {
+			throw error(path + " contains invalid item or tag selector " + selector);
+		}
+		return selector;
 	}
 
 	private static void requireOnlyKeys(JsonObject object, String path, Set<String> allowedKeys) {

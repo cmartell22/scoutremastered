@@ -5,6 +5,7 @@ import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig.Category
 import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig.Position;
 import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig.Transform;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -22,15 +23,18 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -69,6 +73,8 @@ final class ReadySlotConfigScreen extends Screen {
 	private PolicyListWidget policyList;
 	private final Map<TransformField, BoundedSlider> sliders = new EnumMap<>(TransformField.class);
 	private final Map<TransformField, EditBox> numericBoxes = new EnumMap<>(TransformField.class);
+	private final Map<TransformField, MirrorState> mirrorStates = new EnumMap<>(TransformField.class);
+	private final List<HoldRepeatButton> previewButtons = new ArrayList<>();
 
 	ReadySlotConfigScreen() {
 		super(Component.translatable("screen.scoutremastered.ready_slots.title"));
@@ -80,6 +86,7 @@ final class ReadySlotConfigScreen extends Screen {
 	protected void init() {
 		this.sliders.clear();
 		this.numericBoxes.clear();
+		this.previewButtons.clear();
 		this.categoryButton = null;
 		this.policyList = null;
 		int controlsX = controlsX();
@@ -210,22 +217,38 @@ final class ReadySlotConfigScreen extends Screen {
 		int width = controlsX() - 26;
 		int y = this.height - 43;
 		int small = Math.max(18, (width - 12) / 6);
-		addRenderableWidget(Button.builder(Component.literal("<"), button -> this.previewYaw -= 15.0F).bounds(x, y, small, 16).build());
-		addRenderableWidget(Button.builder(Component.literal(">"), button -> this.previewYaw += 15.0F).bounds(x + small + 3, y, small, 16).build());
-		addRenderableWidget(Button.builder(Component.literal("^"), button -> this.previewPitch = Math.max(-45.0F, this.previewPitch - 10.0F))
-			.bounds(x + (small + 3) * 2, y, small, 16).build());
-		addRenderableWidget(Button.builder(Component.literal("v"), button -> this.previewPitch = Math.min(45.0F, this.previewPitch + 10.0F))
-			.bounds(x + (small + 3) * 3, y, small, 16).build());
+		addPreviewButton(Component.literal("<"), x, y, small, () -> this.previewYaw -= 15.0F, () -> this.previewYaw -= 2.0F);
+		addPreviewButton(Component.literal(">"), x + small + 3, y, small, () -> this.previewYaw += 15.0F, () -> this.previewYaw += 2.0F);
+		addPreviewButton(Component.literal("^"), x + (small + 3) * 2, y, small,
+			() -> this.previewPitch = Math.max(-45.0F, this.previewPitch - 10.0F),
+			() -> this.previewPitch = Math.max(-45.0F, this.previewPitch - 1.0F));
+		addPreviewButton(Component.literal("v"), x + (small + 3) * 3, y, small,
+			() -> this.previewPitch = Math.min(45.0F, this.previewPitch + 10.0F),
+			() -> this.previewPitch = Math.min(45.0F, this.previewPitch + 1.0F));
 		addRenderableWidget(Button.builder(Component.translatable("screen.scoutremastered.ready_slots.preview_reset"), button -> {
 			this.previewYaw = 0.0F;
 			this.previewPitch = 0.0F;
 		}).bounds(x + (small + 3) * 4, y, Math.max(small, width - (small + 3) * 4), 16).build());
 	}
 
+	private void addPreviewButton(Component label, int x, int y, int width, Runnable clickAction, Runnable repeatAction) {
+		HoldRepeatButton button = new HoldRepeatButton(x, y, width, 16, label, clickAction, repeatAction);
+		this.previewButtons.add(button);
+		addRenderableWidget(button);
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		this.previewButtons.forEach(HoldRepeatButton::tickHold);
+	}
+
 	private EditBox itemIdBox(int x, int y, int width) {
 		EditBox itemBox = new EditBox(this.font, x, y, width, 20, Component.translatable("screen.scoutremastered.ready_slots.item_id"));
 		itemBox.setMaxLength(128);
-		itemBox.setHint(Component.translatable("screen.scoutremastered.ready_slots.item_id_hint"));
+		itemBox.setHint(Component.translatable(this.mode == Mode.VISIBILITY
+			? "screen.scoutremastered.ready_slots.policy_selector_hint"
+			: "screen.scoutremastered.ready_slots.item_id_hint"));
 		itemBox.setValue(this.itemId);
 		itemBox.setResponder(value -> {
 			this.itemId = value.trim();
@@ -272,8 +295,8 @@ final class ReadySlotConfigScreen extends Screen {
 		EntityRenderState renderState = extractPreviewRenderState(entity);
 		if (renderState instanceof LivingEntityRenderState livingRenderState) {
 			livingRenderState.bodyRot = 180.0F + yaw;
-			livingRenderState.yRot = yaw;
-			livingRenderState.xRot = livingRenderState.pose == Pose.FALL_FLYING ? 0.0F : -pitch;
+			livingRenderState.yRot = 0.0F;
+			livingRenderState.xRot = 0.0F;
 			livingRenderState.boundingBoxWidth /= livingRenderState.scale;
 			livingRenderState.boundingBoxHeight /= livingRenderState.scale;
 			livingRenderState.scale = 1.0F;
@@ -304,6 +327,7 @@ final class ReadySlotConfigScreen extends Screen {
 
 	private void applyField(TransformField field, float value) {
 		if (this.syncingWidgets) return;
+		this.mirrorStates.remove(field);
 		applySelectedTransform(field.write(selectedTransform(), value));
 		synchronizeTransformWidgets();
 	}
@@ -316,6 +340,7 @@ final class ReadySlotConfigScreen extends Screen {
 				setError(Component.translatable("screen.scoutremastered.ready_slots.out_of_bounds", format(field.minimum), format(field.maximum)));
 				return;
 			}
+			this.mirrorStates.remove(field);
 			applySelectedTransform(field.write(selectedTransform(), value));
 			BoundedSlider slider = this.sliders.get(field);
 			if (slider != null) {
@@ -357,6 +382,7 @@ final class ReadySlotConfigScreen extends Screen {
 	}
 
 	private void resetTransform() {
+		this.mirrorStates.clear();
 		ReadySlotPresentationConfig updated;
 		switch (this.scope) {
 			case BASE -> updated = this.draft.withBaseTransformPropagatingOverrides(this.position,
@@ -384,6 +410,7 @@ final class ReadySlotConfigScreen extends Screen {
 			return;
 		}
 		if (applySelectedTransform(this.copiedTransform)) {
+			this.mirrorStates.clear();
 			synchronizeTransformWidgets();
 			setSuccess(Component.translatable("screen.scoutremastered.ready_slots.pasted"));
 		}
@@ -391,10 +418,36 @@ final class ReadySlotConfigScreen extends Screen {
 
 	private void mirrorField(TransformField field) {
 		Transform current = selectedTransform();
-		if (applySelectedTransform(field.write(current, field.mirrorValue(field.read(current))))) {
+		float currentValue = field.read(current);
+		float nextValue;
+		MirrorState nextState = null;
+		if (field.angular()) {
+			String selection = mirrorSelection();
+			MirrorState previous = this.mirrorStates.get(field);
+			if (previous != null && previous.selection().equals(selection)
+				&& Float.compare(currentValue, previous.mirrored()) == 0) {
+				nextValue = previous.original();
+				nextState = previous;
+			} else if (previous != null && previous.selection().equals(selection)
+				&& Float.compare(currentValue, previous.original()) == 0) {
+				nextValue = previous.mirrored();
+				nextState = previous;
+			} else {
+				nextValue = currentValue < 0.0F ? currentValue + 90.0F : currentValue - 90.0F;
+				nextState = new MirrorState(selection, currentValue, nextValue);
+			}
+		} else {
+			nextValue = -currentValue;
+		}
+		if (applySelectedTransform(field.write(current, nextValue))) {
+			if (nextState != null) this.mirrorStates.put(field, nextState);
 			synchronizeTransformWidgets();
 			setSuccess(Component.translatable("screen.scoutremastered.ready_slots.field_mirrored", field.label()));
 		}
+	}
+
+	private String mirrorSelection() {
+		return this.scope.name() + '|' + this.position.name() + '|' + this.category.name() + '|' + this.itemId;
 	}
 
 	private void synchronizeCategoryFromItem() {
@@ -423,7 +476,7 @@ final class ReadySlotConfigScreen extends Screen {
 	}
 
 	private void addPolicyItem() {
-		if (!requireValidItemId()) return;
+		if (!requireValidPolicySelector()) return;
 		if (this.policyView == PolicyList.WHITELIST) {
 			updateDraft(this.draft.withoutBlacklistedItem(this.itemId).withWhitelistedItem(this.itemId, this.category));
 			setSuccess(Component.translatable("screen.scoutremastered.ready_slots.whitelisted", this.itemId));
@@ -479,10 +532,25 @@ final class ReadySlotConfigScreen extends Screen {
 		return true;
 	}
 
+	private boolean requireValidPolicySelector() {
+		if (!isRegisteredPolicySelector()) {
+			setError(Component.translatable("screen.scoutremastered.ready_slots.invalid_policy_selector"));
+			return false;
+		}
+		return true;
+	}
+
 	private boolean isRegisteredItemId() {
 		if (!ReadySlotPresentationConfig.isValidItemId(this.itemId)) return false;
 		Identifier identifier = Identifier.tryParse(this.itemId);
 		return identifier != null && BuiltInRegistries.ITEM.containsKey(identifier);
+	}
+
+	private boolean isRegisteredPolicySelector() {
+		if (!ReadySlotPresentationConfig.isValidPolicySelector(this.itemId)) return false;
+		if (!ReadySlotPresentationConfig.isTagSelector(this.itemId)) return isRegisteredItemId();
+		Identifier identifier = Identifier.tryParse(this.itemId.substring(1));
+		return identifier != null && BuiltInRegistries.ITEM.get(TagKey.create(Registries.ITEM, identifier)).isPresent();
 	}
 
 	private void updateDraft(ReadySlotPresentationConfig updated) {
@@ -569,10 +637,6 @@ final class ReadySlotConfigScreen extends Screen {
 		ROTATE_Z("RZ", ReadySlotPresentationConfig.MIN_ROTATION, ReadySlotPresentationConfig.MAX_ROTATION, true) {
 			@Override float read(Transform v) { return v.rotateZ(); }
 			@Override Transform write(Transform v, float n) { return copy(v, v.translateX(), v.translateY(), v.translateZ(), v.rotateX(), v.rotateY(), n, v.scale()); }
-			@Override float mirrorValue(float value) {
-				float next = value - 90.0F;
-				return next < ReadySlotPresentationConfig.MIN_ROTATION ? next + 720.0F : next;
-			}
 		},
 		SCALE("Scale", ReadySlotPresentationConfig.MIN_SCALE, ReadySlotPresentationConfig.MAX_SCALE, false) {
 			@Override float read(Transform v) { return v.scale(); }
@@ -587,12 +651,54 @@ final class ReadySlotConfigScreen extends Screen {
 		}
 		Component label() { return this.label; }
 		boolean mirrorable() { return this.mirrorable; }
+		boolean angular() { return this == ROTATE_X || this == ROTATE_Y || this == ROTATE_Z; }
 		boolean inBounds(float value) { return Float.isFinite(value) && value >= this.minimum && value <= this.maximum; }
-		float mirrorValue(float value) { return -value; }
 		abstract float read(Transform value);
 		abstract Transform write(Transform value, float next);
 		private static Transform copy(Transform ignored, float x, float y, float z, float rx, float ry, float rz, float scale) {
 			return new Transform(x, y, z, rx, ry, rz, scale);
+		}
+	}
+
+	private record MirrorState(String selection, float original, float mirrored) {
+	}
+
+	private static final class HoldRepeatButton extends Button {
+		private static final long HOLD_DELAY_MILLIS = 350L;
+		private static final long REPEAT_MILLIS = 50L;
+		private final Runnable repeatAction;
+		private boolean held;
+		private long nextRepeatAt;
+
+		HoldRepeatButton(int x, int y, int width, int height, Component message, Runnable clickAction, Runnable repeatAction) {
+			super(x, y, width, height, message, button -> clickAction.run(), DEFAULT_NARRATION);
+			this.repeatAction = repeatAction;
+		}
+
+		@Override
+		public void onClick(MouseButtonEvent event, boolean doubleClick) {
+			super.onClick(event, doubleClick);
+			this.held = true;
+			this.nextRepeatAt = Util.getMillis() + HOLD_DELAY_MILLIS;
+		}
+
+		@Override
+		public void onRelease(MouseButtonEvent event) {
+			this.held = false;
+		}
+
+		void tickHold() {
+			long now = Util.getMillis();
+			if (this.held && now >= this.nextRepeatAt) {
+				this.repeatAction.run();
+				this.nextRepeatAt = now + REPEAT_MILLIS;
+			}
+		}
+
+		@Override
+		protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+			this.extractDefaultSprite(graphics);
+			this.extractDefaultLabel(graphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
 		}
 	}
 

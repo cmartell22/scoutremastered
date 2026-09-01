@@ -16,7 +16,7 @@ Open the editor while in a world. Its player model is a live preview of the curr
 - **Reset** restores a base position from the bundled baseline or removes the selected category/item override.
 - **Copy** and **Paste** transfer a complete transform. Each X/Y/Z and RX/RY/RZ row has its own **M** button, so only that field is mirrored. RZ advances by a single 90-degree step (`180` to `90`) instead of producing an equivalent but confusing `-180` value. Scale has no mirror axis.
 - Category scope includes a **Visible** checkbox. Exact-item scope labels its category control explicitly; changing that control assigns the listed item to that whitelist/transform category.
-- **Whitelist / Blacklist** mode contains two list tabs. Each tab has a scrollable removable item list, **Clear**, and **Reset to default**. Adding an item requires an ID present in the current game's item registry and keeps the two lists mutually exclusive.
+- **Whitelist / Blacklist** mode contains two list tabs. Each tab has a scrollable removable selector list, **Clear**, and **Reset to default**. A selector may be an item ID present in the current game's item registry or a registered item tag written as `#namespace:path`. Adding a selector keeps the two lists mutually exclusive.
 - The preview does not follow the mouse. Left/right/up/down buttons rotate it in fixed steps and **Reset** returns it to the forward view.
 - **Save** atomically replaces only `config/scoutremastered-ready-slots.json` with deterministic, stable-order JSON.
 - **Cancel** or Escape restores the exact configuration active when the editor opened and writes nothing.
@@ -35,12 +35,13 @@ Live preview only changes client rendering. It does not mutate inventory or read
 
 Visibility is resolved in this order:
 
-1. `item_blacklist` always suppresses the item.
-2. `item_whitelist` explicitly selects a transform category for that item, even when that category is absent from `enabled_categories`.
-3. Otherwise, the conservative built-in classifier identifies swords, axes, pickaxes, shovels, hoes, spears, bows, crossbows, shields, or tridents, and `enabled_categories` decides whether that category renders.
-4. Items that match none of those paths remain valid bag contents and swap normally, but render nothing.
+1. Any exact-item or item-tag selector in `item_blacklist` suppresses the item.
+2. An exact item in `item_whitelist` selects its configured transform category.
+3. Otherwise, matching item-tag whitelist selectors are evaluated in lexical order and the first match selects its configured category. Explicit whitelist selection applies even when that category is absent from `enabled_categories`.
+4. Otherwise, the conservative built-in classifier identifies swords, axes, pickaxes, shovels, hoes, spears, bows, crossbows, shields, or tridents, and `enabled_categories` decides whether that category renders.
+5. Items that match none of those paths remain valid bag contents and swap normally, but render nothing.
 
-The editable category IDs are `sword`, `axe`, `pickaxe`, `shovel`, `hoe`, `spear`, `bow`, `crossbow`, `shield`, and `trident`. The legacy `handheld` ID remains accepted: its transform is applied beneath granular handheld categories, and its enabled state is expanded when one of those granular visibility controls is first edited. Item keys must be complete namespaced IDs such as `minecraft:diamond_sword`.
+The editable category IDs are `sword`, `axe`, `pickaxe`, `shovel`, `hoe`, `spear`, `bow`, `crossbow`, `shield`, and `trident`. The legacy `handheld` ID remains accepted: its transform is applied beneath granular handheld categories, and its enabled state is expanded when one of those granular visibility controls is first edited. Policy selectors are complete namespaced item IDs such as `minecraft:diamond_sword` or registered item tags such as `#examplemod:tools`. Item overrides remain exact-item-only.
 
 Example:
 
@@ -48,7 +49,8 @@ Example:
 "render_policy": {
   "enabled_categories": ["sword", "axe", "pickaxe", "shovel", "hoe", "spear", "bow", "crossbow", "shield", "trident"],
   "item_whitelist": {
-    "examplemod:custom_blade": "sword"
+    "examplemod:custom_blade": "sword",
+    "#examplemod:tools": "pickaxe"
   },
   "item_blacklist": [
     "minecraft:wooden_sword"
@@ -56,7 +58,7 @@ Example:
 }
 ```
 
-If an item appears in both lists, the blacklist wins.
+If an item matches both lists, the blacklist wins. The bundled lists remain empty because Minecraft's built-in tool tags already feed the granular classifiers; tag selectors are intended for policy exceptions and mod interoperability.
 
 ## Transform precedence
 
