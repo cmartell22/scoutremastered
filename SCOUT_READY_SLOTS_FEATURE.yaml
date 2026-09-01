@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 29
-last_updated_utc: "2026-09-01T03:52:52Z"
+feature_revision: 30
+last_updated_utc: "2026-09-01T03:56:03Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: RS6_COMPLETE
@@ -980,6 +980,7 @@ rs6_implementation:
   completed_utc: "2026-09-01T03:52:52Z"
   activation_commit: "d8cba8ba997793a3352ef9585633032eebd55117"
   implementation_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
+  completion_commit: "9954c3cc50416bcc0b2cef291ee52fe5813bc86c"
   authorization: >
     The human explicitly authorized RS6 external config foundation. RS7A functional GUI and RS7B curated-default
     calibration remain deferred and must not begin.

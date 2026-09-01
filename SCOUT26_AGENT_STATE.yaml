@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 95
-last_updated_utc: "2026-09-01T03:52:52Z"
+state_revision: 96
+last_updated_utc: "2026-09-01T03:56:03Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS6_COMPLETE"
 current_phase: "P9"
@@ -1009,6 +1009,7 @@ repository_state:
   p9_rs5_completion_commit: "32f7b90e36500b4ae7d72104ede09f8d767ebb54"
   p9_rs6_activation_commit: "d8cba8ba997793a3352ef9585633032eebd55117"
   p9_rs6_implementation_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
+  p9_rs6_completion_commit: "9954c3cc50416bcc0b2cef291ee52fe5813bc86c"
   last_known_good_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
   last_tested_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
   working_tree_expected_clean: true
@@ -2431,6 +2432,7 @@ latest_session:
     - >
       Final temporary scheduled-task PowerShell PID 9028 and wrapper PID 23312 were absent after exit; TCP 25565 had
       zero listeners. The temporary scheduled task, helper, workspace-local logs, and all proof artifacts were removed.
+    - "RS6 completion evidence was committed as 9954c3cc50416bcc0b2cef291ee52fe5813bc86c."
   commands_run:
     - "git status --short --branch; git rev-parse HEAD; git branch --show-current"
     - "Read ADR-013 and current Ready Slots renderer, transforms, render policy, client bootstrap, existing client config, build metadata, and renderer tests."
