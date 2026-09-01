@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 20
-last_updated_utc: "2026-09-01T01:02:52Z"
+feature_revision: 21
+last_updated_utc: "2026-09-01T01:06:11Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: CORE_COMPLETE_RS5_PENDING_AUTHORIZATION
@@ -730,7 +730,7 @@ rs4_implementation:
   authorized_utc: "2026-09-01T00:13:19Z"
   completed_utc: "2026-09-01T01:02:52Z"
   activation_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
-  completion_commit: "PENDING_RECORD_AFTER_COMMIT"
+  completion_commit: "ec37ec649ffc7a81654a0d7c5982734881fa3fa3"
   production_baseline: "4234726f6504dec55f39d9fc61c41971c30d2a70"
   authorization: >
     The human explicitly authorized RS4 lifecycle, desynchronization, adversarial equipment/hotbar behavior,

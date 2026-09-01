@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 86
-last_updated_utc: "2026-09-01T01:02:52Z"
+state_revision: 87
+last_updated_utc: "2026-09-01T01:06:11Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_CORE_COMPLETE_RS5_PENDING_AUTHORIZATION"
 current_phase: "P9"
@@ -1001,7 +1001,7 @@ repository_state:
   p9_rs3_implementation_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
   p9_rs3_completion_commit: "3c86a5d75390640f9c38841b3f8a11d24c0df137"
   p9_rs4_activation_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
-  p9_rs4_completion_commit: "PENDING_RECORD_AFTER_COMMIT"
+  p9_rs4_completion_commit: "ec37ec649ffc7a81654a0d7c5982734881fa3fa3"
   last_known_good_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
   last_tested_commit: "2ba315e78b83d339413750069b0fad52661fcf3b"
   working_tree_expected_clean: true
