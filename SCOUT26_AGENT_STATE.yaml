@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 83
-last_updated_utc: "2026-08-31T23:42:03Z"
+state_revision: 84
+last_updated_utc: "2026-08-31T23:59:32Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS3_ACTIVE"
+project_status: "P9_READY_SLOTS_RS3_COMPLETE_RS4_PENDING_AUTHORIZATION"
 current_phase: "P9"
-current_task: "RS3_SERVERBOUND_PAYLOAD_AND_CONFIGURABLE_KEYBINDS"
+current_task: "RS4_AWAITING_EXPLICIT_AUTHORIZATION"
 
 project:
   working_name: "Scout Remastered"
@@ -827,8 +827,8 @@ phase_plan:
       Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
-    current_subphase: "RS3"
-    current_subphase_name: "RS3 serverbound payload and configurable keybinds active"
+    current_subphase: "RS4"
+    current_subphase_name: "RS3 complete; RS4 awaits explicit authorization"
     architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
@@ -997,8 +997,11 @@ repository_state:
   p9_rs2_activation_commit: "395ef354650195886634aee9464b30bbf7154c5d"
   p9_rs2_implementation_commit: "e98dbf3a097d17ed555a68b1aab0d2431edd9471"
   p9_rs2_completion_commit: "e98dbf3a097d17ed555a68b1aab0d2431edd9471"
-  last_known_good_commit: "e98dbf3a097d17ed555a68b1aab0d2431edd9471"
-  last_tested_commit: "e98dbf3a097d17ed555a68b1aab0d2431edd9471"
+  p9_rs3_activation_commit: "e572cdd29d163595984af2f222776aa3c9aba910"
+  p9_rs3_implementation_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
+  p9_rs3_completion_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
+  last_known_good_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
+  last_tested_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -2152,19 +2155,63 @@ latest_session:
     - >
       The required fresh Gradle attempt failed first on sandboxed distribution access and then, with approved
       unrestricted access, on the documented pre-task single-use-daemon loopback connection. No Gradle pass is claimed.
-    - "RS3 is active; no RS3 implementation code has been added at this activation checkpoint."
+    - >
+      Activated RS3 in commit e572cdd29d163595984af2f222776aa3c9aba910, then implemented it in
+      4234726f6504dec55f39d9fc61c41971c30d2a70 without beginning any RS4 work.
+    - >
+      Added one role-only serverbound SwapReadySlotPayload with stable explicit bounded VarInt IDs 0/1/2,
+      common codec/receiver registration, and production delegation to ReadySlotSwapService on the server thread.
+      The payload contains no stack, bag index, capacity, inventory slot, or equipment reference.
+    - >
+      Added three configurable Inventory-category client key mappings for left pouch, right pouch, and satchel.
+      All default unbound, send only the selected role, and deliberately remain usable while another menu is open;
+      vanilla container-ID-0 synchronization updates player.inventoryMenu independently of the active containerMenu.
+    - >
+      Preserved the existing B open-pack declaration, GLFW B default, screen gate, and OpenPackPayload behavior.
+      No menu, mixin, component, persistence, renderer, storage rule, or swap primitive changed.
+    - >
+      Direct compilation against the exact cached Minecraft/Fabric/Trinkets artifacts succeeded for common production,
+      changed client, and all test sources. Fabric Loader JUnit 0.19.3 then found, started, and passed all 68 tests with
+      zero failures, aborts, or skips; the full result was repeated against implementation commit 4234726f.
+    - >
+      Removed all isolated proof classes, copied dependencies, launcher code, and Knot .fabric state. An exact elevated
+      audit found zero project-command-line Java/javaw processes and zero TCP 25565 listeners. No Minecraft client or
+      gameplay server was launched for RS3.
   commands_run:
     - "git status --short --branch; git rev-parse HEAD; git log -1 --oneline"
     - "Read all three source-of-truth documents in bounded complete chunks and inspect relevant current sources/tests."
     - ".\\gradlew.bat test --no-daemon --console=plain in sandbox and approved unrestricted contexts."
     - "Inspect exact cached Fabric and Minecraft source JAR entries for receiver thread, registration, key mapping, client tick, and VarInt signatures."
+    - "Compile all common production sources, changed client sources, and all tests directly against the exact locked cached dependency set."
+    - "Run the complete test output through Fabric Loader JUnit 0.19.3's Knot server launcher session before and after implementation commit 4234726f."
+    - "Use javap and source audits to prove the payload's single role field, bounded codec, server-owned rediscovery, common/client split, open-menu policy, and unchanged B behavior."
+    - "Remove exact generated proof paths; audit project Java command lines and TCP 25565."
   tests_run:
-    - "GRADLE_NOT_EXECUTED: documented loopback failure occurred before task execution; no pass claimed."
+    - "FINAL_PASS: 68 tests found/started/successful; zero failed, aborted, or skipped; repeated after 4234726f."
+    - >
+      New coverage proves stable role IDs, exhaustive representative malformed-ID rejection, exact one-VarInt payload
+      round trips, actual serverbound registration, one-role delegation, null rejection, 1000 requests per role with
+      per-request isolation and conservation, and real-service rejection of nested/missing/stale/replaced/unequipped/wrong-role cases.
+    - >
+      Structural coverage proves three unbound configurable mappings, role-only sends, unchanged B behavior, client-only
+      imports confined to the client source set, server-side equipped-bag rediscovery, player.inventoryMenu sync, and no
+      receiver gate on another active menu.
+    - >
+      LIMITATION: Gradle never reached task execution because of the documented host loopback failure. The exact cached
+      Minecraft/Fabric/Trinkets artifacts were instead used for direct compilation and Fabric Loader JUnit.
   files_changed:
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotRole.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotNetworking.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ScoutRemasteredMod.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/SwapReadySlotPayload.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotKeyMappings.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ScoutRemasteredClient.java"
+    - "src/main/resources/assets/scoutremastered/lang/en_us.json"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotNetworkingTest.java"
   blockers: []
-  next_action: "Implement and test RS3 only; do not begin RS4."
+  next_action: "RS3 is complete. Await separate explicit authorization before beginning RS4 save/reload or forced-restart testing."
 
 agent_first_prompt:
   text: >

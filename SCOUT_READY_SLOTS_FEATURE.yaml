@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 17
-last_updated_utc: "2026-08-31T23:42:03Z"
+feature_revision: 18
+last_updated_utc: "2026-08-31T23:59:32Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: ACTIVE
-current_phase: RS3
+current_phase: RS4
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -319,7 +319,7 @@ phases:
 
   RS3:
     name: "Serverbound payload and configurable keybinds"
-    status: ACTIVE
+    status: COMPLETE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol High"
     scope:
@@ -338,7 +338,7 @@ phases:
 
   RS4:
     name: "Lifecycle, desync, and adversarial hardening"
-    status: BLOCKED_BY_RS3
+    status: READY_PENDING_EXPLICIT_AUTHORIZATION
     model: "GPT-5.6 Sol High"
     acceptance:
       - "Swap then immediate logout/login persists exactly."
@@ -636,8 +636,11 @@ rs2_implementation:
   next_action: "RS2 is complete. Await separate explicit authorization before beginning RS3 payload or key-mapping work."
 
 rs3_implementation:
-  status: ACTIVE
+  status: COMPLETE
   authorized_utc: "2026-08-31T23:42:03Z"
+  completed_utc: "2026-08-31T23:59:32Z"
+  activation_commit: "e572cdd29d163595984af2f222776aa3c9aba910"
+  implementation_commit: "4234726f6504dec55f39d9fc61c41971c30d2a70"
   authorization: >
     The human explicitly authorized RS3 only: the role-only serverbound payload, stable bounded role IDs,
     three configurable client key mappings, server-thread receiver delegation to ReadySlotSwapService,
@@ -660,9 +663,67 @@ rs3_implementation:
       execution with java.io.IOException: Unable to establish loopback connection.
     - "No Gradle test pass is claimed; the established direct Java 25 plus Fabric Loader JUnit fallback remains required."
   implementation_decisions:
-    - "Pending implementation and verification."
+    - >
+      ReadySlotRole uses stable explicit IDs LEFT_POUCH=0, RIGHT_POUCH=1, and SATCHEL=2. Decoding uses an
+      explicit switch, so every other integer throws a deterministic IllegalArgumentException without ordinal indexing.
+    - >
+      SwapReadySlotPayload is a one-record-component serverbound intent. Its complete wire representation is one
+      VarInt role ID; it contains no ItemStack, bag-local slot, capacity, hotbar index, EquippedBagHandle, or equipment reference.
+    - >
+      ReadySlotNetworking registers the codec before the global server receiver. Fabric 6.3.1 guarantees that
+      receiver runs on the server thread; it delegates the selected role to ReadySlotSwapService, which rediscovers
+      Trinkets equipment on every request and retains all RS2 validation, mutation, rollback, and synchronization behavior.
+    - >
+      The three client key mappings are distinct, configurable Inventory-category controls and default unbound to
+      avoid conflicts. Each consumes clicks and sends only its fixed ReadySlotRole. The existing B-key declaration,
+      screen gate, OpenPackPayload, and Pack Networking path are unchanged.
+    - >
+      Ready-slot requests are accepted while another menu is open. No receiver menu gate or client-owned workaround
+      was added; the service broadcasts the always-present container ID 0 InventoryMenu, and exact Minecraft 26.1.2
+      ClientPacketListener source applies container-0 slot updates directly to player.inventoryMenu regardless of the active screen.
+  automated_evidence:
+    - >
+      Direct Java 25 compilation succeeded for all common production sources, the changed/new client sources against
+      the exact Minecraft 26.1.2 and Fabric key-mapping/client-tick APIs, and all test sources. The known post-success
+      cached-JAR close AccessDeniedException recurred after javac returned the requested classes.
+    - >
+      The complete Fabric Loader JUnit 0.19.3 Knot server session passed 68/68 tests with zero failures, aborts, or
+      skips, then repeated the same 68/68 result after implementation commit 4234726.
+    - >
+      The 12 RS3 tests cover stable IDs, all bounded-ID branches, valid round trips, negative/out-of-range codec
+      rejection, exact one-VarInt wire shape, one-field payload reflection, real codec/receiver registration,
+      exact role delegation/result propagation, 1000-request spam per role with per-request non-target isolation,
+      nested/missing/stale/replaced/unequipped/wrong-role failures, key-to-role mapping, open-menu policy, unchanged
+      B-key behavior, and common/server source isolation from client-only imports.
+    - >
+      The Knot server environment loaded Minecraft, Fabric API, Scout Remastered, and Trinkets without a Scout
+      Remastered client-class load failure. The only client-target warning was the already documented non-fatal
+      third-party Trinkets warning.
+    - >
+      javap confirmed SwapReadySlotPayload has exactly one non-static field of ReadySlotRole. Source audits found
+      no forbidden payload content and no common-source client-only import.
+  environment_limitations:
+    - >
+      Gradle never reached task execution: the sandbox denied the wrapper distribution fetch and the approved
+      unrestricted cached run failed with the documented single-use-daemon loopback IOException. No Gradle pass is claimed.
+  runtime_cleanup:
+    - "Removed the isolated .rs3-proof compiler/test launcher/classes/dependency copies and generated .fabric state."
+    - "Verified zero Java/javaw processes whose command line referenced C:\\CodexLocalProjects\\JavaBackport."
+    - "Verified zero listeners on TCP 25565. No Minecraft client or gameplay server was launched for RS3."
+  files_changed:
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotRole.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/SwapReadySlotPayload.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ReadySlotNetworking.java"
+    - "src/main/java/io/github/cmartell22/scoutremastered/ScoutRemasteredMod.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotKeyMappings.java"
+    - "src/client/java/io/github/cmartell22/scoutremastered/client/ScoutRemasteredClient.java"
+    - "src/main/resources/assets/scoutremastered/lang/en_us.json"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotNetworkingTest.java"
+    - "SCOUT_READY_SLOTS_FEATURE.yaml"
+    - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Implement the bounded role-only payload, server registration/receiver, unbound configurable key mappings, and RS3 tests without starting RS4."
+  remaining_acceptance: []
+  next_action: "RS3 is complete. Await separate explicit authorization before beginning RS4 lifecycle, crash, or adversarial persistence work."
 
 test_execution_policy:
   automation_first:
