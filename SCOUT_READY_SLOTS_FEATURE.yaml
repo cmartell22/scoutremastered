@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 32
-last_updated_utc: "2026-09-01T11:20:24Z"
+feature_revision: 33
+last_updated_utc: "2026-09-01T11:24:44Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: RS7A_COMPLETE
@@ -1083,7 +1083,7 @@ rs7a_implementation:
     - "fd69b0c6fd53f93ba4b13d27f42ab09fba5cf342: granular categories and editor/list/preview UX polish"
     - "f1a915fb95d2bf098762082c4a8f6ff14bb3a1e7: pose-aligned preview, stateful per-axis mirror, held rotation, and tag policies"
     - "9b0be540af1f30fb971b8e8525d1fa956444e05b: accepted doubled held-rotation speed"
-  completion_commit: "PENDING_COMPLETION_COMMIT"
+  completion_commit: "02fc7a997d9f147a7fc07ca68e41b0bacab9288a"
   authorization: >
     The human explicitly authorized RS7A functional interactive positioning GUI work and explicitly requires a
     user-driven GUI test before completion. RS7B curated default calibration remains deferred and must not begin.

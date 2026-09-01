@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 98
-last_updated_utc: "2026-09-01T11:20:24Z"
+state_revision: 99
+last_updated_utc: "2026-09-01T11:24:44Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS7A_COMPLETE"
 current_phase: "P9"
@@ -1010,8 +1010,11 @@ repository_state:
   p9_rs6_activation_commit: "d8cba8ba997793a3352ef9585633032eebd55117"
   p9_rs6_implementation_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
   p9_rs6_completion_commit: "9954c3cc50416bcc0b2cef291ee52fe5813bc86c"
-  last_known_good_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
-  last_tested_commit: "0386691110fc880aba8497a05f72684471cdbe2a"
+  p9_rs7a_activation_commit: "d95aacb983ae4fa2e5ae48e573896f0022ea7005"
+  p9_rs7a_implementation_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
+  p9_rs7a_completion_commit: "02fc7a997d9f147a7fc07ca68e41b0bacab9288a"
+  last_known_good_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
+  last_tested_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -2505,7 +2508,7 @@ latest_session:
     ux_polish: "fd69b0c6fd53f93ba4b13d27f42ab09fba5cf342"
     preview_and_tags: "f1a915fb95d2bf098762082c4a8f6ff14bb3a1e7"
     accepted_hold_speed: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
-    completion: "PENDING_COMPLETION_COMMIT"
+    completion: "02fc7a997d9f147a7fc07ca68e41b0bacab9288a"
   commands_run:
     - '.\gradlew.bat clean build --no-daemon --console=plain'
     - "Direct exact-source Java 25 compilation plus a focused JUnit Platform launcher for config/file/rendering editor coverage."
@@ -2540,6 +2543,7 @@ latest_session:
     - "Deleted exact scheduled tasks and removed temporary helpers, launch/current logs, test runners/proof classes, config backups, and harness artifacts."
     - "Restored the pretest external config SHA-256 129E06D2FD37A9545E2569B88F3A93F4B11638E055A6FC94514B54F3CD21B050."
     - "Preserved historical archived logs and the existing P7B-test world."
+    - "RS7A completion evidence was committed as 02fc7a997d9f147a7fc07ca68e41b0bacab9288a."
   blockers: []
   remaining_acceptance: []
   next_action: >
