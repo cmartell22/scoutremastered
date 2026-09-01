@@ -45,8 +45,8 @@ restart reproduction from the deterministic external JSON, and a final unchanged
 restart reproduction. The calibration candidate SHA-256 was
 `5E16EC06A75F352860C8D35F6B1A1E8C5F425773A7A0990C78DE7999744B163F`.
 
-`PROMOTION_COMMIT` is filled during the completion record. Each cell records the
-exact effective transform `(X, Y, Z, RX, RY, RZ, Scale)`.
+The values were promoted in commit `9292fa635e40e019a90d5329b59b9f929fd37bda`.
+Each cell records the exact effective transform `(X, Y, Z, RX, RY, RZ, Scale)`.
 
 | Category | Left hip | Right hip | Back |
 |---|---|---|---|

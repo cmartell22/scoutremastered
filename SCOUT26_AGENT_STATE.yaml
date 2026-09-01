@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 101
-last_updated_utc: "2026-09-01T15:57:54Z"
+state_revision: 102
+last_updated_utc: "2026-09-01T17:36:27Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS7B_ACTIVE"
+project_status: "P9_READY_SLOTS_COMPLETE"
 current_phase: "P9"
-current_task: "RS7B_CURATED_DEFAULT_TRANSFORM_CALIBRATION"
+current_task: "READY_SLOTS_COMPLETE"
 
 project:
   working_name: "Scout Remastered"
@@ -827,13 +827,13 @@ phase_plan:
       Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
       server-authoritative full-stack swap with the selected hotbar slot.
     detailed_plan: "SCOUT_READY_SLOTS_FEATURE.yaml"
-    current_subphase: "RS7A"
-    current_subphase_name: "Interactive positioning GUI"
+    current_subphase: "RS7B"
+    current_subphase_name: "Curated default transform calibration"
     architecture_record: "docs/adr/ADR-013-ready-slots-rs0-architecture.md"
     completion_gate: >
       P9 core is complete only after RS4 passes without item loss, duplication, corruption,
       partial crash persistence, ghost stacks, or unresolved desynchronization. RS5 is complete;
-      RS6 is complete; RS7A is active and requires explicit human GUI acceptance; RS7B remains deferred.
+      RS6, RS7A, and RS7B are complete. Future Ready Slots work requires separate authorization.
 
 release_candidate:
   status: "COMPLETE_LOCAL_ONLY"
@@ -1014,8 +1014,9 @@ repository_state:
   p9_rs7a_implementation_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
   p9_rs7a_completion_commit: "02fc7a997d9f147a7fc07ca68e41b0bacab9288a"
   p9_rs7b_activation_commit: "50f5b173e5fbbfbd58c5f4aa1b0c122cf394a7e9"
-  last_known_good_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
-  last_tested_commit: "9b0be540af1f30fb971b8e8525d1fa956444e05b"
+  p9_rs7b_promotion_commit: "9292fa635e40e019a90d5329b59b9f929fd37bda"
+  last_known_good_commit: "9292fa635e40e019a90d5329b59b9f929fd37bda"
+  last_tested_commit: "9292fa635e40e019a90d5329b59b9f929fd37bda"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -2479,36 +2480,41 @@ latest_session:
     - "Verified clean main at d262c030808fe56eb89380c6593cfd412730fa7d before any RS7B change."
     - "Re-read the durable Ready Slots state and ADR-013, the complete RS7A config guide, bundled/external JSON, config loader/file APIs, and relevant config tests before activation."
     - >
-      RS7B is presentation-only: the human will tune representative supported categories/items one by one through
-      the accepted RS7A GUI; the agent will read deterministic saved JSON and promote only explicitly accepted values
-      into the bundled defaults with regression coverage.
+      The human used the RS7A GUI to calibrate all ten supported representative categories at left hip, right hip,
+      and back. Every accepted value was saved deterministically, reproduced after restart, and recorded in
+      docs/RS7B_CALIBRATION.md before promotion.
     - >
-      A reversible dedicated calibration profile will start from the current bundled baseline. The pre-existing
-      personal external file must be backed up and restored, and accepted bundled defaults must be verified with no
-      personal override file present before RS7B can complete.
+      Commit 9292fa635e40e019a90d5329b59b9f929fd37bda promotes the clean baseline and the only demonstrated
+      category patches: crossbow rotation and shield position/rotation/scale. There are no exact-item defaults and
+      no obsolete bundled handheld patch.
     - >
-      No renderer/UI behavior change, mixin, dependency, storage, ownership, payload, networking, transaction, menu,
-      component, or persistent bag-data change is authorized unless a demonstrated prerequisite requires the smallest
-      presentation-only correction.
+      The final human bundled-default-only client reproduction passed after the calibration override was withheld;
+      the client created its external config from the shipped baseline. No renderer/UI/mixin/dependency or
+      storage/ownership/payload/networking/transaction/menu/component/persistent-bag-data behavior changed.
   commits:
     rs7a_completion: "02fc7a997d9f147a7fc07ca68e41b0bacab9288a"
     rs7b_activation: "50f5b173e5fbbfbd58c5f4aa1b0c122cf394a7e9"
+    rs7b_promotion: "9292fa635e40e019a90d5329b59b9f929fd37bda"
   commands_run:
     - "git status --short --branch; git rev-parse HEAD; git branch --show-current"
     - "Read durable Ready Slots state, ADR-013, docs/READY_SLOTS_CONFIG.md, bundled/external JSON, ReadySlotConfig, ReadySlotPresentationConfigFile, and config tests."
-  tests_run: []
+    - ".\\gradlew.bat test --no-daemon --console=plain (desktop task runner after direct loopback restriction)"
+    - ".\\gradlew.bat clean build --no-daemon --console=plain (desktop task runner after direct loopback restriction)"
+  tests_run:
+    - "Complete Gradle JUnit suite: 89 tests, zero failures/errors/skips."
+    - "Clean Gradle 9.5.1 / Fabric Loom 1.17.20 build: PASS; 10 actionable tasks; 21 seconds."
+    - "JAR scoutremastered-1.0.0-rc.1.jar: 190168 bytes; SHA-256 A45474D14EF265E5D298BCCF15B9C14C126B94CDE0C8C37136F6E24FD9B21DAB."
   files_changed:
+    - "docs/RS7B_CALIBRATION.md"
+    - "src/client/resources/assets/scoutremastered/config/ready-slots-default.json"
+    - "src/test/java/io/github/cmartell22/scoutremastered/ReadySlotPresentationConfigTest.java"
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  remaining_acceptance:
-    - "Prepare the exact representative-item/category/position calibration matrix."
-    - "Capture and promote every human-accepted deterministic transform."
-    - "Verify restart reproduction before promotion and bundled-default reproduction without a personal override."
-    - "Run the complete automated suite and final clean build."
+  remaining_acceptance: []
   next_action: >
-    Commit RS7B activation in both durable files, record its exact activation SHA, then prepare the reversible
-    calibration profile and representative-item matrix before launching any user-driven client.
+    Ready Slots RS7B is complete. Preserve the human-accepted bundled defaults and do not begin further Ready Slots
+    work without separate explicit authorization.
 
 agent_first_prompt:
   text: >

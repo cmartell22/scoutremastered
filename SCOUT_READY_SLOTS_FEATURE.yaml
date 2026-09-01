@@ -6,12 +6,12 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 35
-last_updated_utc: "2026-09-01T15:57:54Z"
+feature_revision: 36
+last_updated_utc: "2026-09-01T17:36:27Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: RS7B_ACTIVE
-current_phase: RS7B
+status: COMPLETE
+current_phase: COMPLETE
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
 target_platform: Fabric
@@ -1171,9 +1171,11 @@ rs7a_implementation:
     human-guided item-by-item calibration and promotion of accepted personal values into clean bundled defaults.
 
 rs7b_implementation:
-  status: ACTIVE
+  status: COMPLETE
   authorized_utc: "2026-09-01T15:55:14Z"
+  completed_utc: "2026-09-01T17:36:27Z"
   activation_commit: "50f5b173e5fbbfbd58c5f4aa1b0c122cf394a7e9"
+  promotion_commit: "9292fa635e40e019a90d5329b59b9f929fd37bda"
   authorization: >
     The human explicitly authorized RS7B curated default calibration after accepting RS7A. Work is limited to
     human-guided presentation calibration and promotion of explicitly accepted deterministic values into bundled
@@ -1207,12 +1209,25 @@ rs7b_implementation:
     - "All transform values remain finite and within RS6/RS7A bounds."
     - "Default calibration changes client presentation only and leaves all suppression and gameplay invariants unchanged."
     - "Complete automated suite and clean Gradle build pass after final promotion."
+  completion_evidence:
+    accepted_candidate_sha256: "5E16EC06A75F352860C8D35F6B1A1E8C5F425773A7A0990C78DE7999744B163F"
+    bundled_baseline_sha256: "D90F3D67154A2C12BF825406F92BE34AB0B55C3626CC435BE7CABECF749E6A35"
+    human_visual_acceptance:
+      - "All representative category/position transforms accepted after deterministic Save and restart reproduction."
+      - "Final unchanged calibration reproduction passed: positions, armor/cape interaction, pose stability, left/right distinction, and back conflict checks."
+      - "Bundled-default-only reproduction passed after the external calibration file was withheld; the client log recorded creation of the external file from the shipped baseline."
+    automated:
+      - "Complete Gradle JUnit suite: 89 tests, zero failures, errors, or skips."
+      - "Required Gradle 9.5.1 / Fabric Loom 1.17.20 clean build: PASS, 10 actionable tasks, 21 seconds."
+      - "Built JAR: 190168 bytes; SHA-256 A45474D14EF265E5D298BCCF15B9C14C126B94CDE0C8C37136F6E24FD9B21DAB."
+    runtime_and_cleanup:
+      - "Final unchanged reproduction launch: cmd 34600, Gradle wrapper 21176, daemon 38456, Minecraft Knot client 37416; all were absent after normal shutdown, every P7B-test dimension saved, and TCP 25565 had zero listeners."
+      - "Bundled-default-only launch: cmd 15772, Gradle wrapper 24564, daemon 12336, Minecraft Knot client 20580; all were absent after normal shutdown, every P7B-test dimension saved, and TCP 25565 had zero listeners."
+      - "Deleted the four exact RS7B scheduled tasks, launch/test/build helpers, task logs, calibration checkpoints, and temporary personal-config backup."
+      - "Restored config/scoutremastered-ready-slots.json to the pre-RS7B SHA-256 129E06D2FD37A9545E2569B88F3A93F4B11638E055A6FC94514B54F3CD21B050."
   blockers: []
-  remaining_acceptance:
-    - "Prepare exact representative matrix and reversible calibration profile."
-    - "Complete iterative human calibration and deterministic promotion."
-    - "Run final automation/build and bundled-default-only visual acceptance."
-  next_action: "Commit activation, record its exact SHA, then prepare the first calibration batch without launching a client until the human confirms readiness."
+  remaining_acceptance: []
+  next_action: "RS7B is complete. Preserve the curated bundled defaults; future changes require separate authorization."
 
 test_execution_policy:
   automation_first:
