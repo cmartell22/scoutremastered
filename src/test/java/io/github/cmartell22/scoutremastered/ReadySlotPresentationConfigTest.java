@@ -23,15 +23,34 @@ final class ReadySlotPresentationConfigTest {
 	);
 
 	@Test
-	void bundledDefaultsPreserveTheAcceptedRs5Transforms() throws IOException {
+	void bundledDefaultsPreserveTheHumanAcceptedRs7bTransformMatrix() throws IOException {
 		ReadySlotPresentationConfig config = defaults();
 
-		Transform left = config.resolve(Position.LEFT_HIP, Category.HANDHELD, "minecraft:diamond_sword");
-		assertTransform(left, 0.27F, 0.72F, -0.20F, 0.0F, 0.0F, 180.0F, 0.40F);
-		Transform right = config.resolve(Position.RIGHT_HIP, Category.TRIDENT, "minecraft:trident");
-		assertTransform(right, -0.27F, 0.72F, -0.20F, 0.0F, 0.0F, 180.0F, 0.52F);
-		Transform back = config.resolve(Position.BACK, Category.TRIDENT, "minecraft:trident");
-		assertTransform(back, 0.0F, 0.12F, 0.44F, 0.0F, 180.0F, 180.0F, 0.88F);
+		for (Category category : new Category[] {
+			Category.SWORD, Category.AXE, Category.PICKAXE, Category.SHOVEL, Category.HOE,
+			Category.SPEAR, Category.BOW, Category.TRIDENT
+		}) {
+			assertTransform(config.resolve(Position.LEFT_HIP, category, "minecraft:diamond_sword"),
+				0.325F, 0.755F, 0.027F, 0.0F, 90.0F, 0.0F, 0.75F);
+			assertTransform(config.resolve(Position.RIGHT_HIP, category, "minecraft:diamond_sword"),
+				-0.325F, 0.755F, 0.027F, 0.0F, 90.0F, 0.0F, 0.75F);
+			assertTransform(config.resolve(Position.BACK, category, "minecraft:diamond_sword"),
+				-0.1F, -0.1F, 0.45F, 0.0F, 0.0F, -72.0F, 0.75F);
+		}
+
+		assertTransform(config.resolve(Position.LEFT_HIP, Category.CROSSBOW, "minecraft:crossbow"),
+			0.325F, 0.755F, 0.027F, 0.0F, 90.0F, 90.0F, 0.75F);
+		assertTransform(config.resolve(Position.RIGHT_HIP, Category.CROSSBOW, "minecraft:crossbow"),
+			-0.325F, 0.755F, 0.027F, 0.0F, 90.0F, 90.0F, 0.75F);
+		assertTransform(config.resolve(Position.BACK, Category.CROSSBOW, "minecraft:crossbow"),
+			-0.1F, -0.1F, 0.45F, 0.0F, 0.0F, 10.0F, 0.75F);
+
+		assertTransform(config.resolve(Position.LEFT_HIP, Category.SHIELD, "minecraft:shield"),
+			0.325F, 0.755F, 0.027F, 0.0F, -90.0F, -25.0F, 1.0F);
+		assertTransform(config.resolve(Position.RIGHT_HIP, Category.SHIELD, "minecraft:shield"),
+			-0.24F, 0.755F, 0.027F, 0.0F, 90.0F, 25.0F, 1.0F);
+		assertTransform(config.resolve(Position.BACK, Category.SHIELD, "minecraft:shield"),
+			0.0F, -0.15F, 0.3F, 0.0F, 180.0F, 10.0F, 1.2F);
 
 		for (Category category : Category.values()) {
 			if (category != Category.HANDHELD) {
@@ -55,7 +74,7 @@ final class ReadySlotPresentationConfigTest {
 		ReadySlotPresentationConfig legacy = parse(root.toString());
 
 		assertTrue(legacy.categoryEnabled(Category.SWORD));
-		assertEquals(0.40F, legacy.resolveCategory(Position.LEFT_HIP, Category.SWORD).scale(), 0.0001F);
+		assertEquals(0.75F, legacy.resolveCategory(Position.LEFT_HIP, Category.SWORD).scale(), 0.0001F);
 
 		ReadySlotPresentationConfig edited = legacy.withCategoryEnabled(Category.AXE, false);
 		assertFalse(edited.categoryEnabled(Category.AXE));
@@ -69,9 +88,10 @@ final class ReadySlotPresentationConfigTest {
 	@Test
 	void itemPatchOverridesCategoryPatchWhichOverridesTheBase() throws IOException {
 		JsonObject root = JsonParser.parseString(Files.readString(DEFAULTS)).getAsJsonObject();
-		JsonObject categoryPatch = root.getAsJsonObject("category_overrides")
-			.getAsJsonObject("handheld")
-			.getAsJsonObject("left_hip");
+		JsonObject categoryPositions = new JsonObject();
+		JsonObject categoryPatch = new JsonObject();
+		categoryPositions.add("left_hip", categoryPatch);
+		root.getAsJsonObject("category_overrides").add("handheld", categoryPositions);
 		categoryPatch.addProperty("translate_y", 1.25F);
 		categoryPatch.addProperty("scale", 0.50F);
 
@@ -85,9 +105,9 @@ final class ReadySlotPresentationConfigTest {
 
 		ReadySlotPresentationConfig config = parse(root.toString());
 		Transform categoryOnly = config.resolve(Position.LEFT_HIP, Category.HANDHELD, "minecraft:iron_sword");
-		assertTransform(categoryOnly, 0.27F, 1.25F, -0.20F, 0.0F, 0.0F, 180.0F, 0.50F);
+		assertTransform(categoryOnly, 0.325F, 1.25F, 0.027F, 0.0F, 90.0F, 0.0F, 0.50F);
 		Transform item = config.resolve(Position.LEFT_HIP, Category.HANDHELD, "minecraft:diamond_sword");
-		assertTransform(item, 0.27F, 1.50F, -0.20F, 25.0F, 0.0F, 180.0F, 0.60F);
+		assertTransform(item, 0.325F, 1.50F, 0.027F, 25.0F, 90.0F, 0.0F, 0.60F);
 	}
 
 	@Test
@@ -142,7 +162,7 @@ final class ReadySlotPresentationConfigTest {
 		assertEquals(editedTransform, edited.baseTransform(Position.LEFT_HIP));
 		assertEquals(editedTransform, edited.resolveCategory(Position.RIGHT_HIP, Category.HANDHELD));
 		assertEquals(editedTransform, edited.resolve(Position.BACK, Category.HANDHELD, "example:wand"));
-		assertEquals(0.27F, opening.baseTransform(Position.LEFT_HIP).translateX(), 0.0001F);
+		assertEquals(0.325F, opening.baseTransform(Position.LEFT_HIP).translateX(), 0.0001F);
 	}
 
 	@Test
@@ -192,13 +212,13 @@ final class ReadySlotPresentationConfigTest {
 		);
 
 		assertEquals(updatedBase, edited.baseTransform(Position.LEFT_HIP));
-		assertEquals(0.8F, edited.resolveCategory(Position.LEFT_HIP, Category.HANDHELD).scale(), 0.0001F);
-		assertEquals(0.84F, edited.resolveCategory(Position.LEFT_HIP, Category.BOW).scale(), 0.0001F);
-		assertEquals(0.4F, opening.resolveCategory(Position.LEFT_HIP, Category.HANDHELD).scale(), 0.0001F);
+		assertEquals(2.0F, edited.resolveCategory(Position.LEFT_HIP, Category.HANDHELD).scale(), 0.0001F);
+		assertEquals(2.0F, edited.resolveCategory(Position.LEFT_HIP, Category.BOW).scale(), 0.0001F);
+		assertEquals(0.75F, opening.resolveCategory(Position.LEFT_HIP, Category.HANDHELD).scale(), 0.0001F);
 		Transform item = edited.resolve(Position.LEFT_HIP, Category.HANDHELD, "example:wand");
-		assertEquals(1.30F, item.translateX(), 0.0001F);
-		assertEquals(1.0F, item.scale(), 0.0001F);
-		assertEquals(0.42F, edited.resolveCategory(Position.RIGHT_HIP, Category.BOW).scale(), 0.0001F);
+		assertEquals(1.245F, item.translateX(), 0.0001F);
+		assertEquals(1.3333334F, item.scale(), 0.0001F);
+		assertEquals(0.75F, edited.resolveCategory(Position.RIGHT_HIP, Category.BOW).scale(), 0.0001F);
 	}
 
 	@Test
@@ -216,7 +236,7 @@ final class ReadySlotPresentationConfigTest {
 		left.addProperty("rotate_y", ReadySlotPresentationConfig.MIN_ROTATION);
 		left.addProperty("scale", ReadySlotPresentationConfig.MAX_SCALE);
 		root.getAsJsonObject("category_overrides")
-			.getAsJsonObject("handheld")
+			.getAsJsonObject("crossbow")
 			.getAsJsonObject("left_hip")
 			.addProperty("scale", ReadySlotPresentationConfig.MAX_SCALE);
 		Transform atBounds = parse(root.toString()).resolve(
@@ -257,7 +277,7 @@ final class ReadySlotPresentationConfigTest {
 
 		JsonObject misspelledField = JsonParser.parseString(Files.readString(DEFAULTS)).getAsJsonObject();
 		misspelledField.getAsJsonObject("category_overrides")
-			.getAsJsonObject("handheld")
+			.getAsJsonObject("crossbow")
 			.getAsJsonObject("left_hip")
 			.addProperty("translate_zz", 0.5F);
 		assertThrows(RuntimeException.class, () -> parse(misspelledField.toString()));

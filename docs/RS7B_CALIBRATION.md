@@ -40,25 +40,31 @@ copper and netherite are final geometry spot-checks for each material family.
 
 ## Acceptance ledger
 
-`PENDING` means no default value has been accepted or promoted. A completed cell records
-the acceptance commit and the exact effective transform `(X, Y, Z, RX, RY, RZ, Scale)`.
+The human accepted the following effective transforms after GUI Save, normal close,
+restart reproduction from the deterministic external JSON, and a final unchanged
+restart reproduction. The calibration candidate SHA-256 was
+`5E16EC06A75F352860C8D35F6B1A1E8C5F425773A7A0990C78DE7999744B163F`.
+
+`PROMOTION_COMMIT` is filled during the completion record. Each cell records the
+exact effective transform `(X, Y, Z, RX, RY, RZ, Scale)`.
 
 | Category | Left hip | Right hip | Back |
 |---|---|---|---|
-| Swords | PENDING | PENDING | PENDING |
-| Axes | PENDING | PENDING | PENDING |
-| Pickaxes | PENDING | PENDING | PENDING |
-| Shovels | PENDING | PENDING | PENDING |
-| Hoes | PENDING | PENDING | PENDING |
-| Spears | PENDING | PENDING | PENDING |
-| Bows | PENDING | PENDING | PENDING |
-| Crossbows | PENDING | PENDING | PENDING |
-| Shields | PENDING | PENDING | PENDING |
-| Tridents | PENDING | PENDING | PENDING |
+| Swords | `(0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, -72, 0.75)` |
+| Axes | `(0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, -72, 0.75)` |
+| Pickaxes | `(0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, -72, 0.75)` |
+| Shovels | `(0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, -72, 0.75)` |
+| Hoes | `(0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, -72, 0.75)` |
+| Spears | `(0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, -72, 0.75)` |
+| Bows | `(0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, -72, 0.75)` |
+| Crossbows | `(0.325, 0.755, 0.027, 0, 90, 90, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 90, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, 10, 0.75)` |
+| Shields | `(0.325, 0.755, 0.027, 0, -90, -25, 1)` | `(-0.24, 0.755, 0.027, 0, 90, 25, 1)` | `(0, -0.15, 0.3, 0, 180, 10, 1.2)` |
+| Tridents | `(0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.325, 0.755, 0.027, 0, 90, 0, 0.75)` | `(-0.1, -0.1, 0.45, 0, 0, -72, 0.75)` |
 
-## First batch
+## Promotion shape
 
-Calibrate Swords with `minecraft:diamond_sword` in category scope at all three positions.
-After Save and restart reproduction, also spot-check `minecraft:copper_sword` and
-`minecraft:netherite_sword`. Do not tune Axes until the Swords values are captured and
-promoted or explicitly left pending.
+The bundled baseline carries the common transform used by swords, axes, pickaxes,
+shovels, hoes, spears, bows, and tridents. Crossbows retain only their three `rotate_z`
+patches. Shields retain only their demonstrated position/rotation/scale differences.
+There are no exact-item defaults and no legacy `handheld` patch, so legacy user files
+remain supported without forcing an obsolete scale beneath new granular defaults.
