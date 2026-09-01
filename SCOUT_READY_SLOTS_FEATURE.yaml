@@ -6,8 +6,8 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 24
-last_updated_utc: "2026-09-01T01:35:36Z"
+feature_revision: 25
+last_updated_utc: "2026-09-01T01:40:17Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
 status: RS5_ACTIVE
@@ -894,15 +894,18 @@ rs5_implementation:
       The required clean build was attempted in sandboxed and approved unrestricted contexts. The cached Gradle
       9.5.1 retry failed before task execution on the documented single-use-daemon loopback IOException, so no
       Gradle pass is claimed and a normal Windows terminal run remains required.
+    - >
+      PASS: the human ran .\gradlew.bat clean build --no-daemon --console=plain from a normal Windows terminal and
+      reported BUILD SUCCESSFUL. The generated Gradle XML corroborates 72 tests with zero failures, errors, or skips;
+      refreshed client classes and both distributable JARs carry the same 2026-09-01T01:39:29-30Z build timestamp.
   runtime_cleanup:
     - "Removed the direct JUnit launcher, proof classes, copied dependency JARs, and generated .fabric state."
     - "Verified TCP 25565 free and no matching scheduled task."
     - "An elevated command-line audit found no remaining project Java/javaw/cmd/PowerShell runtime other than the audit process itself."
   blockers: []
   remaining_acceptance:
-    - "Clean Gradle build from a normal Windows terminal."
     - "Human visual matrix for placement, crouch/animation, armor, cape, left/right distinction, and representative categories."
-  next_action: "Run the normal-terminal clean build, then obtain explicit readiness before launching the muted user-test client for visual acceptance."
+  next_action: "Obtain explicit readiness, then launch the muted user-test client for the complete RS5 visual matrix with exact PID/log/teardown evidence."
 
 test_execution_policy:
   automation_first:

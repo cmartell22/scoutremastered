@@ -5,8 +5,8 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 90
-last_updated_utc: "2026-09-01T01:35:36Z"
+state_revision: 91
+last_updated_utc: "2026-09-01T01:40:17Z"
 state_owner: "AI coding agent"
 project_status: "P9_READY_SLOTS_RS5_ACTIVE"
 current_phase: "P9"
@@ -2334,6 +2334,10 @@ latest_session:
       The mandated clean Gradle build was attempted in the sandbox and approved unrestricted context. The first
       attempt could not fetch through the restricted network; the cached retry failed before task execution because
       Gradle could not establish its single-use-daemon loopback connection. No Gradle pass is claimed.
+    - >
+      The human then ran .\gradlew.bat clean build --no-daemon --console=plain from a normal Windows terminal and
+      reported BUILD SUCCESSFUL. Generated Gradle XML independently corroborates 72 tests with zero failures,
+      errors, or skips; both RS5 client classes and refreshed binary/source JARs have the same 01:39:29-30Z build time.
     - "The direct-test launcher, proof classes, copied dependency set, and generated .fabric state were removed. TCP 25565 is free, no project runtime process remains, and no Scout/RS5/Codex scheduled task was found."
   commands_run:
     - "git status --short --branch; git rev-parse HEAD"
@@ -2345,12 +2349,12 @@ latest_session:
   tests_run:
     - "PASS: exact-artifact direct client compilation emitted BagTrinketRenderer, ReadySlotRenderPolicy, and ReadySlotTransforms."
     - "PASS: 72 tests found/started/successful; zero failed, aborted, or skipped."
-    - "GRADLE_NOT_EXECUTED: single-use-daemon loopback failure occurred before task execution; no pass claimed."
+    - "PASS: human-run normal-terminal Gradle 9.5.1 clean build; generated XML reports 72 tests and zero failures/errors/skips."
   files_changed:
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Have the human run the clean Gradle build in a normal Windows terminal, then obtain explicit readiness before launching the user-driven muted client for the RS5 visual acceptance matrix."
+  next_action: "Obtain explicit human readiness, then launch the muted user-driven client and apply the complete RS5 visual acceptance matrix with exact PID/log/teardown evidence."
 
 agent_first_prompt:
   text: >
