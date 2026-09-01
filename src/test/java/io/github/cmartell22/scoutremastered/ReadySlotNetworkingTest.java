@@ -201,7 +201,7 @@ final class ReadySlotNetworkingTest {
 	}
 
 	@Test
-	void clientMappingsAreRoleOnlyUnboundAndLeaveTheExistingBKeyUntouched() throws IOException {
+	void clientMappingsKeepSwapsRoleOnlyAndAddOnlyTheClientSideEditorKey() throws IOException {
 		String readyKeys = Files.readString(Path.of(
 			"src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotKeyMappings.java"
 		));
@@ -215,7 +215,10 @@ final class ReadySlotNetworkingTest {
 		assertTrue(readyKeys.contains("InputConstants.UNKNOWN.getValue()"));
 		assertTrue(readyKeys.contains("new SwapReadySlotPayload(role)"));
 		assertFalse(readyKeys.contains("ItemStack"));
-		assertFalse(readyKeys.contains("client.screen == null"));
+		assertTrue(readyKeys.contains("key.scoutremastered.open_ready_slots_editor"));
+		assertTrue(readyKeys.contains("GLFW.GLFW_KEY_O"));
+		assertTrue(readyKeys.contains("client.screen == null"));
+		assertTrue(readyKeys.contains("client.setScreen(new ReadySlotConfigScreen())"));
 		assertTrue(clientEntrypoint.contains("GLFW.GLFW_KEY_B"));
 		assertTrue(clientEntrypoint.contains("ClientPlayNetworking.send(OpenPackPayload.INSTANCE)"));
 		assertTrue(clientEntrypoint.contains("client.screen == null"));
