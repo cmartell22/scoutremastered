@@ -5,12 +5,12 @@
 # RULE: Never mark a phase/task complete until its acceptance criteria have actually passed.
 
 schema_version: 1
-state_revision: 91
-last_updated_utc: "2026-09-01T01:40:17Z"
+state_revision: 92
+last_updated_utc: "2026-09-01T03:01:04Z"
 state_owner: "AI coding agent"
-project_status: "P9_READY_SLOTS_RS5_ACTIVE"
+project_status: "P9_READY_SLOTS_RS5_COMPLETE"
 current_phase: "P9"
-current_task: "RS5_TRANSFORM_COMPATIBILITY_POLISH"
+current_task: "RS5_COMPLETE_RS6_RS7A_RS7B_DEFERRED"
 
 project:
   working_name: "Scout Remastered"
@@ -822,7 +822,7 @@ phase_plan:
 
   P9:
     name: "Ready Slots"
-    status: "RS5_ACTIVE"
+    status: "RS5_COMPLETE"
     objective: >
       Alias slot 0 of each equipped Scout bag as a rendered ready position and provide a
       server-authoritative full-stack swap with the selected hotbar slot.
@@ -1004,8 +1004,10 @@ repository_state:
   p9_rs4_completion_commit: "ec37ec649ffc7a81654a0d7c5982734881fa3fa3"
   p9_rs5_activation_commit: "03e23e89dd209aaa33636c4036ceeab2d46e6813"
   p9_rs5_implementation_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
-  last_known_good_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
-  last_tested_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
+  p9_rs5_test_checkpoint_commit: "aafddfdb199e3e98b08b93f0f72a2c6e60095d16"
+  p9_rs5_build_evidence_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
+  last_known_good_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
+  last_tested_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
   working_tree_expected_clean: true
 
 relocation_handoff:
@@ -2338,7 +2340,37 @@ latest_session:
       The human then ran .\gradlew.bat clean build --no-daemon --console=plain from a normal Windows terminal and
       reported BUILD SUCCESSFUL. Generated Gradle XML independently corroborates 72 tests with zero failures,
       errors, or skips; both RS5 client classes and refreshed binary/source JARs have the same 01:39:29-30Z build time.
-    - "The direct-test launcher, proof classes, copied dependency set, and generated .fabric state were removed. TCP 25565 is free, no project runtime process remains, and no Scout/RS5/Codex scheduled task was found."
+    - >
+      After explicitly confirming readiness and entering P7B-test, the human passed every RS5 visual row:
+      representative categories and enchanted rendering; standing, walking, and crouching; hip visibility and
+      pose stability; left/right distinction; back depth; armor/cape interaction; simultaneous three-position
+      rendering; all suppression cases; and absence of obsolete bag models.
+    - >
+      The human accepted the RS5 transform baseline while noting that detailed position, scale, and rotation tuning
+      remains desirable. That aesthetic refinement is intentionally deferred to the separately authorized future
+      config/GUI work, where category/type defaults and player overrides can be edited interactively; RS6 and RS7
+      were not started.
+    - >
+      The human refined that deferred plan into RS7A for a fully functional interactive positioning GUI, followed by
+      RS7B for deliberate one-by-one item/category calibration. RS7B must let the agent read deterministic saved
+      transform data and commit the human-accepted values as clean built-in defaults. This records requirements only;
+      neither subphase was authorized or started.
+    - >
+      No WAWI visual mod was locally available, so WAWI-specific interaction is recorded as not applicable rather
+      than a pass or failure. All locally applicable RS5 acceptance rows passed.
+    - >
+      The muted quick-play launch used existing world P7B-test. Exact launch-chain PIDs were helper PowerShell 10660,
+      cmd 33960, Gradle wrapper Java 22048, and Minecraft Knot client Java 38840. latest.log recorded the integrated
+      server start and Player287 joining; TCP 25565 remained unused.
+    - >
+      Graceful Save and Quit returned to the title screen, then Quit Game closed the client. latest.log recorded
+      Stopping server, saves for overworld/the_end/the_nether, all dimensions saved, and Render thread Stopping.
+      PIDs 10660, 33960, 22048, and 38840 were all verified absent afterward.
+    - >
+      The direct-test launcher, proof classes, copied dependency set, generated .fabric state, exact temporary
+      ScoutRemastered-RS5-Visual scheduled task, and .rs5-launch-client.ps1 helper were removed. TCP 25565 is free.
+      The current user-driven run's latest.log and debug.log were removed after evidence capture; historical logs
+      and the existing P7B-test world were preserved.
   commands_run:
     - "git status --short --branch; git rev-parse HEAD"
     - "Read all three required source-of-truth documents in bounded complete chunks."
@@ -2346,15 +2378,22 @@ latest_session:
     - "Search local project profiles, normal Minecraft mods, and resolved Gradle artifacts for WAWI-related visual mods."
     - "Direct Java 25 client compilation and Fabric Loader JUnit Knot execution over the complete suite."
     - ".\\gradlew.bat clean build --no-daemon --console=plain in sandbox and approved unrestricted contexts."
+    - "Muted Gradle runClient quick-play launch into existing P7B-test through exact temporary scheduled task ScoutRemastered-RS5-Visual."
+    - "Exact PID, latest.log, TCP 25565, scheduled-task, helper-file, and graceful-save teardown audits."
   tests_run:
     - "PASS: exact-artifact direct client compilation emitted BagTrinketRenderer, ReadySlotRenderPolicy, and ReadySlotTransforms."
     - "PASS: 72 tests found/started/successful; zero failed, aborted, or skipped."
     - "PASS: human-run normal-terminal Gradle 9.5.1 clean build; generated XML reports 72 tests and zero failures/errors/skips."
+    - "PASS: all locally applicable RS5 human visual acceptance rows."
   files_changed:
     - "SCOUT_READY_SLOTS_FEATURE.yaml"
     - "SCOUT26_AGENT_STATE.yaml"
   blockers: []
-  next_action: "Obtain explicit human readiness, then launch the muted user-driven client and apply the complete RS5 visual acceptance matrix with exact PID/log/teardown evidence."
+  remaining_acceptance: []
+  next_action: >
+    RS5 is complete. Preserve this accepted rendering baseline and do not begin RS6, RS7A, or RS7B without separate
+    explicit authorization. RS7A must first deliver the functional GUI; RS7B then performs human-guided calibration
+    and commits the accepted per-item/category values as clean built-in defaults.
 
 agent_first_prompt:
   text: >

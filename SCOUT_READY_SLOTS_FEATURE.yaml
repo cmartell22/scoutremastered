@@ -6,11 +6,11 @@
 # RULE: Any item loss, duplication, corruption, or unexplained desync blocks progress.
 
 schema_version: 1
-feature_revision: 25
-last_updated_utc: "2026-09-01T01:40:17Z"
+feature_revision: 26
+last_updated_utc: "2026-09-01T03:01:04Z"
 feature_id: READY_SLOTS
 feature_name: "Scout Ready Slots"
-status: RS5_ACTIVE
+status: RS5_COMPLETE
 current_phase: RS5
 target_project: "Scout Remastered"
 target_minecraft: "26.1.2"
@@ -362,7 +362,7 @@ phases:
 
   RS5:
     name: "Transform and compatibility polish"
-    status: ACTIVE
+    status: COMPLETE
     model: "GPT-5.6 Terra High"
     escalation_model: "GPT-5.6 Sol Medium"
     scope:
@@ -392,7 +392,7 @@ phases:
       - "Config cannot affect storage/swap correctness."
       - "Override precedence documented."
 
-  RS7:
+  RS7A:
     name: "Interactive positioning GUI"
     status: FUTURE_OPTIONAL
     model: "GPT-5.6 Terra High"
@@ -408,6 +408,24 @@ phases:
       - "GUI writes client presentation config only."
       - "No inventory mutation from config screen."
       - "Cancel/revert predictable."
+      - "Saved position, rotation, and scale values are deterministic and inspectable outside the GUI."
+
+  RS7B:
+    name: "Curated default transform calibration"
+    status: FUTURE_OPTIONAL
+    model: "GPT-5.6 Terra High"
+    escalation_model: "GPT-5.6 Sol Medium"
+    prerequisite: "RS7A functional GUI complete and accepted."
+    scope:
+      - "Human tunes supported representative items and categories one by one through the RS7A GUI."
+      - "Agent reads the deterministic saved position, rotation, and scale data after each accepted adjustment."
+      - "Commit human-accepted per-position/category/item values as clean built-in defaults."
+      - "Keep player overrides separate from shipped defaults."
+    acceptance:
+      - "Every supported representative item class/type has a clean human-accepted default placement."
+      - "Accepted GUI values reproduce identically after restart before being promoted to defaults."
+      - "The committed defaults reproduce the accepted visual matrix with no personal override file present."
+      - "Default calibration changes client presentation only and cannot mutate inventory or persistent bag data."
 
 rs0_architecture_lock:
   status: ACCEPTED
@@ -829,10 +847,13 @@ rs4_implementation:
   next_action: "RS4 and P9 core are complete. Await separate explicit authorization before beginning RS5 transform/compatibility polish."
 
 rs5_implementation:
-  status: ACTIVE
+  status: COMPLETE
   authorized_utc: "2026-09-01T01:24:40Z"
+  completed_utc: "2026-09-01T02:59:32Z"
   activation_commit: "03e23e89dd209aaa33636c4036ceeab2d46e6813"
   implementation_commit: "e4636242b68ac56ba5872b703704d953c4f39d0d"
+  test_checkpoint_commit: "aafddfdb199e3e98b08b93f0f72a2c6e60095d16"
+  build_evidence_commit: "acc9fb12cbd4fad98e12a284e9418e6b3af8077f"
   authorization: >
     The human explicitly authorized RS5 transform and compatibility polish only. RS6 external configuration
     and RS7 interactive positioning remain deferred and must not begin.
@@ -898,14 +919,59 @@ rs5_implementation:
       PASS: the human ran .\gradlew.bat clean build --no-daemon --console=plain from a normal Windows terminal and
       reported BUILD SUCCESSFUL. The generated Gradle XML corroborates 72 tests with zero failures, errors, or skips;
       refreshed client classes and both distributable JARs carry the same 2026-09-01T01:39:29-30Z build timestamp.
+  visual_acceptance:
+    readiness: "The human explicitly confirmed readiness before the user-driven client was launched."
+    environment: "Muted Minecraft 26.1.2 Fabric client, existing P7B-test single-player world."
+    rows:
+      representative_categories_and_enchanted_items: PASS
+      standing_walking_and_crouching_animation: PASS
+      crouching_hip_visibility_and_pose_stability: PASS
+      left_right_visual_distinction: PASS
+      back_depth_and_z_fighting: PASS
+      armor_interaction: PASS
+      cape_interaction: PASS
+      simultaneous_left_right_back_rendering: PASS
+      empty_unsupported_invalid_role_and_unequipped_suppression: PASS
+      obsolete_bag_model_absence: PASS
+      wawi_visual_mod_compatibility: NOT_APPLICABLE_NOT_LOCALLY_AVAILABLE
+    human_result: >
+      The human confirmed all tested rows pass. Position, scale, and rotation can still benefit from detailed aesthetic
+      tuning, but the human accepted this RS5 baseline and explicitly deferred that work to the future GUI, where
+      defaults can be saved per item class/type and players can apply their own adjustments.
+    interpretation: >
+      The deferred fine tuning does not fail RS5's severe-clipping, crouch-occlusion, pose-drift, left/right-separation,
+      back-depth, armor/cape, suppression, or no-new-mixin gates. It does not authorize or begin RS6 or RS7.
+  runtime_evidence:
+    launch:
+      scheduled_task: "ScoutRemastered-RS5-Visual"
+      helper_pid: 10660
+      cmd_pid: 33960
+      gradle_wrapper_java_pid: 22048
+      minecraft_knot_client_java_pid: 38840
+      quick_play_world: "P7B-test"
+      log: >
+        run/logs/latest.log recorded Minecraft 26.1.2, Fabric Loader 0.19.3, Scout Remastered 1.0.0-rc.1,
+        integrated-server startup, and Player287 joining the game.
+      port_25565: "No listener; integrated single-player used no dedicated-server listener."
+    teardown:
+      method: "Graceful Save and Quit to Title, followed by Quit Game."
+      log: >
+        run/logs/latest.log recorded Stopping server, saves for overworld/the_end/the_nether, all dimensions saved,
+        and Render thread Stopping.
+      pid_audit: "Exact PIDs 10660, 33960, 22048, and 38840 were all absent after exit."
+      port_25565: "Free after exit."
   runtime_cleanup:
     - "Removed the direct JUnit launcher, proof classes, copied dependency JARs, and generated .fabric state."
-    - "Verified TCP 25565 free and no matching scheduled task."
-    - "An elevated command-line audit found no remaining project Java/javaw/cmd/PowerShell runtime other than the audit process itself."
+    - "Removed the exact temporary ScoutRemastered-RS5-Visual scheduled task and verified it absent."
+    - "Removed the exact .rs5-launch-client.ps1 helper."
+    - "Removed the user-driven run's current latest.log and debug.log after evidence capture; preserved historical logs and existing P7B-test."
+    - "Verified TCP 25565 free and all four exact launch-chain PIDs absent."
   blockers: []
-  remaining_acceptance:
-    - "Human visual matrix for placement, crouch/animation, armor, cape, left/right distinction, and representative categories."
-  next_action: "Obtain explicit readiness, then launch the muted user-test client for the complete RS5 visual matrix with exact PID/log/teardown evidence."
+  remaining_acceptance: []
+  next_action: >
+    RS5 is complete. Do not begin RS6, RS7A, or RS7B without separate explicit authorization. Preserve the accepted
+    RS5 constants as the future config baseline; RS7A must first deliver a functional GUI, and RS7B then performs
+    human-guided calibration and commits the accepted values as clean built-in defaults.
 
 test_execution_policy:
   automation_first:
@@ -1098,7 +1164,8 @@ execution_order:
   - RS4
   - RS5
   - "RS6 later"
-  - "RS7 optional later"
+  - "RS7A functional GUI optional later"
+  - "RS7B curated defaults optional after RS7A"
 
 go_no_go:
   recommendation: GO
