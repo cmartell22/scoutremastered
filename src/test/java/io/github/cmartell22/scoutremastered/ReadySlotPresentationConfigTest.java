@@ -75,6 +75,54 @@ final class ReadySlotPresentationConfigTest {
 	}
 
 	@Test
+	void rs7aCopyOnEditPreservesTheOpeningValueAndResolutionPrecedence() throws IOException {
+		ReadySlotPresentationConfig opening = defaults();
+		Transform editedTransform = new Transform(1.25F, -0.5F, 0.75F, 45.0F, -90.0F, 180.0F, 2.0F);
+
+		ReadySlotPresentationConfig edited = opening
+			.withCategoryEnabled(Category.BOW, false)
+			.withWhitelistedItem("example:wand", Category.HANDHELD)
+			.withBlacklistedItem("example:hidden")
+			.withBaseTransform(Position.LEFT_HIP, editedTransform)
+			.withCategoryTransform(Category.HANDHELD, Position.RIGHT_HIP, editedTransform)
+			.withItemTransform("example:wand", Position.BACK, editedTransform);
+
+		assertTrue(opening.categoryEnabled(Category.BOW));
+		assertFalse(edited.categoryEnabled(Category.BOW));
+		assertTrue(opening.whitelistedCategory("example:wand").isEmpty());
+		assertEquals(Category.HANDHELD, edited.whitelistedCategory("example:wand").orElseThrow());
+		assertFalse(opening.itemBlacklisted("example:hidden"));
+		assertTrue(edited.itemBlacklisted("example:hidden"));
+		assertEquals(editedTransform, edited.baseTransform(Position.LEFT_HIP));
+		assertEquals(editedTransform, edited.resolveCategory(Position.RIGHT_HIP, Category.HANDHELD));
+		assertEquals(editedTransform, edited.resolve(Position.BACK, Category.HANDHELD, "example:wand"));
+		assertEquals(0.27F, opening.baseTransform(Position.LEFT_HIP).translateX(), 0.0001F);
+	}
+
+	@Test
+	void rs7aSerializationIsDeterministicStableAndRoundTrips() throws IOException {
+		ReadySlotPresentationConfig edited = defaults()
+			.withWhitelistedItem("zeta:last", Category.TRIDENT)
+			.withWhitelistedItem("alpha:first", Category.BOW)
+			.withBlacklistedItem("zeta:hidden")
+			.withBlacklistedItem("alpha:hidden")
+			.withItemTransform(
+				"zeta:last",
+				Position.BACK,
+				new Transform(-4.0F, 4.0F, 0.0F, -360.0F, 360.0F, 0.0F, 8.0F)
+			);
+
+		String first = edited.toJson();
+		String second = edited.toJson();
+		ReadySlotPresentationConfig reparsed = parse(first);
+		assertEquals(first, second);
+		assertEquals(first, reparsed.toJson());
+		assertTrue(first.indexOf("alpha:first") < first.indexOf("zeta:last"));
+		assertEquals(edited.resolve(Position.BACK, Category.TRIDENT, "zeta:last"),
+			reparsed.resolve(Position.BACK, Category.TRIDENT, "zeta:last"));
+	}
+
+	@Test
 	void publicBoundsPermitModelTuningButRejectAbsurdValues() throws IOException {
 		assertEquals(-4.0F, ReadySlotPresentationConfig.MIN_TRANSLATION);
 		assertEquals(4.0F, ReadySlotPresentationConfig.MAX_TRANSLATION);

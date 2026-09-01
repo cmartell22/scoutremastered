@@ -3,8 +3,10 @@ package io.github.cmartell22.scoutremastered;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
 /** External-file operations for the client presentation config. */
@@ -36,6 +38,38 @@ public final class ReadySlotPresentationConfigFile {
 			StandardOpenOption.CREATE_NEW,
 			StandardOpenOption.WRITE
 		);
+	}
+
+	/** Atomically replaces the client-only presentation file whenever the file system supports it. */
+	public static void save(Path path, ReadySlotPresentationConfig config) throws IOException {
+		Path absolute = path.toAbsolutePath();
+		Path parent = absolute.getParent();
+		if (parent == null) {
+			throw new IOException("Ready Slots config path has no parent: " + path);
+		}
+		Files.createDirectories(parent);
+		Path temporary = Files.createTempFile(parent, absolute.getFileName().toString() + ".", ".tmp");
+		try {
+			Files.writeString(
+				temporary,
+				config.toJson(),
+				StandardCharsets.UTF_8,
+				StandardOpenOption.TRUNCATE_EXISTING,
+				StandardOpenOption.WRITE
+			);
+			try {
+				Files.move(
+					temporary,
+					absolute,
+					StandardCopyOption.ATOMIC_MOVE,
+					StandardCopyOption.REPLACE_EXISTING
+				);
+			} catch (AtomicMoveNotSupportedException exception) {
+				Files.move(temporary, absolute, StandardCopyOption.REPLACE_EXISTING);
+			}
+		} finally {
+			Files.deleteIfExists(temporary);
+		}
 	}
 
 	public enum Status {

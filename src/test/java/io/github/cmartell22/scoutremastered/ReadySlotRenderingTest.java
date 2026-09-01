@@ -73,6 +73,26 @@ final class ReadySlotRenderingTest {
 	}
 
 	@Test
+	void rs7aEditorHasLivePreviewBoundedControlsAndExplicitSaveCancelSemantics() throws IOException {
+		String editor = source("ReadySlotConfigScreen.java");
+		String loader = source("ReadySlotConfig.java");
+		String keys = source("ReadySlotKeyMappings.java");
+
+		assertTrue(keys.contains("open_ready_slots_editor"));
+		assertTrue(keys.contains("new ReadySlotConfigScreen()"));
+		assertTrue(editor.contains("InventoryScreen.extractEntityInInventoryFollowsMouse("));
+		assertTrue(editor.contains("ReadySlotConfig.preview(updated)"));
+		assertTrue(editor.contains("ReadySlotConfig.save(this.draft)"));
+		assertTrue(editor.contains("ReadySlotConfig.restore(this.openingConfig)"));
+		assertTrue(editor.contains("ReadySlotPresentationConfig.MIN_TRANSLATION"));
+		assertTrue(editor.contains("ReadySlotPresentationConfig.MAX_ROTATION"));
+		assertTrue(editor.contains("ReadySlotPresentationConfig.MAX_SCALE"));
+		assertTrue(loader.contains("ReadySlotPresentationConfigFile.save(path, config)"));
+		assertFalse(editor.contains("ClientPlayNetworking"));
+		assertFalse(editor.contains("ReadySlotSwapService"));
+	}
+
+	@Test
 	void rs5AddsNoRendererMixinOrCommonClientDependency() throws IOException {
 		String mixins = Files.readString(Path.of("src/main/resources/scoutremastered.mixins.json"));
 		assertFalse(mixins.contains("ReadySlot"));

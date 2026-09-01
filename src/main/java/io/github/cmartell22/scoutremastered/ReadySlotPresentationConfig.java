@@ -1,5 +1,6 @@
 package io.github.cmartell22.scoutremastered;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -13,6 +14,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -137,16 +139,42 @@ public final class ReadySlotPresentationConfig {
 		return this.itemBlacklist.contains(itemId);
 	}
 
+	public Set<Category> enabledCategories() {
+		return this.enabledCategories;
+	}
+
+	public Map<String, Category> itemWhitelist() {
+		return this.itemWhitelist;
+	}
+
+	public Set<String> itemBlacklist() {
+		return this.itemBlacklist;
+	}
+
+	public Transform baseTransform(Position position) {
+		return Objects.requireNonNull(this.baseTransforms.get(position), "position");
+	}
+
+	public Optional<TransformPatch> categoryOverride(Category category, Position position) {
+		Map<Position, TransformPatch> patches = this.categoryOverrides.get(category);
+		return Optional.ofNullable(patches == null ? null : patches.get(position));
+	}
+
+	public Optional<TransformPatch> itemOverride(String itemId, Position position) {
+		Map<Position, TransformPatch> patches = this.itemOverrides.get(itemId);
+		return Optional.ofNullable(patches == null ? null : patches.get(position));
+	}
+
+	public Transform resolveCategory(Position position, Category category) {
+		Transform resolved = this.baseTransform(position);
+		Map<Position, TransformPatch> patches = this.categoryOverrides.get(category);
+		TransformPatch patch = patches == null ? null : patches.get(position);
+		return patch == null ? resolved : patch.apply(resolved);
+	}
+
 	/** Resolves base position, then category patch, then item patch. */
 	public Transform resolve(Position position, Category category, String itemId) {
-		Transform resolved = this.baseTransforms.get(position);
-		Map<Position, TransformPatch> categoryPatches = this.categoryOverrides.get(category);
-		if (categoryPatches != null) {
-			TransformPatch patch = categoryPatches.get(position);
-			if (patch != null) {
-				resolved = patch.apply(resolved);
-			}
-		}
+		Transform resolved = this.resolveCategory(position, category);
 		Map<Position, TransformPatch> itemPatches = this.itemOverrides.get(itemId);
 		if (itemPatches != null) {
 			TransformPatch patch = itemPatches.get(position);
@@ -155,6 +183,217 @@ public final class ReadySlotPresentationConfig {
 			}
 		}
 		return resolved;
+	}
+
+	public ReadySlotPresentationConfig withBaseTransform(Position position, Transform transform) {
+		Map<Position, Transform> updated = new EnumMap<>(this.baseTransforms);
+		updated.put(Objects.requireNonNull(position, "position"), Objects.requireNonNull(transform, "transform"));
+		return copyWith(this.enabledCategories, this.itemWhitelist, this.itemBlacklist, updated, this.categoryOverrides, this.itemOverrides);
+	}
+
+	public ReadySlotPresentationConfig withCategoryTransform(Category category, Position position, Transform transform) {
+		Map<Category, Map<Position, TransformPatch>> updated = mutableCategoryOverrides();
+		updated.computeIfAbsent(Objects.requireNonNull(category, "category"), ignored -> new EnumMap<>(Position.class))
+			.put(Objects.requireNonNull(position, "position"), TransformPatch.complete(transform));
+		return copyWith(this.enabledCategories, this.itemWhitelist, this.itemBlacklist, this.baseTransforms, updated, this.itemOverrides);
+	}
+
+	public ReadySlotPresentationConfig withoutCategoryOverride(Category category, Position position) {
+		Map<Category, Map<Position, TransformPatch>> updated = mutableCategoryOverrides();
+		Map<Position, TransformPatch> patches = updated.get(category);
+		if (patches != null) {
+			patches.remove(position);
+			if (patches.isEmpty()) {
+				updated.remove(category);
+			}
+		}
+		return copyWith(this.enabledCategories, this.itemWhitelist, this.itemBlacklist, this.baseTransforms, updated, this.itemOverrides);
+	}
+
+	public ReadySlotPresentationConfig withItemTransform(String itemId, Position position, Transform transform) {
+		String validatedId = requireItemId(itemId, "item_overrides");
+		Map<String, Map<Position, TransformPatch>> updated = mutableItemOverrides();
+		updated.computeIfAbsent(validatedId, ignored -> new EnumMap<>(Position.class))
+			.put(Objects.requireNonNull(position, "position"), TransformPatch.complete(transform));
+		return copyWith(this.enabledCategories, this.itemWhitelist, this.itemBlacklist, this.baseTransforms, this.categoryOverrides, updated);
+	}
+
+	public ReadySlotPresentationConfig withoutItemOverride(String itemId, Position position) {
+		Map<String, Map<Position, TransformPatch>> updated = mutableItemOverrides();
+		Map<Position, TransformPatch> patches = updated.get(itemId);
+		if (patches != null) {
+			patches.remove(position);
+			if (patches.isEmpty()) {
+				updated.remove(itemId);
+			}
+		}
+		return copyWith(this.enabledCategories, this.itemWhitelist, this.itemBlacklist, this.baseTransforms, this.categoryOverrides, updated);
+	}
+
+	public ReadySlotPresentationConfig withCategoryEnabled(Category category, boolean enabled) {
+		Objects.requireNonNull(category, "category");
+		Set<Category> updated = this.enabledCategories.isEmpty()
+			? EnumSet.noneOf(Category.class)
+			: EnumSet.copyOf(this.enabledCategories);
+		if (enabled) {
+			updated.add(category);
+		} else {
+			updated.remove(category);
+		}
+		return copyWith(updated, this.itemWhitelist, this.itemBlacklist, this.baseTransforms, this.categoryOverrides, this.itemOverrides);
+	}
+
+	public ReadySlotPresentationConfig withWhitelistedItem(String itemId, Category category) {
+		Map<String, Category> updated = new LinkedHashMap<>(this.itemWhitelist);
+		updated.put(requireItemId(itemId, "render_policy.item_whitelist"), Objects.requireNonNull(category, "category"));
+		return copyWith(this.enabledCategories, updated, this.itemBlacklist, this.baseTransforms, this.categoryOverrides, this.itemOverrides);
+	}
+
+	public ReadySlotPresentationConfig withoutWhitelistedItem(String itemId) {
+		Map<String, Category> updated = new LinkedHashMap<>(this.itemWhitelist);
+		updated.remove(itemId);
+		return copyWith(this.enabledCategories, updated, this.itemBlacklist, this.baseTransforms, this.categoryOverrides, this.itemOverrides);
+	}
+
+	public ReadySlotPresentationConfig withBlacklistedItem(String itemId) {
+		Set<String> updated = new LinkedHashSet<>(this.itemBlacklist);
+		updated.add(requireItemId(itemId, "render_policy.item_blacklist"));
+		return copyWith(this.enabledCategories, this.itemWhitelist, updated, this.baseTransforms, this.categoryOverrides, this.itemOverrides);
+	}
+
+	public ReadySlotPresentationConfig withoutBlacklistedItem(String itemId) {
+		Set<String> updated = new LinkedHashSet<>(this.itemBlacklist);
+		updated.remove(itemId);
+		return copyWith(this.enabledCategories, this.itemWhitelist, updated, this.baseTransforms, this.categoryOverrides, this.itemOverrides);
+	}
+
+	public static boolean isValidItemId(String itemId) {
+		return itemId != null && ITEM_ID.matcher(itemId).matches();
+	}
+
+	/** Deterministic, stable-order JSON used by the RS7A editor and future RS7B promotion workflow. */
+	public String toJson() {
+		JsonObject root = new JsonObject();
+		root.addProperty("schema_version", SCHEMA_VERSION);
+
+		JsonObject renderPolicy = new JsonObject();
+		JsonArray categories = new JsonArray();
+		for (Category category : Category.values()) {
+			if (this.enabledCategories.contains(category)) {
+				categories.add(category.id());
+			}
+		}
+		renderPolicy.add("enabled_categories", categories);
+		JsonObject whitelist = new JsonObject();
+		this.itemWhitelist.keySet().stream().sorted().forEach(itemId ->
+			whitelist.addProperty(itemId, this.itemWhitelist.get(itemId).id())
+		);
+		renderPolicy.add("item_whitelist", whitelist);
+		JsonArray blacklist = new JsonArray();
+		this.itemBlacklist.stream().sorted().forEach(blacklist::add);
+		renderPolicy.add("item_blacklist", blacklist);
+		root.add("render_policy", renderPolicy);
+
+		JsonObject baseTransforms = new JsonObject();
+		for (Position position : Position.values()) {
+			baseTransforms.add(position.id(), transformJson(this.baseTransforms.get(position)));
+		}
+		root.add("base_transforms", baseTransforms);
+
+		JsonObject categoryOverrides = new JsonObject();
+		for (Category category : Category.values()) {
+			Map<Position, TransformPatch> patches = this.categoryOverrides.get(category);
+			if (patches != null && !patches.isEmpty()) {
+				categoryOverrides.add(category.id(), positionPatchesJson(patches));
+			}
+		}
+		root.add("category_overrides", categoryOverrides);
+
+		JsonObject itemOverrides = new JsonObject();
+		this.itemOverrides.keySet().stream().sorted().forEach(itemId ->
+			itemOverrides.add(itemId, positionPatchesJson(this.itemOverrides.get(itemId)))
+		);
+		root.add("item_overrides", itemOverrides);
+		return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(root) + "\n";
+	}
+
+	private ReadySlotPresentationConfig copyWith(
+		Set<Category> enabledCategories,
+		Map<String, Category> itemWhitelist,
+		Set<String> itemBlacklist,
+		Map<Position, Transform> baseTransforms,
+		Map<Category, Map<Position, TransformPatch>> categoryOverrides,
+		Map<String, Map<Position, TransformPatch>> itemOverrides
+	) {
+		return new ReadySlotPresentationConfig(
+			enabledCategories,
+			itemWhitelist,
+			itemBlacklist,
+			baseTransforms,
+			categoryOverrides,
+			itemOverrides
+		);
+	}
+
+	private Map<Category, Map<Position, TransformPatch>> mutableCategoryOverrides() {
+		Map<Category, Map<Position, TransformPatch>> copy = new EnumMap<>(Category.class);
+		for (Map.Entry<Category, Map<Position, TransformPatch>> entry : this.categoryOverrides.entrySet()) {
+			Map<Position, TransformPatch> patches = new EnumMap<>(Position.class);
+			patches.putAll(entry.getValue());
+			copy.put(entry.getKey(), patches);
+		}
+		return copy;
+	}
+
+	private Map<String, Map<Position, TransformPatch>> mutableItemOverrides() {
+		Map<String, Map<Position, TransformPatch>> copy = new LinkedHashMap<>();
+		for (Map.Entry<String, Map<Position, TransformPatch>> entry : this.itemOverrides.entrySet()) {
+			Map<Position, TransformPatch> patches = new EnumMap<>(Position.class);
+			patches.putAll(entry.getValue());
+			copy.put(entry.getKey(), patches);
+		}
+		return copy;
+	}
+
+	private static JsonObject transformJson(Transform transform) {
+		JsonObject object = new JsonObject();
+		object.addProperty("translate_x", transform.translateX());
+		object.addProperty("translate_y", transform.translateY());
+		object.addProperty("translate_z", transform.translateZ());
+		object.addProperty("rotate_x", transform.rotateX());
+		object.addProperty("rotate_y", transform.rotateY());
+		object.addProperty("rotate_z", transform.rotateZ());
+		object.addProperty("scale", transform.scale());
+		return object;
+	}
+
+	private static JsonObject positionPatchesJson(Map<Position, TransformPatch> patches) {
+		JsonObject object = new JsonObject();
+		for (Position position : Position.values()) {
+			TransformPatch patch = patches.get(position);
+			if (patch != null) {
+				object.add(position.id(), patchJson(patch));
+			}
+		}
+		return object;
+	}
+
+	private static JsonObject patchJson(TransformPatch patch) {
+		JsonObject object = new JsonObject();
+		addIfPresent(object, "translate_x", patch.translateX());
+		addIfPresent(object, "translate_y", patch.translateY());
+		addIfPresent(object, "translate_z", patch.translateZ());
+		addIfPresent(object, "rotate_x", patch.rotateX());
+		addIfPresent(object, "rotate_y", patch.rotateY());
+		addIfPresent(object, "rotate_z", patch.rotateZ());
+		addIfPresent(object, "scale", patch.scale());
+		return object;
+	}
+
+	private static void addIfPresent(JsonObject object, String name, Float value) {
+		if (value != null) {
+			object.addProperty(name, value);
+		}
 	}
 
 	private static Map<Position, Transform> parseBaseTransforms(JsonObject object) {
@@ -322,7 +561,7 @@ public final class ReadySlotPresentationConfig {
 	}
 
 	private static String requireItemId(String itemId, String path) {
-		if (!ITEM_ID.matcher(itemId).matches()) {
+		if (!isValidItemId(itemId)) {
 			throw error(path + " contains invalid item id " + itemId);
 		}
 		return itemId;
@@ -495,7 +734,21 @@ public final class ReadySlotPresentationConfig {
 			}
 		}
 
-		Transform apply(Transform base) {
+		public static TransformPatch complete(Transform transform) {
+			Objects.requireNonNull(transform, "transform");
+			return new TransformPatch(
+				transform.translateX(),
+				transform.translateY(),
+				transform.translateZ(),
+				transform.rotateX(),
+				transform.rotateY(),
+				transform.rotateZ(),
+				transform.scale()
+			);
+		}
+
+		public Transform apply(Transform base) {
+			Objects.requireNonNull(base, "base");
 			return new Transform(
 				this.translateX != null ? this.translateX : base.translateX(),
 				this.translateY != null ? this.translateY : base.translateY(),

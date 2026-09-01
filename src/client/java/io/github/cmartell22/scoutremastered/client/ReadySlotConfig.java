@@ -16,18 +16,20 @@ final class ReadySlotConfig {
 	private static final String DEFAULT_RESOURCE = "/assets/scoutremastered/config/ready-slots-default.json";
 	private static final String EXTERNAL_FILENAME = "scoutremastered-ready-slots.json";
 	private static volatile ReadySlotPresentationConfig current = ReadySlotPresentationConfig.disabled();
+	private static volatile ReadySlotPresentationConfig bundledBaseline = ReadySlotPresentationConfig.disabled();
 
 	private ReadySlotConfig() {
 	}
 
 	static void load() {
 		Bundled bundled = loadBundled();
+		bundledBaseline = bundled.config();
 		current = bundled.config();
 		if (bundled.json() == null) {
 			return;
 		}
 
-		Path path = FabricLoader.getInstance().getConfigDir().resolve(EXTERNAL_FILENAME);
+		Path path = configPath();
 		ReadySlotPresentationConfigFile.LoadResult result = ReadySlotPresentationConfigFile.load(path, bundled.config());
 		switch (result.status()) {
 			case EXTERNAL -> {
@@ -49,6 +51,29 @@ final class ReadySlotConfig {
 
 	static ReadySlotPresentationConfig current() {
 		return current;
+	}
+
+	static ReadySlotPresentationConfig bundledBaseline() {
+		return bundledBaseline;
+	}
+
+	static void preview(ReadySlotPresentationConfig config) {
+		current = config;
+	}
+
+	static void restore(ReadySlotPresentationConfig config) {
+		current = config;
+	}
+
+	static void save(ReadySlotPresentationConfig config) throws IOException {
+		Path path = configPath();
+		ReadySlotPresentationConfigFile.save(path, config);
+		current = config;
+		ScoutRemasteredMod.LOGGER.info("Saved Ready Slots presentation config {}", path);
+	}
+
+	static Path configPath() {
+		return FabricLoader.getInstance().getConfigDir().resolve(EXTERNAL_FILENAME);
 	}
 
 	private static Bundled loadBundled() {

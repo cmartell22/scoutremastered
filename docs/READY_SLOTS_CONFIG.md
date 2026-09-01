@@ -4,7 +4,21 @@ Ready Slots rendering is configured on each client through:
 
 `config/scoutremastered-ready-slots.json`
 
-The file is created from Scout Remastered's bundled, tested baseline the first time a client starts with RS6. Changes take effect after restarting the client. This configuration controls presentation only: it cannot change bag storage, equipment ownership, ready-slot contents, swaps, networking, or server persistence.
+The file is created from Scout Remastered's bundled, tested baseline the first time a client starts. RS7A can edit it in game through the **Open Ready Slots Editor** key binding (`O` by default). This configuration controls presentation only: it cannot change bag storage, equipment ownership, ready-slot contents, swaps, networking, or server persistence.
+
+## Interactive editor
+
+Open the editor while in a world. Its player model is a live preview of the current local player, including equipped Scout bags and their ready items.
+
+- **Transform** mode edits the required base position, a category override, or an exact-item override for `left_hip`, `right_hip`, and `back`.
+- Every slider has a numeric field for precise entry. Both paths enforce the same limits as the parser.
+- **Reset** restores a base position from the bundled baseline or removes the selected category/item override.
+- **Copy** and **Paste** transfer a complete transform. **Mirror** copies a hip transform to the opposite hip while reversing X translation and Y/Z rotation.
+- **Visibility** mode enables or disables classifier categories and manages exact-item whitelist/blacklist entries. Its actions keep the two item lists mutually exclusive.
+- **Save** atomically replaces only `config/scoutremastered-ready-slots.json` with deterministic, stable-order JSON.
+- **Cancel** or Escape restores the exact configuration active when the editor opened and writes nothing.
+
+Live preview only changes client rendering. It does not mutate inventory or ready-slot contents. To preview an exact item on the model, place that item in the corresponding equipped bag's ready slot.
 
 ## Failure behavior
 
@@ -72,7 +86,7 @@ Transforms are applied as translation, then X/Y/Z rotations in degrees, then uni
 
 ## Value limits
 
-The parser and future RS7A controls share these inclusive limits:
+The parser and RS7A controls share these inclusive limits:
 
 | Field | Minimum | Maximum |
 |---|---:|---:|
@@ -86,4 +100,4 @@ All numbers must be finite. These bounds allow broad placement around custom pla
 
 `schema_version` is currently `1`. Unsupported schema versions fail as a complete file and use the bundled baseline. The default file is the authoritative example for every required section and base field.
 
-RS7A will provide the interactive editor. RS7B will use deterministic values saved by that GUI for human-guided, one-by-one calibration and promotion into shipped defaults.
+RS7B remains separate work. It will use deterministic values saved by this GUI for human-guided, one-by-one calibration and promotion into shipped defaults.

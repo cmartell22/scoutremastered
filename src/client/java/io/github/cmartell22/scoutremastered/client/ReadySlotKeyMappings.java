@@ -8,13 +8,20 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import org.lwjgl.glfw.GLFW;
 
-/** Three configurable, conflict-free-by-default ready-slot controls. */
+/** Configurable ready-slot swap controls plus the client-only RS7A presentation editor. */
 public final class ReadySlotKeyMappings {
 	private static final int UNBOUND = InputConstants.UNKNOWN.getValue();
 	private static final KeyMapping SWAP_LEFT = register("key.scoutremastered.swap_left_ready");
 	private static final KeyMapping SWAP_RIGHT = register("key.scoutremastered.swap_right_ready");
 	private static final KeyMapping SWAP_SATCHEL = register("key.scoutremastered.swap_back_ready");
+	private static final KeyMapping OPEN_EDITOR = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+		"key.scoutremastered.open_ready_slots_editor",
+		InputConstants.Type.KEYSYM,
+		GLFW.GLFW_KEY_O,
+		KeyMapping.Category.INVENTORY
+	));
 
 	private ReadySlotKeyMappings() {
 	}
@@ -24,6 +31,11 @@ public final class ReadySlotKeyMappings {
 			sendClicks(client, SWAP_LEFT, ReadySlotRole.LEFT_POUCH);
 			sendClicks(client, SWAP_RIGHT, ReadySlotRole.RIGHT_POUCH);
 			sendClicks(client, SWAP_SATCHEL, ReadySlotRole.SATCHEL);
+			while (OPEN_EDITOR.consumeClick()) {
+				if (client.player != null && client.level != null && client.screen == null) {
+					client.setScreen(new ReadySlotConfigScreen());
+				}
+			}
 		});
 	}
 
