@@ -10,12 +10,14 @@ The file is created from Scout Remastered's bundled, tested baseline the first t
 
 Open the editor while in a world. Its player model is a live preview of the current local player, including equipped Scout bags and their ready items.
 
-- **Transform** mode edits the required base position, a category override, or an exact-item override for `left_hip`, `right_hip`, and `back`.
+- **Transform** mode edits the required Default Position, a category override, or an exact-item override for `left_hip`, `right_hip`, and `back`.
 - Base edits act as global adjustments: existing override fields move by the same translation/rotation delta or scale ratio, so a category or exact-item override cannot silently mask the live control.
 - Every slider has a numeric field for precise entry. Both paths enforce the same limits as the parser.
 - **Reset** restores a base position from the bundled baseline or removes the selected category/item override.
-- **Copy** and **Paste** transfer a complete transform. **Mirror** immediately reverses X translation and Y/Z rotation for the transform currently shown; it does not depend on Copy and does not edit another position.
-- **Visibility** mode enables or disables classifier categories and manages exact-item whitelist/blacklist entries. Item actions require an ID present in the current game's item registry and keep the two lists mutually exclusive.
+- **Copy** and **Paste** transfer a complete transform. Each X/Y/Z and RX/RY/RZ row has its own **M** button, so only that field is mirrored. RZ advances by a single 90-degree step (`180` to `90`) instead of producing an equivalent but confusing `-180` value. Scale has no mirror axis.
+- Category scope includes a **Visible** checkbox. Exact-item scope labels its category control explicitly; changing that control assigns the listed item to that whitelist/transform category.
+- **Whitelist / Blacklist** mode contains two list tabs. Each tab has a scrollable removable item list, **Clear**, and **Reset to default**. Adding an item requires an ID present in the current game's item registry and keeps the two lists mutually exclusive.
+- The preview does not follow the mouse. Left/right/up/down buttons rotate it in fixed steps and **Reset** returns it to the forward view.
 - **Save** atomically replaces only `config/scoutremastered-ready-slots.json` with deterministic, stable-order JSON.
 - **Cancel** or Escape restores the exact configuration active when the editor opened and writes nothing.
 
@@ -35,18 +37,18 @@ Visibility is resolved in this order:
 
 1. `item_blacklist` always suppresses the item.
 2. `item_whitelist` explicitly selects a transform category for that item, even when that category is absent from `enabled_categories`.
-3. Otherwise, the conservative built-in classifier identifies swords/tools, bows, crossbows, shields, or tridents, and `enabled_categories` decides whether that category renders.
+3. Otherwise, the conservative built-in classifier identifies swords, axes, pickaxes, shovels, hoes, spears, bows, crossbows, shields, or tridents, and `enabled_categories` decides whether that category renders.
 4. Items that match none of those paths remain valid bag contents and swap normally, but render nothing.
 
-The supported category IDs are `handheld`, `bow`, `crossbow`, `shield`, and `trident`. Item keys must be complete namespaced IDs such as `minecraft:diamond_sword`.
+The editable category IDs are `sword`, `axe`, `pickaxe`, `shovel`, `hoe`, `spear`, `bow`, `crossbow`, `shield`, and `trident`. The legacy `handheld` ID remains accepted: its transform is applied beneath granular handheld categories, and its enabled state is expanded when one of those granular visibility controls is first edited. Item keys must be complete namespaced IDs such as `minecraft:diamond_sword`.
 
 Example:
 
 ```json
 "render_policy": {
-  "enabled_categories": ["handheld", "bow", "crossbow", "shield", "trident"],
+  "enabled_categories": ["sword", "axe", "pickaxe", "shovel", "hoe", "spear", "bow", "crossbow", "shield", "trident"],
   "item_whitelist": {
-    "examplemod:custom_blade": "handheld"
+    "examplemod:custom_blade": "sword"
   },
   "item_blacklist": [
     "minecraft:wooden_sword"

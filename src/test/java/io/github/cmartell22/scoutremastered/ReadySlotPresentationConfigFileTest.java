@@ -51,7 +51,9 @@ final class ReadySlotPresentationConfigFileTest {
 	void validExternalFileReplacesTheFallbackAsOneCompleteValue() throws IOException {
 		ReadySlotPresentationConfig fallback = defaults();
 		JsonObject externalJson = JsonParser.parseString(Files.readString(DEFAULTS)).getAsJsonObject();
-		externalJson.getAsJsonObject("render_policy").getAsJsonArray("enabled_categories").remove(1);
+		externalJson.getAsJsonObject("render_policy")
+			.getAsJsonArray("enabled_categories")
+			.remove(new com.google.gson.JsonPrimitive("bow"));
 		Path external = this.temporaryDirectory.resolve("scoutremastered-ready-slots.json");
 		Files.writeString(external, externalJson.toString());
 

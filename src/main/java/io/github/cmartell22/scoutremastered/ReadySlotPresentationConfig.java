@@ -128,7 +128,8 @@ public final class ReadySlotPresentationConfig {
 	}
 
 	public boolean categoryEnabled(Category category) {
-		return this.enabledCategories.contains(category);
+		return this.enabledCategories.contains(category)
+			|| (category.isGranularHandheld() && this.enabledCategories.contains(Category.HANDHELD));
 	}
 
 	public Optional<Category> whitelistedCategory(String itemId) {
@@ -167,6 +168,13 @@ public final class ReadySlotPresentationConfig {
 
 	public Transform resolveCategory(Position position, Category category) {
 		Transform resolved = this.baseTransform(position);
+		if (category.isGranularHandheld()) {
+			resolved = applyCategoryPatch(resolved, position, Category.HANDHELD);
+		}
+		return applyCategoryPatch(resolved, position, category);
+	}
+
+	private Transform applyCategoryPatch(Transform resolved, Position position, Category category) {
 		Map<Position, TransformPatch> patches = this.categoryOverrides.get(category);
 		TransformPatch patch = patches == null ? null : patches.get(position);
 		return patch == null ? resolved : patch.apply(resolved);
@@ -271,6 +279,9 @@ public final class ReadySlotPresentationConfig {
 		Set<Category> updated = this.enabledCategories.isEmpty()
 			? EnumSet.noneOf(Category.class)
 			: EnumSet.copyOf(this.enabledCategories);
+		if (category.isGranularHandheld() && updated.remove(Category.HANDHELD)) {
+			updated.addAll(Category.granularHandheldCategories());
+		}
 		if (enabled) {
 			updated.add(category);
 		} else {
@@ -675,6 +686,12 @@ public final class ReadySlotPresentationConfig {
 
 	public enum Category {
 		HANDHELD("handheld"),
+		SWORD("sword"),
+		AXE("axe"),
+		PICKAXE("pickaxe"),
+		SHOVEL("shovel"),
+		HOE("hoe"),
+		SPEAR("spear"),
 		BOW("bow"),
 		CROSSBOW("crossbow"),
 		SHIELD("shield"),
@@ -688,6 +705,17 @@ public final class ReadySlotPresentationConfig {
 
 		public String id() {
 			return this.id;
+		}
+
+		public boolean isGranularHandheld() {
+			return switch (this) {
+				case SWORD, AXE, PICKAXE, SHOVEL, HOE, SPEAR -> true;
+				default -> false;
+			};
+		}
+
+		public static Set<Category> granularHandheldCategories() {
+			return Collections.unmodifiableSet(EnumSet.of(SWORD, AXE, PICKAXE, SHOVEL, HOE, SPEAR));
 		}
 
 		static Category fromId(String id) {

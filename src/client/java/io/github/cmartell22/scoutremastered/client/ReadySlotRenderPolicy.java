@@ -37,14 +37,7 @@ final class ReadySlotRenderPolicy {
 		return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
 	}
 
-	private static @Nullable Category builtInCategory(ItemStack stack) {
-		if (stack.is(ItemTags.SWORDS)
-			|| stack.is(ItemTags.AXES)
-			|| stack.is(ItemTags.PICKAXES)
-			|| stack.is(ItemTags.SHOVELS)
-			|| stack.is(ItemTags.HOES)) {
-			return Category.HANDHELD;
-		}
+	static @Nullable Category builtInCategory(ItemStack stack) {
 		if (stack.getItem() instanceof BowItem) {
 			return Category.BOW;
 		}
@@ -56,6 +49,24 @@ final class ReadySlotRenderPolicy {
 		}
 		if (stack.getItem() instanceof TridentItem) {
 			return Category.TRIDENT;
+		}
+		if (stack.is(ItemTags.SWORDS)) {
+			return Category.SWORD;
+		}
+		if (stack.is(ItemTags.AXES)) {
+			return Category.AXE;
+		}
+		if (stack.is(ItemTags.PICKAXES)) {
+			return Category.PICKAXE;
+		}
+		if (stack.is(ItemTags.SHOVELS)) {
+			return Category.SHOVEL;
+		}
+		if (stack.is(ItemTags.HOES)) {
+			return Category.HOE;
+		}
+		if (stack.is(ItemTags.SPEARS)) {
+			return Category.SPEAR;
 		}
 		return null;
 	}

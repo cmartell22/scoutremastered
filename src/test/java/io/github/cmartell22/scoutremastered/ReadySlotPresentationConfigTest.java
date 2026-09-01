@@ -33,7 +33,35 @@ final class ReadySlotPresentationConfigTest {
 		assertTransform(back, 0.0F, 0.12F, 0.44F, 0.0F, 180.0F, 180.0F, 0.88F);
 
 		for (Category category : Category.values()) {
-			assertTrue(config.categoryEnabled(category));
+			if (category != Category.HANDHELD) {
+				assertTrue(config.categoryEnabled(category));
+			}
+		}
+		assertFalse(config.categoryEnabled(Category.HANDHELD));
+	}
+
+	@Test
+	void legacyHandheldSettingsLayerUnderGranularCategoriesAndExpandOnFirstVisibilityEdit() throws IOException {
+		JsonObject root = JsonParser.parseString(Files.readString(DEFAULTS)).getAsJsonObject();
+		var enabled = root.getAsJsonObject("render_policy").getAsJsonArray("enabled_categories");
+		enabled.remove(new com.google.gson.JsonPrimitive("sword"));
+		enabled.remove(new com.google.gson.JsonPrimitive("axe"));
+		enabled.remove(new com.google.gson.JsonPrimitive("pickaxe"));
+		enabled.remove(new com.google.gson.JsonPrimitive("shovel"));
+		enabled.remove(new com.google.gson.JsonPrimitive("hoe"));
+		enabled.remove(new com.google.gson.JsonPrimitive("spear"));
+		enabled.add("handheld");
+		ReadySlotPresentationConfig legacy = parse(root.toString());
+
+		assertTrue(legacy.categoryEnabled(Category.SWORD));
+		assertEquals(0.40F, legacy.resolveCategory(Position.LEFT_HIP, Category.SWORD).scale(), 0.0001F);
+
+		ReadySlotPresentationConfig edited = legacy.withCategoryEnabled(Category.AXE, false);
+		assertFalse(edited.categoryEnabled(Category.AXE));
+		assertTrue(edited.categoryEnabled(Category.SWORD));
+		assertFalse(edited.enabledCategories().contains(Category.HANDHELD));
+		for (Category category : Category.granularHandheldCategories()) {
+			assertEquals(category != Category.AXE, edited.enabledCategories().contains(category));
 		}
 	}
 

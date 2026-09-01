@@ -2,7 +2,12 @@
   "schema_version": 1,
   "render_policy": {
     "enabled_categories": [
-      "handheld",
+      "sword",
+      "axe",
+      "pickaxe",
+      "shovel",
+      "hoe",
+      "spear",
       "bow",
       "crossbow",
       "shield",
@@ -42,6 +47,36 @@
   },
   "category_overrides": {
     "handheld": {
+      "left_hip": { "scale": 0.40 },
+      "right_hip": { "scale": 0.40 },
+      "back": { "scale": 0.72 }
+    },
+    "sword": {
+      "left_hip": { "scale": 0.40 },
+      "right_hip": { "scale": 0.40 },
+      "back": { "scale": 0.72 }
+    },
+    "axe": {
+      "left_hip": { "scale": 0.40 },
+      "right_hip": { "scale": 0.40 },
+      "back": { "scale": 0.72 }
+    },
+    "pickaxe": {
+      "left_hip": { "scale": 0.40 },
+      "right_hip": { "scale": 0.40 },
+      "back": { "scale": 0.72 }
+    },
+    "shovel": {
+      "left_hip": { "scale": 0.40 },
+      "right_hip": { "scale": 0.40 },
+      "back": { "scale": 0.72 }
+    },
+    "hoe": {
+      "left_hip": { "scale": 0.40 },
+      "right_hip": { "scale": 0.40 },
+      "back": { "scale": 0.72 }
+    },
+    "spear": {
       "left_hip": { "scale": 0.40 },
       "right_hip": { "scale": 0.40 },
       "back": { "scale": 0.72 }

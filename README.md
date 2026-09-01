@@ -43,7 +43,7 @@ When enabled in a survival-style inventory, the feature displays active bag slot
 
 ## Ready Slots presentation configuration
 
-Ready Slots render bag-local slot 0 at the left hip, right hip, or back. On first client start, Scout Remastered creates `config/scoutremastered-ready-slots.json` from the bundled tested defaults. The JSON can enable or suppress render categories, explicitly whitelist or blacklist item IDs, and override position, rotation, and scale by position, category, or exact item. Restart the client after editing it.
+Ready Slots render bag-local slot 0 at the left hip, right hip, or back. On first client start, Scout Remastered creates `config/scoutremastered-ready-slots.json` from the bundled tested defaults. The configurable **Open Ready Slots Editor** key (`O` by default) opens a live client-only editor for bounded position, rotation, scale, category visibility, and exact-item whitelist/blacklist rules. The same deterministic JSON remains directly inspectable and editable outside the game.
 
 Invalid or out-of-range external configuration falls back to the complete bundled baseline and cannot affect storage or server-authoritative swapping. See [docs/READY_SLOTS_CONFIG.md](docs/READY_SLOTS_CONFIG.md) for the schema, precedence, limits, and examples.
 

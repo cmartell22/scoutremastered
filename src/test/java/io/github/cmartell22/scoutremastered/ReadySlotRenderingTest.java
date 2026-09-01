@@ -80,7 +80,10 @@ final class ReadySlotRenderingTest {
 
 		assertTrue(keys.contains("open_ready_slots_editor"));
 		assertTrue(keys.contains("new ReadySlotConfigScreen()"));
-		assertTrue(editor.contains("InventoryScreen.extractEntityInInventoryFollowsMouse("));
+		assertFalse(editor.contains("InventoryScreen.extractEntityInInventoryFollowsMouse("));
+		assertTrue(editor.contains("extractEntityPreview("));
+		assertTrue(editor.contains("this.previewYaw -= 15.0F"));
+		assertTrue(editor.contains("this.previewPitch = 0.0F"));
 		assertTrue(editor.contains("ReadySlotConfig.preview(updated)"));
 		assertTrue(editor.contains("ReadySlotConfig.save(this.draft)"));
 		assertTrue(editor.contains("ReadySlotConfig.restore(this.openingConfig)"));
@@ -89,10 +92,35 @@ final class ReadySlotRenderingTest {
 		assertTrue(editor.contains("ReadySlotPresentationConfig.MAX_SCALE"));
 		assertTrue(editor.contains("withBaseTransformPropagatingOverrides"));
 		assertTrue(editor.contains("BuiltInRegistries.ITEM.containsKey(identifier)"));
-		assertTrue(editor.contains("Mirrored the current transform") || editor.contains("ready_slots.mirrored"));
+		assertTrue(editor.contains("mirrorField(field)"));
+		assertTrue(editor.contains("float next = value - 90.0F"));
+		assertTrue(editor.contains("ContainerObjectSelectionList<PolicyEntry>"));
+		assertTrue(editor.contains("resetPolicyList()"));
+		assertTrue(editor.contains("clearPolicyList()"));
+		assertTrue(editor.contains("ready_slots.visible"));
+		assertTrue(editor.contains("SCALE(\"Scale\""));
 		assertTrue(loader.contains("ReadySlotPresentationConfigFile.save(path, config)"));
 		assertFalse(editor.contains("ClientPlayNetworking"));
 		assertFalse(editor.contains("ReadySlotSwapService"));
+	}
+
+	@Test
+	void rs7aGranularCategoriesUseExact2612TagsAndRetainLegacyCompatibility() throws IOException {
+		String policy = source("ReadySlotRenderPolicy.java");
+		String editor = source("ReadySlotConfigScreen.java");
+
+		for (String mapping : new String[] {
+			"ItemTags.SWORDS", "Category.SWORD",
+			"ItemTags.AXES", "Category.AXE",
+			"ItemTags.PICKAXES", "Category.PICKAXE",
+			"ItemTags.SHOVELS", "Category.SHOVEL",
+			"ItemTags.HOES", "Category.HOE",
+			"ItemTags.SPEARS", "Category.SPEAR"
+		}) {
+			assertTrue(policy.contains(mapping));
+		}
+		assertFalse(editor.contains("Category.HANDHELD,"));
+		assertTrue(editor.contains("withWhitelistedItem(this.itemId, this.category)"));
 	}
 
 	@Test
