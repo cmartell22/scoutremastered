@@ -16,15 +16,8 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.util.Mth;
-import net.minecraft.world.item.BowItem;
-import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShieldItem;
-import net.minecraft.world.item.TridentItem;
-import org.joml.Quaternionf;
 
 /**
  * Client-only third-person renderer for equipped bags.
@@ -63,22 +56,19 @@ final class BagTrinketRenderer implements TrinketRenderer {
 			.getOrDefault(ModDataComponents.BAG_CONTENTS, BagContents.EMPTY)
 			.normalized(bagItem.capacity())
 			.getStack(0);
-		if (!isReadyStackVisible(readyStack)) {
+		ReadySlotRenderPolicy.Category category = ReadySlotRenderPolicy.category(readyStack);
+		if (category == null) {
 			return;
 		}
 
 		poseStack.pushPose();
-		TrinketRenderer.translateToChest(poseStack, humanoidModel, humanoidState);
-		if (bagItem.equipmentRole() == BagEquipmentRole.SATCHEL) {
-			poseStack.translate(0.0F, 0.13F, 0.36F);
-			poseStack.mulPose(new Quaternionf().rotateY(Mth.PI));
-			poseStack.scale(0.72F, 0.72F, 0.72F);
-		} else {
-			float horizontalOffset = slot.index() == 0 ? 0.22F : -0.22F;
-			poseStack.translate(horizontalOffset, 0.34F, 0.01F);
-			poseStack.scale(0.38F, 0.38F, 0.38F);
-		}
-		poseStack.mulPose(new Quaternionf().rotateZ(Mth.PI));
+		ReadySlotTransforms.apply(
+			poseStack,
+			humanoidModel,
+			humanoidState,
+			position(bagItem, slot),
+			category
+		);
 
 		ItemStackRenderState itemRenderState = new ItemStackRenderState();
 		Minecraft.getInstance().getItemModelResolver().appendItemLayers(
@@ -103,16 +93,12 @@ final class BagTrinketRenderer implements TrinketRenderer {
 		};
 	}
 
-	private static boolean isReadyStackVisible(ItemStack stack) {
-		return !stack.isEmpty()
-			&& (stack.is(ItemTags.SWORDS)
-				|| stack.is(ItemTags.AXES)
-				|| stack.is(ItemTags.PICKAXES)
-				|| stack.is(ItemTags.SHOVELS)
-				|| stack.is(ItemTags.HOES)
-				|| stack.getItem() instanceof BowItem
-				|| stack.getItem() instanceof CrossbowItem
-				|| stack.getItem() instanceof TridentItem
-				|| stack.getItem() instanceof ShieldItem);
+	private static ReadySlotTransforms.Position position(BagItem bagItem, TrinketSlotAccess slot) {
+		if (bagItem.equipmentRole() == BagEquipmentRole.SATCHEL) {
+			return ReadySlotTransforms.Position.BACK;
+		}
+		return slot.index() == TrinketsIntegration.LEFT_POUCH_INDEX
+			? ReadySlotTransforms.Position.LEFT_HIP
+			: ReadySlotTransforms.Position.RIGHT_HIP;
 	}
 }
