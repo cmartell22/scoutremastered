@@ -1,0 +1,403 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -4,6 +4,8 @@
+ 
+ ## Unreleased
+ 
++- Moved Scout bags off shared Trinkets slots: satchels now use `chest/lower_back`, and pouches use dedicated `legs/left_hip` and `legs/right_hip` slots.
++- Restored the generic `chest/back` and `legs/belt` slots for other mods instead of reserving or expanding them for Scout bags.
+ - Added bounded client-side Ready Slots presentation configuration with deterministic position, category, and exact-item transform overrides.
+ - Added configurable render-category gating plus exact-item whitelist and blacklist rules.
+ - Invalid external configuration now falls back as a whole to the bundled tested baseline without altering the bad file or any server-authoritative bag state.
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -22,8 +22,9 @@
+ 
+ ## Using bags
+ 
+-- Equip a satchel in Trinkets Updated's `chest/back` slot.
+-- Equip up to two pouches in the `legs/belt` slot. Belt index 0 is left and index 1 is right.
++- Equip a satchel in Scout Remastered's dedicated `chest/lower_back` Trinkets slot.
++- Equip pouches in the dedicated `legs/left_hip` and `legs/right_hip` Trinkets slots.
++- Trinkets Updated's shared `chest/back` and `legs/belt` slots remain available for items from other mods.
+ - Press `B` to open the Pack Inventory. The key is configurable through Minecraft's Controls menu.
+ - The Pack Inventory shows satchel, left pouch, right pouch, player inventory, then hotbar. Player shift-clicking merges/fills bags in that same role order; bag shift-clicking fills the player inventory before the hotbar.
+ - Bags cannot be stored inside bags. This is enforced for clicks, drag actions, quick-move, number-key/offhand swaps, and double-click collection.
+@@ -51,6 +52,7 @@
+ 
+ - Scout Remastered targets Fabric only; Forge and NeoForge are not supported.
+ - There is no migration from the temporary pre-release `scout26` namespace or from historical Scout/Scout-Recrafted data. Do not use the release candidate to upgrade worlds that contain those development-only bags without a backup.
++- When upgrading from `1.0.0-rc.1`, unequip Scout bags before replacing the mod. RC1 used the shared `chest/back` slot and expanded `legs/belt` to two entries; the dedicated-slot update returns those generic Trinkets slots to their normal ownership and capacity.
+ - The optional Integrated Inventory can occasionally paint synchronized high-capacity bag items a frame late immediately after opening. Contents and input remain server-authoritative; the B-key Pack Inventory remains available.
+ - Ready Slots use each item's ordinary fixed-display model. Extremely unusual third-party models may need a client-side transform override.
+ 
+diff --git a/src/client/java/io/github/cmartell22/scoutremastered/client/BagTrinketRenderer.java b/src/client/java/io/github/cmartell22/scoutremastered/client/BagTrinketRenderer.java
+--- a/src/client/java/io/github/cmartell22/scoutremastered/client/BagTrinketRenderer.java
++++ b/src/client/java/io/github/cmartell22/scoutremastered/client/BagTrinketRenderer.java
+@@ -7,7 +7,6 @@
+ import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig;
+ import io.github.cmartell22.scoutremastered.TrinketsIntegration;
+ import com.mojang.blaze3d.vertex.PoseStack;
+-import eu.pb4.trinkets.api.DefaultTrinketSlots;
+ import eu.pb4.trinkets.api.TrinketSlotAccess;
+ import eu.pb4.trinkets.api.client.TrinketRenderer;
+ import net.minecraft.client.Minecraft;
+@@ -23,10 +22,9 @@
+ /**
+  * Client-only third-person renderer for equipped bags.
+  *
+- * <p>The pinned Trinkets data renderer can select a belt slot but cannot branch on its index, so a
+- * small code renderer is used to keep belt index 0 on the wearer's left and index 1 on the right.
+- * Ready Slots replaces the old equipped bag image with a conservative, read-only render of bag-local
+- * slot 0. Body-worn bags intentionally have no first-person arm rendering.</p>
++ * <p>Scout uses dedicated left-hip, right-hip, and lower-back Trinkets slots. Ready Slots replaces
++ * the equipped bag image with a conservative, read-only render of bag-local slot 0. Body-worn bags
++ * intentionally have no first-person arm rendering.</p>
+  */
+ final class BagTrinketRenderer implements TrinketRenderer {
+ 	static final BagTrinketRenderer INSTANCE = new BagTrinketRenderer();
+@@ -86,12 +84,13 @@
+ 	}
+ 
+ 	private static boolean isExpectedEquipmentSlot(BagItem bagItem, TrinketSlotAccess slot) {
++		String slotId = slot.slotType().getId();
+ 		return switch (bagItem.equipmentRole()) {
+ 			case SATCHEL -> slot.index() == TrinketsIntegration.SATCHEL_INDEX
+-				&& DefaultTrinketSlots.CHEST_BACK.equals(slot.slotType().getId());
+-			case POUCH -> (slot.index() == TrinketsIntegration.LEFT_POUCH_INDEX
+-				|| slot.index() == TrinketsIntegration.RIGHT_POUCH_INDEX)
+-				&& DefaultTrinketSlots.LEGS_BELT.equals(slot.slotType().getId());
++				&& TrinketsIntegration.SATCHEL_SLOT.equals(slotId);
++			case POUCH -> slot.index() == 0
++				&& (TrinketsIntegration.LEFT_POUCH_SLOT.equals(slotId)
++					|| TrinketsIntegration.RIGHT_POUCH_SLOT.equals(slotId));
+ 		};
+ 	}
+ 
+@@ -99,7 +98,7 @@
+ 		if (bagItem.equipmentRole() == BagEquipmentRole.SATCHEL) {
+ 			return ReadySlotPresentationConfig.Position.BACK;
+ 		}
+-		return slot.index() == TrinketsIntegration.LEFT_POUCH_INDEX
++		return TrinketsIntegration.LEFT_POUCH_SLOT.equals(slot.slotType().getId())
+ 			? ReadySlotPresentationConfig.Position.LEFT_HIP
+ 			: ReadySlotPresentationConfig.Position.RIGHT_HIP;
+ 	}
+diff --git a/src/main/java/io/github/cmartell22/scoutremastered/TrinketsIntegration.java b/src/main/java/io/github/cmartell22/scoutremastered/TrinketsIntegration.java
+--- a/src/main/java/io/github/cmartell22/scoutremastered/TrinketsIntegration.java
++++ b/src/main/java/io/github/cmartell22/scoutremastered/TrinketsIntegration.java
+@@ -1,7 +1,6 @@
+ package io.github.cmartell22.scoutremastered;
+ 
+ import dev.yumi.commons.TriState;
+-import eu.pb4.trinkets.api.DefaultTrinketSlots;
+ import eu.pb4.trinkets.api.TrinketSlotAccess;
+ import eu.pb4.trinkets.api.TrinketsApi;
+ import eu.pb4.trinkets.api.event.TrinketSlotCompatibilityCallback;
+@@ -16,9 +15,13 @@
+  * Narrow server-side integration boundary for Trinkets Updated.
+  */
+ public final class TrinketsIntegration {
++	public static final String SATCHEL_SLOT = "chest/lower_back";
++	public static final String LEFT_POUCH_SLOT = "legs/left_hip";
++	public static final String RIGHT_POUCH_SLOT = "legs/right_hip";
++
+ 	public static final int SATCHEL_INDEX = 0;
+ 	public static final int LEFT_POUCH_INDEX = 0;
+-	public static final int RIGHT_POUCH_INDEX = 1;
++	public static final int RIGHT_POUCH_INDEX = 0;
+ 
+ 	private TrinketsIntegration() {
+ 	}
+@@ -41,16 +44,16 @@
+ 	public static EquippedBags findEquippedBags(Player player) {
+ 		Objects.requireNonNull(player, "player");
+ 		return new EquippedBags(
+-			capture(player, DefaultTrinketSlots.CHEST_BACK, SATCHEL_INDEX, BagEquipmentRole.SATCHEL),
+-			capture(player, DefaultTrinketSlots.LEGS_BELT, LEFT_POUCH_INDEX, BagEquipmentRole.POUCH),
+-			capture(player, DefaultTrinketSlots.LEGS_BELT, RIGHT_POUCH_INDEX, BagEquipmentRole.POUCH)
++			capture(player, SATCHEL_SLOT, SATCHEL_INDEX, BagEquipmentRole.SATCHEL),
++			capture(player, LEFT_POUCH_SLOT, LEFT_POUCH_INDEX, BagEquipmentRole.POUCH),
++			capture(player, RIGHT_POUCH_SLOT, RIGHT_POUCH_INDEX, BagEquipmentRole.POUCH)
+ 		);
+ 	}
+ 
+ 	static boolean isAllowedSlot(BagEquipmentRole role, String slotId) {
+ 		return switch (role) {
+-			case SATCHEL -> DefaultTrinketSlots.CHEST_BACK.equals(slotId);
+-			case POUCH -> DefaultTrinketSlots.LEGS_BELT.equals(slotId);
++			case SATCHEL -> SATCHEL_SLOT.equals(slotId);
++			case POUCH -> LEFT_POUCH_SLOT.equals(slotId) || RIGHT_POUCH_SLOT.equals(slotId);
+ 		};
+ 	}
+ 
+diff --git a/src/main/resources/assets/scoutremastered/lang/en_us.json b/src/main/resources/assets/scoutremastered/lang/en_us.json
+--- a/src/main/resources/assets/scoutremastered/lang/en_us.json
++++ b/src/main/resources/assets/scoutremastered/lang/en_us.json
+@@ -3,6 +3,9 @@
+   "item.scoutremastered.upgraded_satchel": "Upgraded Satchel",
+   "item.scoutremastered.pouch": "Pouch",
+   "item.scoutremastered.upgraded_pouch": "Upgraded Pouch",
++  "trinkets.slot.chest.lower_back": "Lower Back",
++  "trinkets.slot.legs.left_hip": "Left Hip",
++  "trinkets.slot.legs.right_hip": "Right Hip",
+   "container.scoutremastered.pack": "Pack Inventory",
+   "container.scoutremastered.satchel": "Satchel",
+   "container.scoutremastered.left_pouch": "Left Pouch",
+diff --git a/src/main/resources/data/trinkets/entities/scoutremastered.json b/src/main/resources/data/trinkets/entities/scoutremastered.json
+--- a/src/main/resources/data/trinkets/entities/scoutremastered.json
++++ b/src/main/resources/data/trinkets/entities/scoutremastered.json
+@@ -3,7 +3,8 @@
+     "minecraft:player"
+   ],
+   "slots": [
+-    "chest/back",
+-    "legs/belt"
++    "chest/lower_back",
++    "legs/left_hip",
++    "legs/right_hip"
+   ]
+ }
+diff --git a/src/main/resources/data/trinkets/slots/chest/lower_back.json b/src/main/resources/data/trinkets/slots/chest/lower_back.json
+new file mode 100644
+--- /dev/null
++++ b/src/main/resources/data/trinkets/slots/chest/lower_back.json
+@@ -0,0 +1,8 @@
++{
++  "amount": 1,
++  "icon": "trinkets:container/slots/back",
++  "order": -511,
++  "validator_predicates": [
++    "trinkets:default"
++  ]
++}
+diff --git a/src/main/resources/data/trinkets/slots/legs/belt.json b/src/main/resources/data/trinkets/slots/legs/belt.json
+deleted file mode 100644
+--- a/src/main/resources/data/trinkets/slots/legs/belt.json
++++ /dev/null
+@@ -1,3 +0,0 @@
+-{
+-  "amount": 2
+-}
+diff --git a/src/main/resources/data/trinkets/slots/legs/left_hip.json b/src/main/resources/data/trinkets/slots/legs/left_hip.json
+new file mode 100644
+--- /dev/null
++++ b/src/main/resources/data/trinkets/slots/legs/left_hip.json
+@@ -0,0 +1,8 @@
++{
++  "amount": 1,
++  "icon": "trinkets:container/slots/belt",
++  "order": -1023,
++  "validator_predicates": [
++    "trinkets:default"
++  ]
++}
+diff --git a/src/main/resources/data/trinkets/slots/legs/right_hip.json b/src/main/resources/data/trinkets/slots/legs/right_hip.json
+new file mode 100644
+--- /dev/null
++++ b/src/main/resources/data/trinkets/slots/legs/right_hip.json
+@@ -0,0 +1,8 @@
++{
++  "amount": 1,
++  "icon": "trinkets:container/slots/belt",
++  "order": -1022,
++  "validator_predicates": [
++    "trinkets:default"
++  ]
++}
+diff --git a/src/main/resources/data/trinkets/tags/item/chest/back.json b/src/main/resources/data/trinkets/tags/item/chest/back.json
+deleted file mode 100644
+--- a/src/main/resources/data/trinkets/tags/item/chest/back.json
++++ /dev/null
+@@ -1,7 +0,0 @@
+-{
+-  "replace": false,
+-  "values": [
+-    "scoutremastered:satchel",
+-    "scoutremastered:upgraded_satchel"
+-  ]
+-}
+diff --git a/src/main/resources/data/trinkets/tags/item/chest/lower_back.json b/src/main/resources/data/trinkets/tags/item/chest/lower_back.json
+new file mode 100644
+--- /dev/null
++++ b/src/main/resources/data/trinkets/tags/item/chest/lower_back.json
+@@ -0,0 +1,7 @@
++{
++  "replace": false,
++  "values": [
++    "scoutremastered:satchel",
++    "scoutremastered:upgraded_satchel"
++  ]
++}
+diff --git a/src/main/resources/data/trinkets/tags/item/legs/belt.json b/src/main/resources/data/trinkets/tags/item/legs/belt.json
+deleted file mode 100644
+--- a/src/main/resources/data/trinkets/tags/item/legs/belt.json
++++ /dev/null
+@@ -1,7 +0,0 @@
+-{
+-  "replace": false,
+-  "values": [
+-    "scoutremastered:pouch",
+-    "scoutremastered:upgraded_pouch"
+-  ]
+-}
+diff --git a/src/main/resources/data/trinkets/tags/item/legs/left_hip.json b/src/main/resources/data/trinkets/tags/item/legs/left_hip.json
+new file mode 100644
+--- /dev/null
++++ b/src/main/resources/data/trinkets/tags/item/legs/left_hip.json
+@@ -0,0 +1,7 @@
++{
++  "replace": false,
++  "values": [
++    "scoutremastered:pouch",
++    "scoutremastered:upgraded_pouch"
++  ]
++}
+diff --git a/src/main/resources/data/trinkets/tags/item/legs/right_hip.json b/src/main/resources/data/trinkets/tags/item/legs/right_hip.json
+new file mode 100644
+--- /dev/null
++++ b/src/main/resources/data/trinkets/tags/item/legs/right_hip.json
+@@ -0,0 +1,7 @@
++{
++  "replace": false,
++  "values": [
++    "scoutremastered:pouch",
++    "scoutremastered:upgraded_pouch"
++  ]
++}
+diff --git a/src/test/java/io/github/cmartell22/scoutremastered/TrinketsIntegrationTest.java b/src/test/java/io/github/cmartell22/scoutremastered/TrinketsIntegrationTest.java
+--- a/src/test/java/io/github/cmartell22/scoutremastered/TrinketsIntegrationTest.java
++++ b/src/test/java/io/github/cmartell22/scoutremastered/TrinketsIntegrationTest.java
+@@ -2,7 +2,6 @@
+ 
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonParser;
+-import eu.pb4.trinkets.api.DefaultTrinketSlots;
+ import java.io.IOException;
+ import java.io.InputStreamReader;
+ import java.nio.charset.StandardCharsets;
+@@ -27,16 +26,20 @@
+ 	}
+ 
+ 	@Test
+-	void bagRolesMapOnlyToTheirIntendedTrinketsSlots() {
++	void bagRolesMapOnlyToTheirDedicatedScoutSlots() {
+ 		assertEquals(BagEquipmentRole.SATCHEL, ModItems.SATCHEL.equipmentRole());
+ 		assertEquals(BagEquipmentRole.SATCHEL, ModItems.UPGRADED_SATCHEL.equipmentRole());
+ 		assertEquals(BagEquipmentRole.POUCH, ModItems.POUCH.equipmentRole());
+ 		assertEquals(BagEquipmentRole.POUCH, ModItems.UPGRADED_POUCH.equipmentRole());
+ 
+-		assertTrue(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.SATCHEL, DefaultTrinketSlots.CHEST_BACK));
+-		assertFalse(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.SATCHEL, DefaultTrinketSlots.LEGS_BELT));
+-		assertTrue(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.POUCH, DefaultTrinketSlots.LEGS_BELT));
+-		assertFalse(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.POUCH, DefaultTrinketSlots.CHEST_BACK));
++		assertTrue(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT));
++		assertFalse(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.SATCHEL, TrinketsIntegration.LEFT_POUCH_SLOT));
++		assertFalse(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.SATCHEL, "chest/back"));
++
++		assertTrue(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.POUCH, TrinketsIntegration.LEFT_POUCH_SLOT));
++		assertTrue(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_SLOT));
++		assertFalse(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.POUCH, TrinketsIntegration.SATCHEL_SLOT));
++		assertFalse(TrinketsIntegration.isAllowedSlot(BagEquipmentRole.POUCH, "legs/belt"));
+ 	}
+ 
+ 	@Test
+@@ -47,7 +50,7 @@
+ 		AtomicReference<ItemStack> liveSlot = new AtomicReference<>(original);
+ 
+ 		EquippedBagHandle handle = EquippedBagHandle.capture(
+-			DefaultTrinketSlots.CHEST_BACK,
++			TrinketsIntegration.SATCHEL_SLOT,
+ 			TrinketsIntegration.SATCHEL_INDEX,
+ 			BagEquipmentRole.SATCHEL,
+ 			liveSlot::get
+@@ -56,7 +59,7 @@
+ 		assertTrue(handle.isValid());
+ 		assertSame(original, handle.resolve().orElseThrow());
+ 		assertTrue(EquippedBagHandle.capture(
+-			DefaultTrinketSlots.CHEST_BACK,
++			TrinketsIntegration.SATCHEL_SLOT,
+ 			TrinketsIntegration.SATCHEL_INDEX,
+ 			BagEquipmentRole.POUCH,
+ 			liveSlot::get
+@@ -76,19 +79,19 @@
+ 	void equippedBagOrderingIsSatchelThenLeftThenRight() {
+ 		EquippedBagHandle satchel = capture(
+ 			new ItemStack(ModItems.SATCHEL),
+-			DefaultTrinketSlots.CHEST_BACK,
++			TrinketsIntegration.SATCHEL_SLOT,
+ 			TrinketsIntegration.SATCHEL_INDEX,
+ 			BagEquipmentRole.SATCHEL
+ 		);
+ 		EquippedBagHandle left = capture(
+ 			new ItemStack(ModItems.POUCH),
+-			DefaultTrinketSlots.LEGS_BELT,
++			TrinketsIntegration.LEFT_POUCH_SLOT,
+ 			TrinketsIntegration.LEFT_POUCH_INDEX,
+ 			BagEquipmentRole.POUCH
+ 		);
+ 		EquippedBagHandle right = capture(
+ 			new ItemStack(ModItems.UPGRADED_POUCH),
+-			DefaultTrinketSlots.LEGS_BELT,
++			TrinketsIntegration.RIGHT_POUCH_SLOT,
+ 			TrinketsIntegration.RIGHT_POUCH_INDEX,
+ 			BagEquipmentRole.POUCH
+ 		);
+@@ -99,27 +102,46 @@
+ 			java.util.Optional.of(right)
+ 		);
+ 		assertEquals(List.of(satchel, left, right), bags.inStableOrder());
++		assertEquals(TrinketsIntegration.LEFT_POUCH_SLOT, bags.leftPouch().orElseThrow().slotId());
++		assertEquals(TrinketsIntegration.RIGHT_POUCH_SLOT, bags.rightPouch().orElseThrow().slotId());
+ 		assertEquals(0, bags.leftPouch().orElseThrow().slotIndex());
+-		assertEquals(1, bags.rightPouch().orElseThrow().slotIndex());
++		assertEquals(0, bags.rightPouch().orElseThrow().slotIndex());
+ 	}
+ 
+ 	@Test
+-	void packagedDataRequestsBackAndTwoBeltSlotsWithCorrectItemTags() throws IOException {
++	void packagedDataRequestsDedicatedScoutSlotsWithCorrectItemTags() throws IOException {
+ 		assertTrue(readJsonResources("data/trinkets/entities/scoutremastered.json").stream().anyMatch(entities ->
+ 			List.of("minecraft:player").equals(strings(entities, "entities"))
+-				&& Set.of("chest/back", "legs/belt").equals(Set.copyOf(strings(entities, "slots")))
++				&& Set.of(
++					TrinketsIntegration.SATCHEL_SLOT,
++					TrinketsIntegration.LEFT_POUCH_SLOT,
++					TrinketsIntegration.RIGHT_POUCH_SLOT
++				).equals(Set.copyOf(strings(entities, "slots")))
+ 		));
+ 
+-		assertTrue(readJsonResources("data/trinkets/slots/legs/belt.json").stream().anyMatch(slot ->
+-			slot.has("amount") && slot.get("amount").getAsInt() == 2
+-		));
++		assertDedicatedSlot("data/trinkets/slots/chest/lower_back.json", "trinkets:container/slots/back");
++		assertDedicatedSlot("data/trinkets/slots/legs/left_hip.json", "trinkets:container/slots/belt");
++		assertDedicatedSlot("data/trinkets/slots/legs/right_hip.json", "trinkets:container/slots/belt");
+ 
+-		assertTrue(readJsonResources("data/trinkets/tags/item/chest/back.json").stream().anyMatch(tag ->
++		assertTrue(readJsonResources("data/trinkets/tags/item/chest/lower_back.json").stream().anyMatch(tag ->
+ 			Set.of("scoutremastered:satchel", "scoutremastered:upgraded_satchel").equals(Set.copyOf(strings(tag, "values")))
+ 		));
+ 
+-		assertTrue(readJsonResources("data/trinkets/tags/item/legs/belt.json").stream().anyMatch(tag ->
+-			Set.of("scoutremastered:pouch", "scoutremastered:upgraded_pouch").equals(Set.copyOf(strings(tag, "values")))
++		Set<String> pouchItems = Set.of("scoutremastered:pouch", "scoutremastered:upgraded_pouch");
++		assertTrue(readJsonResources("data/trinkets/tags/item/legs/left_hip.json").stream().anyMatch(tag ->
++			pouchItems.equals(Set.copyOf(strings(tag, "values")))
++		));
++		assertTrue(readJsonResources("data/trinkets/tags/item/legs/right_hip.json").stream().anyMatch(tag ->
++			pouchItems.equals(Set.copyOf(strings(tag, "values")))
++		));
++	}
++
++	private static void assertDedicatedSlot(String path, String icon) throws IOException {
++		assertTrue(readJsonResources(path).stream().anyMatch(slot ->
++			slot.has("amount")
++				&& slot.get("amount").getAsInt() == 1
++				&& slot.has("icon")
++				&& icon.equals(slot.get("icon").getAsString())
+ 		));
+ 	}
+ 
