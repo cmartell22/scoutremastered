@@ -4,6 +4,8 @@ All notable changes to Scout Remastered are documented here.
 
 ## Unreleased
 
+- Moved Scout bags off shared Trinkets slots: satchels now use `chest/lower_back`, and pouches use dedicated `legs/left_hip` and `legs/right_hip` slots.
+- Restored the generic `chest/back` and `legs/belt` slots for other mods instead of reserving or expanding them for Scout bags.
 - Added bounded client-side Ready Slots presentation configuration with deterministic position, category, and exact-item transform overrides.
 - Added configurable render-category gating plus exact-item whitelist and blacklist rules.
 - Invalid external configuration now falls back as a whole to the bundled tested baseline without altering the bad file or any server-authoritative bag state.

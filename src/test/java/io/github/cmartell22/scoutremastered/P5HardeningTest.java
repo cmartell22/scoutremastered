@@ -1,6 +1,6 @@
 package io.github.cmartell22.scoutremastered;
 
-import eu.pb4.trinkets.api.DefaultTrinketSlots;
+
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import net.minecraft.core.component.DataComponents;
@@ -28,7 +28,7 @@ final class P5HardeningTest {
 		ItemStack original = new ItemStack(ModItems.SATCHEL);
 		new BagContainer(original).setItem(0, new ItemStack(Items.DIAMOND, 7));
 		AtomicReference<ItemStack> liveSlot = new AtomicReference<>(original);
-		EquippedBagHandle oldHandle = capture(liveSlot, BagEquipmentRole.SATCHEL, 0);
+		EquippedBagHandle oldHandle = captureSatchel(liveSlot);
 		BagContainer oldContainer = new BagContainer(oldHandle);
 		PackMenu oldMenu = serverMenu(oldHandle);
 
@@ -41,7 +41,7 @@ final class P5HardeningTest {
 		assertEquals(7, original.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
 		assertEquals(7, rebuilt.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
 
-		EquippedBagHandle rebuiltHandle = capture(liveSlot, BagEquipmentRole.SATCHEL, 0);
+		EquippedBagHandle rebuiltHandle = captureSatchel(liveSlot);
 		assertEquals(2, new BagContainer(rebuiltHandle).removeItem(0, 2).getCount());
 		assertEquals(7, original.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
 		assertEquals(5, rebuilt.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
@@ -53,8 +53,8 @@ final class P5HardeningTest {
 		ItemStack secondBag = new ItemStack(ModItems.SATCHEL);
 		AtomicReference<ItemStack> firstSlot = new AtomicReference<>(firstBag);
 		AtomicReference<ItemStack> secondSlot = new AtomicReference<>(secondBag);
-		EquippedBagHandle firstHandle = capture(firstSlot, BagEquipmentRole.SATCHEL, 0);
-		EquippedBagHandle secondHandle = capture(secondSlot, BagEquipmentRole.SATCHEL, 0);
+		EquippedBagHandle firstHandle = captureSatchel(firstSlot);
+		EquippedBagHandle secondHandle = captureSatchel(secondSlot);
 		PackMenu firstMenu = serverMenu(firstHandle);
 		PackMenu secondMenu = serverMenu(secondHandle);
 
@@ -75,7 +75,7 @@ final class P5HardeningTest {
 		ItemStack bag = new ItemStack(ModItems.SATCHEL);
 		new BagContainer(bag).setItem(0, new ItemStack(Items.DIAMOND, 5));
 		AtomicReference<ItemStack> liveSlot = new AtomicReference<>(bag);
-		PackMenu menu = serverMenu(capture(liveSlot, BagEquipmentRole.SATCHEL, 0));
+		PackMenu menu = serverMenu(captureSatchel(liveSlot));
 
 		assertEquals(1, menu.getSlot(0).safeTake(1, Integer.MAX_VALUE, null).getCount());
 		assertEquals(4, bag.get(ModDataComponents.BAG_CONTENTS).getStack(0).getCount());
@@ -130,14 +130,12 @@ final class P5HardeningTest {
 		);
 	}
 
-	private static EquippedBagHandle capture(
-		AtomicReference<ItemStack> liveSlot,
-		BagEquipmentRole role,
-		int slotIndex
-	) {
-		String slotId = role == BagEquipmentRole.SATCHEL
-			? DefaultTrinketSlots.CHEST_BACK
-			: DefaultTrinketSlots.LEGS_BELT;
-		return EquippedBagHandle.capture(slotId, slotIndex, role, liveSlot::get).orElseThrow();
+	private static EquippedBagHandle captureSatchel(AtomicReference<ItemStack> liveSlot) {
+		return EquippedBagHandle.capture(
+			TrinketsIntegration.SATCHEL_SLOT,
+			TrinketsIntegration.SATCHEL_INDEX,
+			BagEquipmentRole.SATCHEL,
+			liveSlot::get
+		).orElseThrow();
 	}
 }

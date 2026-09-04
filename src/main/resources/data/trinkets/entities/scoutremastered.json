@@ -3,7 +3,8 @@
     "minecraft:player"
   ],
   "slots": [
-    "chest/back",
-    "legs/belt"
+    "chest/lower_back",
+    "legs/left_hip",
+    "legs/right_hip"
   ]
 }

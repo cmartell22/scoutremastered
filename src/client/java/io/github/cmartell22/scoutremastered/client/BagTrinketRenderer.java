@@ -7,7 +7,6 @@ import io.github.cmartell22.scoutremastered.ModDataComponents;
 import io.github.cmartell22.scoutremastered.ReadySlotPresentationConfig;
 import io.github.cmartell22.scoutremastered.TrinketsIntegration;
 import com.mojang.blaze3d.vertex.PoseStack;
-import eu.pb4.trinkets.api.DefaultTrinketSlots;
 import eu.pb4.trinkets.api.TrinketSlotAccess;
 import eu.pb4.trinkets.api.client.TrinketRenderer;
 import net.minecraft.client.Minecraft;
@@ -23,10 +22,9 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Client-only third-person renderer for equipped bags.
  *
- * <p>The pinned Trinkets data renderer can select a belt slot but cannot branch on its index, so a
- * small code renderer is used to keep belt index 0 on the wearer's left and index 1 on the right.
- * Ready Slots replaces the old equipped bag image with a conservative, read-only render of bag-local
- * slot 0. Body-worn bags intentionally have no first-person arm rendering.</p>
+ * <p>Scout uses dedicated left-hip, right-hip, and lower-back Trinkets slots. Ready Slots replaces
+ * the equipped bag image with a conservative, read-only render of bag-local slot 0. Body-worn bags
+ * intentionally have no first-person arm rendering.</p>
  */
 final class BagTrinketRenderer implements TrinketRenderer {
 	static final BagTrinketRenderer INSTANCE = new BagTrinketRenderer();
@@ -86,12 +84,13 @@ final class BagTrinketRenderer implements TrinketRenderer {
 	}
 
 	private static boolean isExpectedEquipmentSlot(BagItem bagItem, TrinketSlotAccess slot) {
+		String slotId = slot.slotType().getId();
 		return switch (bagItem.equipmentRole()) {
 			case SATCHEL -> slot.index() == TrinketsIntegration.SATCHEL_INDEX
-				&& DefaultTrinketSlots.CHEST_BACK.equals(slot.slotType().getId());
-			case POUCH -> (slot.index() == TrinketsIntegration.LEFT_POUCH_INDEX
-				|| slot.index() == TrinketsIntegration.RIGHT_POUCH_INDEX)
-				&& DefaultTrinketSlots.LEGS_BELT.equals(slot.slotType().getId());
+				&& TrinketsIntegration.SATCHEL_SLOT.equals(slotId);
+			case POUCH -> slot.index() == 0
+				&& (TrinketsIntegration.LEFT_POUCH_SLOT.equals(slotId)
+					|| TrinketsIntegration.RIGHT_POUCH_SLOT.equals(slotId));
 		};
 	}
 
@@ -99,7 +98,7 @@ final class BagTrinketRenderer implements TrinketRenderer {
 		if (bagItem.equipmentRole() == BagEquipmentRole.SATCHEL) {
 			return ReadySlotPresentationConfig.Position.BACK;
 		}
-		return slot.index() == TrinketsIntegration.LEFT_POUCH_INDEX
+		return TrinketsIntegration.LEFT_POUCH_SLOT.equals(slot.slotType().getId())
 			? ReadySlotPresentationConfig.Position.LEFT_HIP
 			: ReadySlotPresentationConfig.Position.RIGHT_HIP;
 	}

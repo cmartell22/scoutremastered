@@ -1,6 +1,6 @@
 package io.github.cmartell22.scoutremastered;
 
-import eu.pb4.trinkets.api.DefaultTrinketSlots;
+
 import io.netty.buffer.Unpooled;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,9 +24,9 @@ final class PackMenuTest {
 
 	@Test
 	void openingDataUsesStableRoleOrderAndRoundTrips() {
-		EquippedBagHandle satchel = capture(new AtomicReference<>(new ItemStack(ModItems.UPGRADED_SATCHEL)), BagEquipmentRole.SATCHEL, 0);
-		EquippedBagHandle left = capture(new AtomicReference<>(new ItemStack(ModItems.POUCH)), BagEquipmentRole.POUCH, 0);
-		EquippedBagHandle right = capture(new AtomicReference<>(new ItemStack(ModItems.UPGRADED_POUCH)), BagEquipmentRole.POUCH, 1);
+		EquippedBagHandle satchel = capture(new AtomicReference<>(new ItemStack(ModItems.UPGRADED_SATCHEL)), BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT, TrinketsIntegration.SATCHEL_INDEX);
+		EquippedBagHandle left = capture(new AtomicReference<>(new ItemStack(ModItems.POUCH)), BagEquipmentRole.POUCH, TrinketsIntegration.LEFT_POUCH_SLOT, TrinketsIntegration.LEFT_POUCH_INDEX);
+		EquippedBagHandle right = capture(new AtomicReference<>(new ItemStack(ModItems.UPGRADED_POUCH)), BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_SLOT, TrinketsIntegration.RIGHT_POUCH_INDEX);
 		PackMenuData data = PackMenuData.from(new TrinketsIntegration.EquippedBags(
 			Optional.of(satchel),
 			Optional.of(left),
@@ -112,7 +112,7 @@ final class PackMenuTest {
 	void staleHandleGuardsEveryBagContainerMutationAndInvalidatesServerMenu() {
 		ItemStack original = new ItemStack(ModItems.SATCHEL);
 		AtomicReference<ItemStack> liveSlot = new AtomicReference<>(original);
-		EquippedBagHandle handle = capture(liveSlot, BagEquipmentRole.SATCHEL, 0);
+		EquippedBagHandle handle = capture(liveSlot, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT, TrinketsIntegration.SATCHEL_INDEX);
 		BagContainer container = new BagContainer(handle);
 		container.setItem(0, new ItemStack(Items.EMERALD, 7));
 		TrinketsIntegration.EquippedBags bags = new TrinketsIntegration.EquippedBags(
@@ -152,11 +152,9 @@ final class PackMenuTest {
 	private static EquippedBagHandle capture(
 		AtomicReference<ItemStack> liveSlot,
 		BagEquipmentRole role,
+		String slotId,
 		int slotIndex
 	) {
-		String slotId = role == BagEquipmentRole.SATCHEL
-			? DefaultTrinketSlots.CHEST_BACK
-			: DefaultTrinketSlots.LEGS_BELT;
 		return EquippedBagHandle.capture(slotId, slotIndex, role, liveSlot::get).orElseThrow();
 	}
 }

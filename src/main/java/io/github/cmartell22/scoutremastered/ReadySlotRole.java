@@ -1,13 +1,12 @@
 package io.github.cmartell22.scoutremastered;
 
-import eu.pb4.trinkets.api.DefaultTrinketSlots;
 import java.util.Optional;
 
 /** Stable gameplay roles for the three bag-local ready slots. */
 public enum ReadySlotRole {
-	LEFT_POUCH(0, BagEquipmentRole.POUCH, DefaultTrinketSlots.LEGS_BELT, TrinketsIntegration.LEFT_POUCH_INDEX),
-	RIGHT_POUCH(1, BagEquipmentRole.POUCH, DefaultTrinketSlots.LEGS_BELT, TrinketsIntegration.RIGHT_POUCH_INDEX),
-	SATCHEL(2, BagEquipmentRole.SATCHEL, DefaultTrinketSlots.CHEST_BACK, TrinketsIntegration.SATCHEL_INDEX);
+	LEFT_POUCH(0, BagEquipmentRole.POUCH, TrinketsIntegration.LEFT_POUCH_SLOT, TrinketsIntegration.LEFT_POUCH_INDEX),
+	RIGHT_POUCH(1, BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_SLOT, TrinketsIntegration.RIGHT_POUCH_INDEX),
+	SATCHEL(2, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT, TrinketsIntegration.SATCHEL_INDEX);
 
 	private final int networkId;
 	private final BagEquipmentRole equipmentRole;

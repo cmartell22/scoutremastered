@@ -1,6 +1,6 @@
 package io.github.cmartell22.scoutremastered;
 
-import eu.pb4.trinkets.api.DefaultTrinketSlots;
+
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,7 +69,7 @@ final class ReadySlotSwapServiceTest {
 		};
 		inventory.setSelectedSlot(2);
 		inventory.setSelectedItem(hand);
-		EquippedBagHandle handle = capture(satchel, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_INDEX);
+		EquippedBagHandle handle = capture(satchel, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT, TrinketsIntegration.SATCHEL_INDEX);
 		TrinketsIntegration.EquippedBags bags = new TrinketsIntegration.EquippedBags(
 			Optional.of(handle), Optional.empty(), Optional.empty()
 		);
@@ -215,7 +215,7 @@ final class ReadySlotSwapServiceTest {
 	}
 
 	@Test
-	void wrongRoleOrWrongPouchIndexIsRejectedWithZeroMutation() {
+	void wrongRoleOrWrongPouchSlotIsRejectedWithZeroMutation() {
 		Fixture fixture = fixture(
 			new ItemStack(Items.DIAMOND),
 			new ItemStack(Items.GOLD_INGOT, 2),
@@ -288,7 +288,7 @@ final class ReadySlotSwapServiceTest {
 		ItemStack hand = componentRichSword();
 		inventory.setSelectedItem(hand);
 		AtomicReference<ItemStack> satchel = new AtomicReference<>(bag(ModItems.SATCHEL, new ItemStack(Items.DIAMOND, 19)));
-		EquippedBagHandle handle = capture(satchel, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_INDEX);
+		EquippedBagHandle handle = capture(satchel, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT, TrinketsIntegration.SATCHEL_INDEX);
 		TrinketsIntegration.EquippedBags bags = new TrinketsIntegration.EquippedBags(
 			Optional.of(handle), Optional.empty(), Optional.empty()
 		);
@@ -361,9 +361,9 @@ final class ReadySlotSwapServiceTest {
 		AtomicReference<ItemStack> left = new AtomicReference<>(bag(ModItems.UPGRADED_POUCH, leftReady));
 		AtomicReference<ItemStack> right = new AtomicReference<>(bag(ModItems.UPGRADED_POUCH, rightReady));
 		TrinketsIntegration.EquippedBags bags = new TrinketsIntegration.EquippedBags(
-			Optional.of(capture(satchel, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_INDEX)),
-			Optional.of(capture(left, BagEquipmentRole.POUCH, TrinketsIntegration.LEFT_POUCH_INDEX)),
-			Optional.of(capture(right, BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_INDEX))
+			Optional.of(capture(satchel, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT, TrinketsIntegration.SATCHEL_INDEX)),
+			Optional.of(capture(left, BagEquipmentRole.POUCH, TrinketsIntegration.LEFT_POUCH_SLOT, TrinketsIntegration.LEFT_POUCH_INDEX)),
+			Optional.of(capture(right, BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_SLOT, TrinketsIntegration.RIGHT_POUCH_INDEX))
 		);
 		return new Fixture(inventory, satchel, left, right, bags, new AtomicInteger());
 	}
@@ -379,11 +379,9 @@ final class ReadySlotSwapServiceTest {
 	private static EquippedBagHandle capture(
 		AtomicReference<ItemStack> liveSlot,
 		BagEquipmentRole role,
+		String slotId,
 		int index
 	) {
-		String slotId = role == BagEquipmentRole.SATCHEL
-			? DefaultTrinketSlots.CHEST_BACK
-			: DefaultTrinketSlots.LEGS_BELT;
 		return EquippedBagHandle.capture(slotId, index, role, liveSlot::get).orElseThrow();
 	}
 
