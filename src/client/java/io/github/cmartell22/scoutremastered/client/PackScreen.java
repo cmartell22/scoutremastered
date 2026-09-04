@@ -42,6 +42,22 @@ public final class PackScreen extends AbstractContainerScreen<PackMenu> {
 			graphics.fill(slotX + 1, slotY + 1, slotX + 17, slotY + 2, SLOT_HIGHLIGHT);
 			graphics.fill(slotX + 1, slotY + 1, slotX + 2, slotY + 17, SLOT_HIGHLIGHT);
 		}
+
+		drawReadySlotMarkers(graphics, x, y);
+	}
+
+	private void drawReadySlotMarkers(GuiGraphicsExtractor graphics, int x, int y) {
+		PackMenuData data = this.menu.data();
+		PackMenuLayout layout = this.menu.layout();
+		if (data.satchelCapacity() > 0) {
+			ReadySlotMarker.render(graphics, x + layout.satchelSlotX(0), y + layout.satchelSlotY(0));
+		}
+		if (data.leftPouchCapacity() > 0) {
+			ReadySlotMarker.render(graphics, x + layout.leftPouchSlotX(0), y + layout.pouchSlotY(0));
+		}
+		if (data.rightPouchCapacity() > 0) {
+			ReadySlotMarker.render(graphics, x + layout.rightPouchSlotX(0), y + layout.pouchSlotY(0));
+		}
 	}
 
 	@Override

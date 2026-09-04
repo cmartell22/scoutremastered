@@ -193,6 +193,7 @@ public final class IntegratedBagContainer implements Container {
 	private boolean accepts(EquippedBagHandle candidate) {
 		return candidate != null
 			&& candidate.equipmentRole() == this.role.equipmentRole()
+			&& candidate.slotId().equals(this.role.slotId())
 			&& candidate.slotIndex() == this.role.equipmentIndex()
 			&& candidate.resolve()
 				.filter(stack -> stack.getItem() instanceof BagItem bagItem

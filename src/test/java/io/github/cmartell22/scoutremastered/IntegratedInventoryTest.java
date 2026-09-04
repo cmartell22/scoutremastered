@@ -1,6 +1,6 @@
 package io.github.cmartell22.scoutremastered;
 
-import eu.pb4.trinkets.api.DefaultTrinketSlots;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import io.netty.buffer.Unpooled;
@@ -210,9 +210,6 @@ final class IntegratedInventoryTest {
 	}
 
 	private static EquippedBagHandle capture(AtomicReference<ItemStack> live, IntegratedInventoryRole role) {
-		String slotId = role == IntegratedInventoryRole.SATCHEL
-			? DefaultTrinketSlots.CHEST_BACK
-			: DefaultTrinketSlots.LEGS_BELT;
-		return EquippedBagHandle.capture(slotId, role.equipmentIndex(), role.equipmentRole(), live::get).orElseThrow();
+		return EquippedBagHandle.capture(role.slotId(), role.equipmentIndex(), role.equipmentRole(), live::get).orElseThrow();
 	}
 }

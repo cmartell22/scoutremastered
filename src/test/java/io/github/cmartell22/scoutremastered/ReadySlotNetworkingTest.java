@@ -1,6 +1,6 @@
 package io.github.cmartell22.scoutremastered;
 
-import eu.pb4.trinkets.api.DefaultTrinketSlots;
+
 import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.lang.reflect.RecordComponent;
@@ -190,8 +190,8 @@ final class ReadySlotNetworkingTest {
 
 		Fixture wrongRole = fixture();
 		TrinketsIntegration.EquippedBags rightHandleInLeftRole = new TrinketsIntegration.EquippedBags(
-			Optional.of(capture(wrongRole.satchel(), BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_INDEX)),
-			Optional.of(capture(wrongRole.right(), BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_INDEX)),
+			Optional.of(capture(wrongRole.satchel(), BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT, TrinketsIntegration.SATCHEL_INDEX)),
+			Optional.of(capture(wrongRole.right(), BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_SLOT, TrinketsIntegration.RIGHT_POUCH_INDEX)),
 			Optional.empty()
 		);
 		assertEquals(
@@ -323,9 +323,9 @@ final class ReadySlotNetworkingTest {
 		AtomicReference<ItemStack> left = new AtomicReference<>(bag(ModItems.UPGRADED_POUCH, new ItemStack(Items.EMERALD, 3)));
 		AtomicReference<ItemStack> right = new AtomicReference<>(bag(ModItems.UPGRADED_POUCH, new ItemStack(Items.APPLE, 4)));
 		TrinketsIntegration.EquippedBags bags = new TrinketsIntegration.EquippedBags(
-			Optional.of(capture(satchel, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_INDEX)),
-			Optional.of(capture(left, BagEquipmentRole.POUCH, TrinketsIntegration.LEFT_POUCH_INDEX)),
-			Optional.of(capture(right, BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_INDEX))
+			Optional.of(capture(satchel, BagEquipmentRole.SATCHEL, TrinketsIntegration.SATCHEL_SLOT, TrinketsIntegration.SATCHEL_INDEX)),
+			Optional.of(capture(left, BagEquipmentRole.POUCH, TrinketsIntegration.LEFT_POUCH_SLOT, TrinketsIntegration.LEFT_POUCH_INDEX)),
+			Optional.of(capture(right, BagEquipmentRole.POUCH, TrinketsIntegration.RIGHT_POUCH_SLOT, TrinketsIntegration.RIGHT_POUCH_INDEX))
 		);
 		return new Fixture(inventory, satchel, left, right, bags, new AtomicInteger());
 	}
@@ -339,11 +339,9 @@ final class ReadySlotNetworkingTest {
 	private static EquippedBagHandle capture(
 		AtomicReference<ItemStack> slot,
 		BagEquipmentRole role,
+		String slotId,
 		int index
 	) {
-		String slotId = role == BagEquipmentRole.SATCHEL
-			? DefaultTrinketSlots.CHEST_BACK
-			: DefaultTrinketSlots.LEGS_BELT;
 		return EquippedBagHandle.capture(slotId, index, role, slot::get).orElseThrow();
 	}
 

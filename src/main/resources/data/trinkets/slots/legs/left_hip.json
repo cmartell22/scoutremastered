@@ -1,0 +1,8 @@
+{
+  "amount": 1,
+  "icon": "trinkets:container/slots/belt",
+  "order": -1023,
+  "validator_predicates": [
+    "trinkets:default"
+  ]
+}

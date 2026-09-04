@@ -22,8 +22,9 @@ Install Scout Remastered, Fabric API, and Trinkets Updated on both the client an
 
 ## Using bags
 
-- Equip a satchel in Trinkets Updated's `chest/back` slot.
-- Equip up to two pouches in the `legs/belt` slot. Belt index 0 is left and index 1 is right.
+- Equip a satchel in Scout Remastered's dedicated `chest/lower_back` Trinkets slot.
+- Equip pouches in the dedicated `legs/left_hip` and `legs/right_hip` Trinkets slots.
+- Trinkets Updated's shared `chest/back` and `legs/belt` slots remain available for items from other mods.
 - Press `B` to open the Pack Inventory. The key is configurable through Minecraft's Controls menu.
 - The Pack Inventory shows satchel, left pouch, right pouch, player inventory, then hotbar. Player shift-clicking merges/fills bags in that same role order; bag shift-clicking fills the player inventory before the hotbar.
 - Bags cannot be stored inside bags. This is enforced for clicks, drag actions, quick-move, number-key/offhand swaps, and double-click collection.
@@ -51,6 +52,7 @@ Invalid or out-of-range external configuration falls back to the complete bundle
 
 - Scout Remastered targets Fabric only; Forge and NeoForge are not supported.
 - There is no migration from the temporary pre-release `scout26` namespace or from historical Scout/Scout-Recrafted data. Do not use the release candidate to upgrade worlds that contain those development-only bags without a backup.
+- When upgrading from `1.0.0-rc.1`, unequip Scout bags before replacing the mod. RC1 used the shared `chest/back` slot and expanded `legs/belt` to two entries; the dedicated-slot update returns those generic Trinkets slots to their normal ownership and capacity.
 - The optional Integrated Inventory can occasionally paint synchronized high-capacity bag items a frame late immediately after opening. Contents and input remain server-authoritative; the B-key Pack Inventory remains available.
 - Ready Slots use each item's ordinary fixed-display model. Extremely unusual third-party models may need a client-side transform override.
 

@@ -1,7 +1,6 @@
 package io.github.cmartell22.scoutremastered;
 
 import dev.yumi.commons.TriState;
-import eu.pb4.trinkets.api.DefaultTrinketSlots;
 import eu.pb4.trinkets.api.TrinketSlotAccess;
 import eu.pb4.trinkets.api.TrinketsApi;
 import eu.pb4.trinkets.api.event.TrinketSlotCompatibilityCallback;
@@ -16,9 +15,13 @@ import net.minecraft.world.item.ItemStack;
  * Narrow server-side integration boundary for Trinkets Updated.
  */
 public final class TrinketsIntegration {
+	public static final String SATCHEL_SLOT = "chest/lower_back";
+	public static final String LEFT_POUCH_SLOT = "legs/left_hip";
+	public static final String RIGHT_POUCH_SLOT = "legs/right_hip";
+
 	public static final int SATCHEL_INDEX = 0;
 	public static final int LEFT_POUCH_INDEX = 0;
-	public static final int RIGHT_POUCH_INDEX = 1;
+	public static final int RIGHT_POUCH_INDEX = 0;
 
 	private TrinketsIntegration() {
 	}
@@ -41,16 +44,16 @@ public final class TrinketsIntegration {
 	public static EquippedBags findEquippedBags(Player player) {
 		Objects.requireNonNull(player, "player");
 		return new EquippedBags(
-			capture(player, DefaultTrinketSlots.CHEST_BACK, SATCHEL_INDEX, BagEquipmentRole.SATCHEL),
-			capture(player, DefaultTrinketSlots.LEGS_BELT, LEFT_POUCH_INDEX, BagEquipmentRole.POUCH),
-			capture(player, DefaultTrinketSlots.LEGS_BELT, RIGHT_POUCH_INDEX, BagEquipmentRole.POUCH)
+			capture(player, SATCHEL_SLOT, SATCHEL_INDEX, BagEquipmentRole.SATCHEL),
+			capture(player, LEFT_POUCH_SLOT, LEFT_POUCH_INDEX, BagEquipmentRole.POUCH),
+			capture(player, RIGHT_POUCH_SLOT, RIGHT_POUCH_INDEX, BagEquipmentRole.POUCH)
 		);
 	}
 
 	static boolean isAllowedSlot(BagEquipmentRole role, String slotId) {
 		return switch (role) {
-			case SATCHEL -> DefaultTrinketSlots.CHEST_BACK.equals(slotId);
-			case POUCH -> DefaultTrinketSlots.LEGS_BELT.equals(slotId);
+			case SATCHEL -> SATCHEL_SLOT.equals(slotId);
+			case POUCH -> LEFT_POUCH_SLOT.equals(slotId) || RIGHT_POUCH_SLOT.equals(slotId);
 		};
 	}
 
