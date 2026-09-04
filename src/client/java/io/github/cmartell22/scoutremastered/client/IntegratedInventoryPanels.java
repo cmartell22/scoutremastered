@@ -92,6 +92,9 @@ final class IntegratedInventoryPanels {
 			Slot slot = screen.getMenu().getSlot(index);
 			if (IntegratedInventoryLayout.isActiveMenuSlot(index, data)) {
 				drawSlot(graphics, left + slot.x - 1, top + slot.y - 1);
+				if (isReadySlot(index)) {
+					ReadySlotMarker.render(graphics, left + slot.x, top + slot.y);
+				}
 			}
 		}
 	}
@@ -143,6 +146,12 @@ final class IntegratedInventoryPanels {
 			graphics.fill(x + width - 2, y + height - 2, x + width - 1, y + height - 1, PANEL_BORDER);
 			graphics.fill(joinEnd, y + height - 1, x + width - 2, y + height, PANEL_BORDER);
 		}
+	}
+
+	private static boolean isReadySlot(int menuIndex) {
+		return menuIndex == IntegratedInventoryLayout.SATCHEL_START
+			|| menuIndex == IntegratedInventoryLayout.LEFT_POUCH_START
+			|| menuIndex == IntegratedInventoryLayout.RIGHT_POUCH_START;
 	}
 
 	private static void drawSlot(GuiGraphicsExtractor graphics, int x, int y) {

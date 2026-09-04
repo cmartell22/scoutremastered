@@ -1,0 +1,95 @@
+diff --git a/src/client/java/io/github/cmartell22/scoutremastered/client/IntegratedInventoryPanels.java b/src/client/java/io/github/cmartell22/scoutremastered/client/IntegratedInventoryPanels.java
+index a870208..c56cbe4 100644
+--- a/src/client/java/io/github/cmartell22/scoutremastered/client/IntegratedInventoryPanels.java
++++ b/src/client/java/io/github/cmartell22/scoutremastered/client/IntegratedInventoryPanels.java
+@@ -92,6 +92,9 @@ final class IntegratedInventoryPanels {
+ 			Slot slot = screen.getMenu().getSlot(index);
+ 			if (IntegratedInventoryLayout.isActiveMenuSlot(index, data)) {
+ 				drawSlot(graphics, left + slot.x - 1, top + slot.y - 1);
++				if (isReadySlot(index)) {
++					ReadySlotMarker.render(graphics, left + slot.x, top + slot.y);
++				}
+ 			}
+ 		}
+ 	}
+@@ -145,6 +148,12 @@ final class IntegratedInventoryPanels {
+ 		}
+ 	}
+ 
++	private static boolean isReadySlot(int menuIndex) {
++		return menuIndex == IntegratedInventoryLayout.SATCHEL_START
++			|| menuIndex == IntegratedInventoryLayout.LEFT_POUCH_START
++			|| menuIndex == IntegratedInventoryLayout.RIGHT_POUCH_START;
++	}
++
+ 	private static void drawSlot(GuiGraphicsExtractor graphics, int x, int y) {
+ 		graphics.fill(x, y, x + 18, y + 18, SLOT_HIGHLIGHT);
+ 		graphics.fill(x, y, x + 17, y + 17, SLOT_BORDER);
+diff --git a/src/client/java/io/github/cmartell22/scoutremastered/client/PackScreen.java b/src/client/java/io/github/cmartell22/scoutremastered/client/PackScreen.java
+index f660382..4c4e73f 100644
+--- a/src/client/java/io/github/cmartell22/scoutremastered/client/PackScreen.java
++++ b/src/client/java/io/github/cmartell22/scoutremastered/client/PackScreen.java
+@@ -42,6 +42,22 @@ public final class PackScreen extends AbstractContainerScreen<PackMenu> {
+ 			graphics.fill(slotX + 1, slotY + 1, slotX + 17, slotY + 2, SLOT_HIGHLIGHT);
+ 			graphics.fill(slotX + 1, slotY + 1, slotX + 2, slotY + 17, SLOT_HIGHLIGHT);
+ 		}
++
++		drawReadySlotMarkers(graphics, x, y);
++	}
++
++	private void drawReadySlotMarkers(GuiGraphicsExtractor graphics, int x, int y) {
++		PackMenuData data = this.menu.data();
++		PackMenuLayout layout = this.menu.layout();
++		if (data.satchelCapacity() > 0) {
++			ReadySlotMarker.render(graphics, x + layout.satchelSlotX(0), y + layout.satchelSlotY(0));
++		}
++		if (data.leftPouchCapacity() > 0) {
++			ReadySlotMarker.render(graphics, x + layout.leftPouchSlotX(0), y + layout.pouchSlotY(0));
++		}
++		if (data.rightPouchCapacity() > 0) {
++			ReadySlotMarker.render(graphics, x + layout.rightPouchSlotX(0), y + layout.pouchSlotY(0));
++		}
+ 	}
+ 
+ 	@Override
+diff --git a/src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotMarker.java b/src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotMarker.java
+new file mode 100644
+index 0000000..31e4c86
+--- /dev/null
++++ b/src/client/java/io/github/cmartell22/scoutremastered/client/ReadySlotMarker.java
+@@ -0,0 +1,21 @@
++package io.github.cmartell22.scoutremastered.client;
++
++import net.minecraft.client.gui.GuiGraphicsExtractor;
++import net.minecraft.client.renderer.RenderPipelines;
++import net.minecraft.resources.Identifier;
++
++/** Faded eye-and-swap watermark drawn beneath items in Scout's three ready slots. */
++final class ReadySlotMarker {
++	private static final int SIZE = 16;
++	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(
++		"scoutremastered",
++		"textures/gui/ready_slot_icon.png"
++	);
++
++	private ReadySlotMarker() {
++	}
++
++	static void render(GuiGraphicsExtractor graphics, int x, int y) {
++		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, SIZE, SIZE, SIZE, SIZE);
++	}
++}
+diff --git a/src/client/resources/assets/scoutremastered/textures/gui/ready_slot_icon.png b/src/client/resources/assets/scoutremastered/textures/gui/ready_slot_icon.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..290a88eae839c96539c794202f0ce88b9d6e6659
+GIT binary patch
+literal 204
+zcmeAS@N?(olHy`uVBq!ia0vp^0wB!61|;P_|4#%`lRaG=Ln`JZCrD%*=<t4Yw0U#g
+zizFegW3%IIEMBWGOxVM@oYA27MArt%E?>FTYi~T^TzQxqB-ft9aLwSyuYZm_W`%i<
+zt*R`!4%hxXxYf9a{W{;1hsHBFV~uy|CIxjdozQbIXF1A{!xd+{`#<A+)(-{_eRi7;
+zHQdl}nx1}8z0;S^meFvLc9Uv&3G;?!dmI@VmTD&nzMYn`5a>JxPgg&ebxsLQ0LB4K
+AF8}}l
+
+literal 0
+HcmV?d00001
+
